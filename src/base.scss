@@ -15,6 +15,16 @@ $stem-border: darken($stem-background, 50);
   width: inherit;
 }
 
+// Animations
+
+@keyframes fade-in {
+  0% {opacity: 0;}
+  50% {opacity: 90%;}
+  100% {opacity: 100%;}
+}
+
+// Elements
+
 body {
   width: inherit;
   height: inherit;
@@ -93,6 +103,8 @@ img {
 }
 
 .question-screen {
+
+  animation: fade-in 0.5s;
 
   .question {
 

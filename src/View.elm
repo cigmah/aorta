@@ -33,8 +33,8 @@ view model =
 viewStartScreen : Html Msg
 viewStartScreen =
     div [ class "start-menu" ]
-        [ h1 [ class "title" ] [ text "MERT" ]
-        , h2 [ class "subtitle" ] [ text "A free and open source Mini EMQ Revision Tool." ]
+        [ h1 [ class "title" ] [ text "AORTA" ]
+        , h2 [ class "subtitle" ] [ text "An open revision tool for assessments." ]
         , button [ onClick UserClickedStart ] [ text "Start" ]
         ]
 
