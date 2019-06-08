@@ -1,7 +1,11 @@
 $peach : linear-gradient( 90deg, #FFD3A5 15%, #FD6585 100%);
 $button-background: hsl(0,60,60);
+$button-outline: hsl(0,0,20);
 $button-text: white;
 $button-hover: grey;
+$choice-background: hsl(0,0,60);
+$correct: hsl(110, 50, 60);
+$incorrect: hsl(0, 70, 60);
 $stem-background: hsl(40, 80, 95);
 $stem-text: darken($stem-background, 80);
 $stem-border: darken($stem-background, 50);
@@ -23,19 +27,23 @@ button {
   background: $button-background;
   color: $button-text;
   border: none;
-  border-top: 2px solid white;
-  border-bottom: 2px solid darken($button-background, 15);
+  border-top: 4px solid white;
+  border-bottom: 4px solid darken($button-background, 10);
   border-radius: 0.25em;
 
   &:hover {
-    border-bottom-width: 4px;
-    border-top-width: 0px;
+    border-bottom-width: 5px;
+    border-top-width: 3px;
     cursor: pointer;
   }
 
   &:active {
     border-bottom-width: 0;
-    border-top-width: 4px;
+    border-top-width: 8px;
+  }
+
+  &:focus {
+    outline: $button-outline;
   }
 
 }
@@ -103,7 +111,28 @@ img {
 
       .choice {
         text-align: left;
-        margin-bottom: 0.1em;
+        background-color: $choice-background;
+        border-bottom-color: darken($choice-background, 10);
+
+        &.with-response {
+
+          &.is-selected {
+            border-bottom-width: 0;
+            border-top-width: 8px;
+
+            &:not(.is-correct) {
+            background-color: $incorrect;
+            border-bottom-color: darken($incorrect, 10);
+            }
+
+          }
+
+          &.is-correct {
+            background-color: $correct;
+            border-bottom-color: darken($correct, 10);
+          }
+
+        }
 
         .marker {
           display: inline-block;

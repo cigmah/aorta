@@ -1,4 +1,4 @@
-module Types exposing (Model, Msg(..), QuestionPhase(..), Screen(..), initialModel)
+module Types exposing (Model, Msg(..), QuestionPhase(..), Screen(..), hasResponded, initialModel)
 
 import Dict exposing (Dict)
 import Question exposing (..)

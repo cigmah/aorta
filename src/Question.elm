@@ -107,6 +107,9 @@ default =
         [ { description = "This is *another* test of Markdown."
           , explanation = "This is correct because..."
           }
+        , { description = "Another wrong option"
+          , explanation = "Another wrong explanation."
+          }
         ]
     , explanation = "What a measly explanation"
     , createdBy = Nothing

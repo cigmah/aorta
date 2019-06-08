@@ -81,7 +81,24 @@ viewQuestion model questionPhase question =
 
 viewChoice : QuestionPhase -> Int -> ChoiceView -> Html Msg
 viewChoice questionPhase index choice =
-    button [ class "choice", onClick (UserClickedResponse choice) ]
+    let
+        isSelected =
+            case questionPhase of
+                NotResponded ->
+                    False
+
+                Responded selectedChoice ->
+                    selectedChoice == choice
+    in
+    button
+        [ class "choice"
+        , onClick (UserClickedResponse choice)
+        , classList
+            [ ( "with-response", hasResponded questionPhase )
+            , ( "is-selected", isSelected )
+            , ( "is-correct", choice.isCorrect )
+            ]
+        ]
         [ span [ class "index" ] [ text <| String.fromInt index ]
         , span [ class "description" ] (markdown <| choiceDescription choice)
         ]

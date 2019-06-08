@@ -50,7 +50,7 @@ updateQuestionScreen msg model questionPhase question =
         NotResponded ->
             case msg of
                 UserClickedResponse choice ->
-                    ( model, Cmd.none )
+                    ( { model | screen = QuestionScreen (Responded choice) question }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
