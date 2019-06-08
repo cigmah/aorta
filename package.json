@@ -1,0 +1,27 @@
+{
+  "name": "cigmah-mert",
+  "version": "1.0.0",
+  "description": "A Mini EMQ Revision Tool.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "build-css": "node-sass-chokidar src/ -o src/",
+    "watch-css": "npm run build-css && node-sass-chokidar src/ -o src/ --watch --recursive",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cigmah/cigmah-mert.git"
+  },
+  "author": "CIGMAH",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/cigmah/cigmah-mert/issues"
+  },
+  "homepage": "https://github.com/cigmah/cigmah-mert#readme",
+  "dependencies": {
+    "node-sass-chokidar": "^1.3.5"
+  }
+}
