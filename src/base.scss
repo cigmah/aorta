@@ -1,15 +1,124 @@
-body {
-  font-family: 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
-  margin: 0;
-  text-align: center;
-  color: #293c4b;
+$peach : linear-gradient( 90deg, #FFD3A5 15%, #FD6585 100%);
+$button-background: hsl(0,60,60);
+$button-text: white;
+$button-hover: grey;
+$stem-background: hsl(40, 80, 95);
+$stem-text: darken($stem-background, 80);
+$stem-border: darken($stem-background, 50);
+
+[data-elm-hot="true"] {
+  height: inherit;
+  width: inherit;
 }
 
-h1 {
-  font-size: 30px;
+body {
+  width: inherit;
+  height: inherit;
+  margin: 0;
+}
+
+button {
+  padding-top: 0.25em;
+  padding-bottom: 0.25em;
+  background: $button-background;
+  color: $button-text;
+  border: none;
+  border-top: 2px solid white;
+  border-bottom: 2px solid darken($button-background, 15);
+  border-radius: 0.25em;
+
+  &:hover {
+    border-bottom-width: 4px;
+    border-top-width: 0px;
+    cursor: pointer;
+  }
+
+  &:active {
+    border-bottom-width: 0;
+    border-top-width: 4px;
+  }
+
+}
+
+html {
+  margin: 0;
+  height: 100vh;
+  width: 100vw;
+  font-family: sans-serif;
 }
 
 img {
-  margin: 20px 0;
-  max-width: 200px;
+  max-width: 300px;
+  max-height: 300px;
+}
+
+.container {
+  width: 80%;
+  height: inherit;
+  padding-top: 1em;
+  box-sizing: border-box;
+  margin: auto;
+  overflow: auto;
+}
+
+
+// Screens
+
+
+.start-menu {
+  display: flex;
+  flex-direction: column;
+
+  .title {
+    font-weight: normal;
+    text-align: center;
+    margin: 0;
+  }
+
+  .subtitle {
+    text-align: center;
+    font-weight: normal;
+    font-size: 1.2em;
+    margin: 0;
+  }
+
+}
+
+.question-screen {
+
+  .question {
+
+    .stem {
+      background: $stem-background;
+      border: 3px double $stem-border;
+      color: $stem-text;
+      padding-left: 1em;
+      padding-right: 1em;
+      margin-bottom: 1em;
+    }
+
+    .choice-list {
+      display: flex;
+      flex-direction: column;
+
+      .choice {
+        text-align: left;
+        margin-bottom: 0.1em;
+
+        .marker {
+          display: inline-block;
+        }
+
+        .description {
+          display: inline-block;
+          margin-left: 1em;
+
+          p {
+            margin: 0;
+          }
+        }
+
+      }
+    }
+  }
 }

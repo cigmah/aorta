@@ -8,12 +8,13 @@ import Time exposing (Posix)
 
 type Screen
     = StartScreen
-    | QuestionScreen QuestionPhase Question
+    | LoadingScreen
+    | QuestionScreen QuestionPhase QuestionView
 
 
 type QuestionPhase
     = NotResponded
-    | Responded Choice
+    | Responded ChoiceView
 
 
 type alias Model =
@@ -22,8 +23,23 @@ type alias Model =
 
 type Msg
     = UserClickedStart
-    | UserClickedResponse Choice
+    | SystemGotShuffledQuestion QuestionView
+    | UserClickedResponse ChoiceView
     | UserClickedNextQuestion
+
+
+
+-- Functions
+
+
+hasResponded : QuestionPhase -> Bool
+hasResponded questionPhase =
+    case questionPhase of
+        NotResponded ->
+            False
+
+        Responded _ ->
+            True
 
 
 
