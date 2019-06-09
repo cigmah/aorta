@@ -6,6 +6,8 @@ $button-hover: grey;
 $choice-background: hsl(0,0,60);
 $correct: hsl(110, 50, 60);
 $incorrect: hsl(0, 70, 60);
+$input: hsl(0, 0, 50);
+$input-focus: hsl(0, 0, 95);
 $stem-background: hsl(40, 80, 95);
 $stem-text: darken($stem-background, 80);
 $stem-border: darken($stem-background, 50);
@@ -70,6 +72,19 @@ img {
   max-height: 300px;
 }
 
+input {
+  width: 100%;
+  padding: 0.75em;
+  border: none;
+  border-radius: 0.5em  ;
+  background: $input;
+
+  &:focus {
+    background: $input-focus;
+  }
+
+}
+
 .container {
   width: 80%;
   height: inherit;
@@ -82,6 +97,26 @@ img {
 
 // Screens
 
+
+.modal {
+  width: 100vw;
+  height: 100vh;
+  background: black;
+  opacity: 0.5;
+  position: absolute;
+  padding: 1em;
+  box-sizing: border-box;
+  top: 0;
+  left: 0;
+
+  .login {
+    margin: auto;
+    width: 100%;
+    max-width: 600px;
+
+  }
+
+}
 
 .start-menu {
   display: flex;
