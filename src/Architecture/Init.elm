@@ -4,16 +4,18 @@ import Architecture.Model exposing (..)
 import Architecture.Msg exposing (..)
 import Architecture.Route as Route exposing (Route)
 import Browser.Navigation as Navigation exposing (Key)
+import Json.Decode exposing (Value)
 import Page.Home as Home
 import Page.NotFound as NotFound
+import Types.Credentials exposing (Auth(..))
 import Types.Session exposing (Session)
 import Url exposing (Url)
 
 
 init : () -> Url -> Key -> ( Model, Cmd Msg )
 init flags url key =
-    Route.fromUrl url
-        |> (\route -> fromRoute route {})
+    { message = Nothing, auth = Guest }
+        |> fromRoute (Route.fromUrl url)
 
 
 extractWith : (subModel -> Model) -> (subMsg -> Msg) -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )

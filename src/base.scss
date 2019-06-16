@@ -39,19 +39,19 @@ button {
   background: $button-background;
   color: $button-text;
   border: none;
-  border-top: 4px solid white;
+  margin-top: 4px;
   border-bottom: 4px solid darken($button-background, 10);
   border-radius: 0.25em;
 
   &:hover {
     border-bottom-width: 5px;
-    border-top-width: 3px;
+    margin-top: 3px;
     cursor: pointer;
   }
 
   &:active {
     border-bottom-width: 0;
-    border-top-width: 8px;
+    margin-top: 8px;
   }
 
   &:focus {

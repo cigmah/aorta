@@ -15,3 +15,5 @@ node_modules
 
 # Using SASS so ignore CSS
 *.css
+
+Secret.elm

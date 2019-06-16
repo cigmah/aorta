@@ -1,25 +1,28 @@
 module Page.NotFound exposing (Model, Msg, eject, init, subscriptions, update, view)
 
 import Browser exposing (Document)
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Types.Session exposing (Session)
 
 
 type alias Model =
-    {}
+    { session : Session }
 
 
 type Msg
-    = Test
+    = NoOp
 
 
 init : Session -> ( Model, Cmd Msg )
 init session =
-    ( {}, Cmd.none )
+    ( { session = session }, Cmd.none )
 
 
 eject : Model -> Session
 eject model =
-    {}
+    model.session
 
 
 subscriptions : Model -> Sub Msg
@@ -29,11 +32,16 @@ subscriptions model =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( {}, Cmd.none )
+    ( model, Cmd.none )
 
 
 view : Model -> Document Msg
 view model =
     { title = ""
-    , body = []
+    , body = [ viewBody model ]
     }
+
+
+viewBody : Model -> Html Msg
+viewBody model =
+    div [] []
