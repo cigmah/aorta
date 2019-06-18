@@ -1,7 +1,9 @@
 module Types.Request exposing
-    ( Endpoint
+    ( Endpoint(..)
     , GetRequest
     , PostRequest
+    , get
+    , post
     )
 
 import Http exposing (Header, header)
