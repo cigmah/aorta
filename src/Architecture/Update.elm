@@ -4,6 +4,7 @@ import Architecture.Init exposing (extractWith)
 import Architecture.Model exposing (..)
 import Architecture.Msg exposing (..)
 import Architecture.Route as Route exposing (Route)
+import Page.Classic as Classic
 import Page.Home as Home
 import Page.NotFound as NotFound
 import Types.Session as Session exposing (Session)
@@ -23,6 +24,10 @@ update msg model =
             NotFound.update subMsg subModel
                 |> extractWith NotFound GotNotFoundMsg
 
+        ( GotClassicMsg subMsg, Classic submodel ) ->
+            Classic.update subMsg submodel
+                |> extractWith Classic GotClassicMsg
+
         _ ->
             ( model, Cmd.none )
 
@@ -35,6 +40,9 @@ eject page =
 
         NotFound model ->
             NotFound.eject model
+
+        Classic model ->
+            Classic.eject model
 
 
 reroute : Route -> Model -> ( Model, Cmd Msg )
@@ -51,3 +59,7 @@ reroute route model =
         Route.NotFound ->
             NotFound.init session
                 |> extractWith NotFound GotNotFoundMsg
+
+        Route.Classic ->
+            Classic.init session
+                |> extractWith Classic GotClassicMsg

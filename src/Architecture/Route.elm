@@ -9,6 +9,7 @@ import Url.Parser exposing (..)
 type Route
     = Home
     | NotFound
+    | Classic
 
 
 parser : Parser (Route -> a) a

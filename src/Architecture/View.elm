@@ -7,6 +7,7 @@ import Browser exposing (Document)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import Page.Classic as Classic
 import Page.Home as Home
 import Page.NotFound as NotFound
 
@@ -21,6 +22,10 @@ view model =
         NotFound session ->
             NotFound.view session
                 |> viewPage GotNotFoundMsg
+
+        Classic subModel ->
+            Classic.view subModel
+                |> viewPage GotClassicMsg
 
 
 viewPage : (subMsg -> Msg) -> Document subMsg -> Document Msg

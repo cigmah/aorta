@@ -2,6 +2,7 @@ module Architecture.Msg exposing (Msg(..))
 
 import Architecture.Route as Route exposing (Route)
 import Browser exposing (UrlRequest)
+import Page.Classic as Classic
 import Page.Home as Home
 import Page.NotFound as NotFound
 import Url exposing (Url)
@@ -13,3 +14,4 @@ type Msg
     | RouteChanged Route
     | GotHomeMsg Home.Msg
     | GotNotFoundMsg NotFound.Msg
+    | GotClassicMsg Classic.Msg
