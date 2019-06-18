@@ -10,6 +10,7 @@ import Html.Events exposing (onClick)
 import Page.Classic as Classic
 import Page.Home as Home
 import Page.NotFound as NotFound
+import Secret exposing (baseUrl)
 
 
 view : Model -> Document Msg
@@ -44,7 +45,7 @@ navMenu : Html Msg
 navMenu =
     nav []
         [ div [ class "icon" ]
-            [ img [ class "logo", src "./logo.svg" ] []
+            [ img [ class "logo", src <| baseUrl ++ "logo.svg" ] []
             , text "AORTA"
             ]
         , div

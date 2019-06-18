@@ -1,11 +1,13 @@
 module Types.Session exposing (Session, addMessage)
 
+import Browser.Navigation exposing (Key)
 import Types.Credentials exposing (..)
 
 
 type alias Session =
     { message : Maybe (List String)
     , auth : Auth
+    , key : Key
     }
 
 

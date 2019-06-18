@@ -15,7 +15,7 @@ import Url exposing (Url)
 
 init : () -> Url -> Key -> ( Model, Cmd Msg )
 init flags url key =
-    { message = Nothing, auth = Guest }
+    { message = Nothing, auth = Guest, key = key }
         |> fromRoute (Route.fromUrl url)
 
 

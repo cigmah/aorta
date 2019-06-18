@@ -1,9 +1,10 @@
 module Architecture.Update exposing (update)
 
-import Architecture.Init exposing (extractWith)
+import Architecture.Init exposing (extractWith, fromRoute)
 import Architecture.Model exposing (..)
 import Architecture.Msg exposing (..)
 import Architecture.Route as Route exposing (Route)
+import Browser.Navigation as Navigation
 import Page.Classic as Classic
 import Page.Home as Home
 import Page.NotFound as NotFound
@@ -13,8 +14,17 @@ import Types.Session as Session exposing (Session)
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model ) of
-        ( RouteChanged route, _ ) ->
-            reroute route model
+        ( RouteChanged route, oldModel ) ->
+            reroute route oldModel
+                |> addCmdMsg
+                    (Navigation.pushUrl
+                        (.key (eject oldModel))
+                        (Route.toString route)
+                    )
+
+        ( UrlChanged url, oldModel ) ->
+            eject oldModel
+                |> fromRoute (Route.fromUrl url)
 
         ( GotHomeMsg subMsg, Home subModel ) ->
             Home.update subMsg subModel
@@ -43,6 +53,11 @@ eject page =
 
         Classic model ->
             Classic.eject model
+
+
+addCmdMsg : Cmd Msg -> ( a, Cmd Msg ) -> ( a, Cmd Msg )
+addCmdMsg extraCmd ( a, cmds ) =
+    ( a, Cmd.batch [ cmds, extraCmd ] )
 
 
 reroute : Route -> Model -> ( Model, Cmd Msg )

@@ -1,9 +1,11 @@
 module Page.Home exposing (Model, Msg, eject, init, subscriptions, update, view)
 
 import Browser exposing (Document)
+import Browser.Navigation as Navigation
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Secret exposing (baseUrl)
 import Types.Credentials exposing (Auth(..))
 import Types.Question
 import Types.Request
@@ -19,6 +21,8 @@ type alias Model =
 
 type Msg
     = NoOp
+    | ClickedClassicMode
+    | ClickedAdventureMode
 
 
 init : Session -> ( Model, Cmd Msg )
@@ -52,7 +56,20 @@ subscriptions model =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    let
+        ignore =
+            ( model, Cmd.none )
+    in
+    case msg of
+        NoOp ->
+            ignore
+
+        ClickedClassicMode ->
+            ( model, Navigation.pushUrl model.session.key "/#/classic" )
+
+        ClickedAdventureMode ->
+            -- TODO
+            ignore
 
 
 view : Model -> Document Msg
@@ -67,14 +84,14 @@ viewBody model =
     div [ class "home screen" ]
         [ h1 [ class "title" ] [ text "AORTA" ]
         , div [ class "subtitle" ] [ text "An open revision tool for assessments." ]
-        , img [ class "big", src "./logo.svg" ] []
+        , img [ class "big", src <| baseUrl ++ "/logo.svg" ] []
         , div [ class "buttons" ]
             [ div [ class "button-container" ]
-                [ button []
+                [ button [ onClick ClickedClassicMode ]
                     [ text "Classic Mode" ]
                 ]
             , div [ class "button-container" ]
-                [ button []
+                [ button [ onClick ClickedAdventureMode ]
                     [ text "Adventure Mode" ]
                 ]
             ]
