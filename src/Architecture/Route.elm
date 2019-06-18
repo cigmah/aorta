@@ -1,7 +1,6 @@
 module Architecture.Route exposing (Route(..), fromUrl, parser)
 
 import Architecture.Model exposing (..)
-import Architecture.Msg exposing (..)
 import Browser.Navigation exposing (Key, replaceUrl)
 import Url exposing (Url)
 import Url.Parser exposing (..)

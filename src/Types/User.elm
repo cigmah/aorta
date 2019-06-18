@@ -1,4 +1,4 @@
-module Types.User exposing (User, decoder)
+module Types.User exposing (Stats, User, decoder)
 
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Decode.Pipeline as Pipeline exposing (optional, required)
@@ -14,3 +14,7 @@ decoder =
     Decode.map2 User
         (Decode.field "id" Decode.int)
         (Decode.field "username" Decode.string)
+
+
+type alias Stats =
+    { answer : Int }

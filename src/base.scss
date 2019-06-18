@@ -1,16 +1,8 @@
-$peach : linear-gradient( 90deg, #FFD3A5 15%, #FD6585 100%);
-$button-background: hsl(0,60,60);
-$button-outline: hsl(0,0,20);
-$button-text: white;
-$button-hover: grey;
-$choice-background: hsl(0,0,60);
-$correct: hsl(110, 50, 60);
-$incorrect: hsl(0, 70, 60);
+$primary: #db5772;
 $input: hsl(0, 0, 50);
 $input-focus: hsl(0, 0, 95);
-$stem-background: hsl(40, 80, 95);
-$stem-text: darken($stem-background, 80);
-$stem-border: darken($stem-background, 50);
+
+$phone: "only screen and (max-width : 430px)";
 
 [data-elm-hot="true"] {
   height: inherit;
@@ -31,17 +23,21 @@ body {
   width: inherit;
   height: inherit;
   margin: 0;
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAMAAAADCAYAAABWKLW/AAAAGklEQVQYV2NkQAKMIPan+0/+8ynKMII5MAAATUUEBB7MGIQAAAAASUVORK5CYII=) repeat;
 }
 
 button {
   padding-top: 0.25em;
   padding-bottom: 0.25em;
-  background: $button-background;
-  color: $button-text;
+  background: $primary;
+  color: white;
   border: none;
   margin-top: 4px;
-  border-bottom: 4px solid darken($button-background, 10);
+  border-bottom: 4px solid darken($primary, 5);
   border-radius: 0.25em;
+  font-size: 1em;
+  font-weight: bold;
+  -webkit-tap-highlight-color: transparent;
 
   &:hover {
     border-bottom-width: 5px;
@@ -55,7 +51,7 @@ button {
   }
 
   &:focus {
-    outline: $button-outline;
+    outline: darken($primary, 5);
   }
 
 }
@@ -65,6 +61,67 @@ html {
   height: 100vh;
   width: 100vw;
   font-family: sans-serif;
+}
+
+nav {
+  margin: 0;
+  padding: 0;
+  background: $primary;
+  width: 100%;
+  color: white;
+  box-sizing: border-box;
+  box-shadow: 0 1px 5px lightgrey;
+  flex-wrap: wrap;
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  justify-content: flex-start;
+
+  .icon {
+    font-size: 1.5em;
+
+    img {
+      height: 1.1em;
+      padding-right: 0.5em;
+    }
+
+  }
+
+  div {
+    padding: 0;
+    padding-right: 1em;
+    padding-left: 1em;
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+  }
+
+  div.right {
+    margin-left: auto;
+  }
+
+  div.link {
+    padding-top: 0.2em;
+    padding-bottom: 0.2em;
+    height: 2em;
+    cursor: pointer;
+  }
+
+  div.link:hover {
+    background: #f7e4ec;
+    cursor: background;
+    color: #a82f5a;
+  }
+
+  @media #{$phone} {
+    position: sticky;
+
+    div.link {
+      margin-left: inherit;
+    }
+  }
+
 }
 
 img {
@@ -85,4 +142,78 @@ input {
 
 }
 
+
+
 // Screens
+
+main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.home {
+  background: white;
+  margin: auto;
+  display: block;
+  width: 100%;
+  max-width: 600px;
+  box-shadow: 0 3px 5px lighten($primary, 30);
+  padding: 1em;
+  padding-bottom: 2em;
+  box-sizing: border-box;
+  border-radius: 5px;
+  max-height: 100vh;
+  overflow: auto;
+
+  img {
+    display: block;
+    margin: auto;
+    width: 80vw;
+    max-width: 400px;
+    margin-top: 1em;
+    margin-bottom: 1em;
+  }
+
+  .title {
+    text-align: center;
+    color: $primary;
+    margin: auto;
+    margin-top: 0.5em;
+    margin-bottom: 0.25em;
+    padding-top: 0.25em;
+    padding-bottom: 0.25em;
+    max-width: 400px;
+  }
+
+  .subtitle {
+    color: $primary;
+    text-align: center;
+    max-width: 400px;
+    display: block;
+    margin: auto;
+    font-weight: bold;
+  }
+
+  .buttons {
+    width: 100%;
+    max-width: 400px;
+    display: block;
+    margin: auto;
+
+    button {
+      width: 100%;
+      padding-top: 0.5em;
+      padding-bottom: 0.5em;
+      font-size: 1.2em;
+    }
+
+  }
+
+  @media #{$phone} {
+    height: 100vh;
+  }
+
+}
