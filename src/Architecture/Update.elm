@@ -4,23 +4,37 @@ import Architecture.Init exposing (extractWith, fromRoute)
 import Architecture.Model exposing (..)
 import Architecture.Msg exposing (..)
 import Architecture.Route as Route exposing (Route)
+import Browser
 import Browser.Navigation as Navigation
-import Page.Classic as Classic
 import Page.Home as Home
 import Page.NotFound as NotFound
+import Page.Questions as Questions
 import Types.Session as Session exposing (Session)
+import Url
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model ) of
-        ( RouteChanged route, oldModel ) ->
-            reroute route oldModel
+        ( RouteChanged route, _ ) ->
+            reroute route model
                 |> addCmdMsg
                     (Navigation.pushUrl
-                        (.key (eject oldModel))
+                        (.key (eject model))
                         (Route.toString route)
                     )
+
+        ( UrlRequested urlRequest, _ ) ->
+            case urlRequest of
+                Browser.Internal internal ->
+                    ( model
+                    , Navigation.pushUrl
+                        (.key (eject model))
+                        (Url.toString internal)
+                    )
+
+                Browser.External external ->
+                    ( model, Navigation.load external )
 
         ( UrlChanged url, oldModel ) ->
             eject oldModel
@@ -34,9 +48,9 @@ update msg model =
             NotFound.update subMsg subModel
                 |> extractWith NotFound GotNotFoundMsg
 
-        ( GotClassicMsg subMsg, Classic submodel ) ->
-            Classic.update subMsg submodel
-                |> extractWith Classic GotClassicMsg
+        ( GotQuestionsMsg subMsg, Questions submodel ) ->
+            Questions.update subMsg submodel
+                |> extractWith Questions GotQuestionsMsg
 
         _ ->
             ( model, Cmd.none )
@@ -51,8 +65,8 @@ eject page =
         NotFound model ->
             NotFound.eject model
 
-        Classic model ->
-            Classic.eject model
+        Questions model ->
+            Questions.eject model
 
 
 addCmdMsg : Cmd Msg -> ( a, Cmd Msg ) -> ( a, Cmd Msg )
@@ -75,6 +89,6 @@ reroute route model =
             NotFound.init session
                 |> extractWith NotFound GotNotFoundMsg
 
-        Route.Classic ->
-            Classic.init session
-                |> extractWith Classic GotClassicMsg
+        Route.Questions ->
+            Questions.init session
+                |> extractWith Questions GotQuestionsMsg

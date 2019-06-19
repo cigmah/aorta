@@ -2,11 +2,14 @@ module Architecture.Route exposing
     ( Route(..)
     , fromUrl
     , parser
+    , toHref
     , toString
     )
 
 import Architecture.Model exposing (..)
 import Browser.Navigation exposing (Key, replaceUrl)
+import Html exposing (Attribute)
+import Html.Attributes exposing (href)
 import Url exposing (Url)
 import Url.Parser exposing (..)
 
@@ -14,7 +17,7 @@ import Url.Parser exposing (..)
 type Route
     = Home
     | NotFound
-    | Classic
+    | Questions
 
 
 {-| This parser is completely fragment-based to accommodate GitHub pages. |
@@ -27,8 +30,8 @@ parser =
 fragmentToRoute : Maybe String -> Route
 fragmentToRoute string =
     case string of
-        Just "/classic" ->
-            Classic
+        Just "/questions" ->
+            Questions
 
         Just "/" ->
             Home
@@ -57,7 +60,14 @@ toString route =
                 NotFound ->
                     "404"
 
-                Classic ->
-                    "classic"
+                Questions ->
+                    "questions"
     in
     "#/" ++ path
+
+
+toHref : Route -> Attribute msg
+toHref route =
+    "./"
+        ++ toString route
+        |> href

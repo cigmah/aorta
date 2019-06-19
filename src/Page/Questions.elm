@@ -1,4 +1,4 @@
-module Page.Classic exposing (Model, Msg, eject, init, subscriptions, update, view)
+module Page.Questions exposing (Model, Msg, eject, init, subscriptions, update, view)
 
 import Browser exposing (Document)
 import Html exposing (..)

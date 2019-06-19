@@ -81,18 +81,4 @@ view model =
 
 viewBody : Model -> Html Msg
 viewBody model =
-    div [ class "home screen" ]
-        [ h1 [ class "title" ] [ text "AORTA" ]
-        , div [ class "subtitle" ] [ text "An open revision tool for assessments." ]
-        , img [ class "big", src <| baseUrl ++ "/logo.svg" ] []
-        , div [ class "buttons" ]
-            [ div [ class "button-container" ]
-                [ button [ onClick ClickedClassicMode ]
-                    [ text "Classic Mode" ]
-                ]
-            , div [ class "button-container" ]
-                [ button [ onClick ClickedAdventureMode ]
-                    [ text "Adventure Mode" ]
-                ]
-            ]
-        ]
+    div [] []

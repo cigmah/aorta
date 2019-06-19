@@ -33,3 +33,14 @@ Adding a page requires some boilerplate.
 8. Import the page and add the `view` function to `View.elm` under the `view` function.
 
 It's a lot, yes. This should be scriptable, so we may make a script for it sometime.
+
+## Styles
+
+This project uses [Tailwind CSS](https://github.com/tailwindcss/tailwindcss) for styling.
+
+Styles are specified in the `src/styles.css` file. When modifications are made,
+run the following command from the `src` directory to rebuild the styles (saved to `src/output.css`).
+
+```sh
+npx tailwind build styles.css -o output.css
+```
