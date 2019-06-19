@@ -88,8 +88,8 @@ markdown content =
 viewCard : { title : String, content : String } -> Html Msg
 viewCard data =
     article
-        [ class "bg-white rounded shadow sm:m-2 w-auto max-w-2xl sm:w-full sm:mx-auto" ]
-        [ header [ class "bg-gray-200 text-gray-600 px-2 py-1 pt-8 pb-2 sm:py-1" ]
+        [ class "bg-white rounded shadow m-2 w-auto max-w-2xl sm:w-full sm:mx-auto" ]
+        [ header [ class "bg-gray-200 text-gray-600 px-2 py-2" ]
             [ p [ class "font-bold" ] [ text data.title ] ]
         , section
             [ class "p-2 text-gray-900" ]
@@ -101,11 +101,11 @@ viewCard data =
 viewInfo : Html Msg
 viewInfo =
     article
-        [ class "bg-white sm:rounded sm:shadow w-full max-w-2xl mx-auto" ]
-        [ header [ class "bg-gray-800 text-white px-2 sm:rounded-t pt-8 pb-2 sm:py-1" ]
+        [ class "h-screen flex flex-col justify-center bg-gray-800 px-4 sm:px-0 sm:block sm:h-auto sm:bg-white sm:rounded sm:shadow w-full max-w-2xl mx-auto" ]
+        [ header [ class "text-3xl sm:text-xl bg-gray-800 text-white px-2 sm:rounded-t pt-8 pb-2 sm:pt-2" ]
             [ p [ class "font-bold" ] [ text "AORTA" ] ]
         , section
-            [ class "p-2 text-gray-900" ]
+            [ class "p-2 text-white sm:text-gray-900" ]
             [ strong [] [ text "AORTA" ]
             , text " is "
             , strong [] [ text "An Open Revision Tool for Assessments" ]
@@ -122,8 +122,8 @@ tests =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    [ section [ class "mt-8 sm:mt-16 sm:px-1 sm:mb-2" ] [ viewInfo ]
-    , hr [ class "sm:my-4" ] []
+    [ section [ class "sm:mt-16 sm:px-1 sm:mb-2" ] [ viewInfo ]
+    , hr [ class "hidden sm:block sm:my-4" ] []
     , section [ class "flex flex-col w-full mb-16 sm:px-1" ]
         (List.map viewCard tests)
     ]
