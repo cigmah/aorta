@@ -55,7 +55,7 @@ wrapBody body =
         [ class "fixed w-screen shadow bg-gray-200 text-gray-600 z-10" ]
         [ nav
             [ class "flex justify-between font-bold text-center" ]
-            [ viewNavLink { name = "Home", active = False, route = Route.Home }
+            [ viewNavLink { name = "Pinboard", active = False, route = Route.Home }
             , viewNavLink { name = "EMQs", active = False, route = Route.Questions }
             , viewNavLink { name = "Cases", active = False, route = Route.NotFound }
             , viewNavLink { name = "Settings", active = False, route = Route.NotFound }
@@ -63,12 +63,9 @@ wrapBody body =
         ]
     , main_
         [ class "flex sm:justify-center sm:bg-gray-100 min-h-screen flex-col items-center sm:py-4" ]
-        [ article
-            [ class "sm:m-8 max-w-xl sm:shadow-lg rounded mt-10 mb-8 relative bg-white" ]
-            body
-        ]
+        body
     , footer
-        [ class "bg-gray-200 hidden sm:flex text-gray-500 text-sm px-4 py-2 fixed bottom-0 right-0" ]
+        [ class "bg-gray-200 hidden sm:flex text-gray-500 text-xs px-4 py-1 fixed bottom-0 right-0" ]
         [ p
             [ class "w-screen text-right" ]
             [ text "This is a project by "

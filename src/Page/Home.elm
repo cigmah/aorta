@@ -5,6 +5,7 @@ import Browser.Navigation as Navigation
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Markdown
 import Secret exposing (baseUrl)
 import Types.Credentials exposing (Auth(..))
 import Types.Question
@@ -74,11 +75,55 @@ update msg model =
 
 view : Model -> Document Msg
 view model =
-    { title = ""
-    , body = [ viewBody model ]
+    { title = "AORTA - Pinboard"
+    , body = viewBody model
     }
 
 
-viewBody : Model -> Html Msg
+markdown : String -> List (Html Msg)
+markdown content =
+    Markdown.toHtml Nothing content
+
+
+viewCard : { title : String, content : String } -> Html Msg
+viewCard data =
+    article
+        [ class "bg-white rounded shadow sm:m-2 w-auto max-w-2xl sm:w-full sm:mx-auto" ]
+        [ header [ class "bg-gray-200 text-gray-600 px-2 py-1 pt-8 pb-2 sm:py-1" ]
+            [ p [ class "font-bold" ] [ text data.title ] ]
+        , section
+            [ class "p-2 text-gray-900" ]
+            (markdown data.content)
+        , footer [] []
+        ]
+
+
+viewInfo : Html Msg
+viewInfo =
+    article
+        [ class "bg-white sm:rounded sm:shadow w-full max-w-2xl mx-auto" ]
+        [ header [ class "bg-gray-800 text-white px-2 sm:rounded-t pt-8 pb-2 sm:py-1" ]
+            [ p [ class "font-bold" ] [ text "AORTA" ] ]
+        , section
+            [ class "p-2 text-gray-900" ]
+            [ strong [] [ text "AORTA" ]
+            , text " is "
+            , strong [] [ text "An Open Revision Tool for Assessments" ]
+            , text "; a free and open-source revision tool built by the "
+            , a [ class "underline", href "https://cigmah.github.io/" ] [ text "Coding Interest Group in Medicine and Healthcare" ]
+            , text ". Updates to this tool will be posted in this space; users are also free to post feedback, feature requests or anything else of public interest here."
+            ]
+        ]
+
+
+tests =
+    List.repeat 20 { title = "test", content = "This *is* some content." }
+
+
+viewBody : Model -> List (Html Msg)
 viewBody model =
-    div [] []
+    [ section [ class "mt-8 sm:mt-16 sm:px-1 sm:mb-2" ] [ viewInfo ]
+    , hr [ class "sm:my-4" ] []
+    , section [ class "flex flex-col w-full mb-16 sm:px-1" ]
+        (List.map viewCard tests)
+    ]

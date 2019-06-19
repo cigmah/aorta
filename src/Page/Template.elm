@@ -38,10 +38,10 @@ update msg model =
 view : Model -> Document Msg
 view model =
     { title = ""
-    , body = [ viewBody model ]
+    , body = viewBody model
     }
 
 
-viewBody : Model -> Html Msg
+viewBody : Model -> List (Html Msg)
 viewBody model =
-    div [] []
+    []
