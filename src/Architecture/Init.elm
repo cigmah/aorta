@@ -7,6 +7,7 @@ import Browser.Navigation as Navigation exposing (Key)
 import Json.Decode exposing (Value)
 import Page.Home as Home
 import Page.NotFound as NotFound
+import Page.Profile as Profile
 import Page.Questions as Questions
 import Types.Credentials exposing (Auth(..))
 import Types.Session exposing (Session)
@@ -38,3 +39,7 @@ fromRoute route session =
         Route.Questions ->
             Questions.init session
                 |> extractWith Questions GotQuestionsMsg
+
+        Route.Profile ->
+            Profile.init session
+                |> extractWith Profile GotProfileMsg

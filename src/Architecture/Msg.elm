@@ -4,6 +4,7 @@ import Architecture.Route as Route exposing (Route)
 import Browser exposing (UrlRequest)
 import Page.Home as Home
 import Page.NotFound as NotFound
+import Page.Profile as Profile
 import Page.Questions as Questions
 import Url exposing (Url)
 
@@ -15,3 +16,4 @@ type Msg
     | GotHomeMsg Home.Msg
     | GotNotFoundMsg NotFound.Msg
     | GotQuestionsMsg Questions.Msg
+    | GotProfileMsg Profile.Msg

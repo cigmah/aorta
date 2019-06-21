@@ -18,6 +18,7 @@ type Route
     = Home
     | NotFound
     | Questions
+    | Profile
 
 
 {-| This parser is completely fragment-based to accommodate GitHub pages. |
@@ -35,6 +36,9 @@ fragmentToRoute string =
 
         Just "/" ->
             Home
+
+        Just "/profile" ->
+            Profile
 
         Just _ ->
             NotFound
@@ -62,6 +66,9 @@ toString route =
 
                 Questions ->
                     "questions"
+
+                Profile ->
+                    "profile"
     in
     "#/" ++ path
 

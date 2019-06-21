@@ -9,6 +9,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Page.Home as Home
 import Page.NotFound as NotFound
+import Page.Profile as Profile
 import Page.Questions as Questions
 import Secret exposing (baseUrl)
 
@@ -27,6 +28,10 @@ view model =
         Questions subModel ->
             Questions.view subModel
                 |> viewPage GotQuestionsMsg
+
+        Profile subModel ->
+            Profile.view subModel
+                |> viewPage GotProfileMsg
 
 
 viewPage : (subMsg -> Msg) -> Document subMsg -> Document Msg

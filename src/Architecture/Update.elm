@@ -8,6 +8,7 @@ import Browser
 import Browser.Navigation as Navigation
 import Page.Home as Home
 import Page.NotFound as NotFound
+import Page.Profile as Profile
 import Page.Questions as Questions
 import Types.Session as Session exposing (Session)
 import Url
@@ -52,6 +53,10 @@ update msg model =
             Questions.update subMsg submodel
                 |> extractWith Questions GotQuestionsMsg
 
+        ( GotProfileMsg subMsg, Profile subModel ) ->
+            Profile.update subMsg subModel
+                |> extractWith Profile GotProfileMsg
+
         _ ->
             ( model, Cmd.none )
 
@@ -67,6 +72,9 @@ eject page =
 
         Questions model ->
             Questions.eject model
+
+        Profile model ->
+            Profile.eject model
 
 
 addCmdMsg : Cmd Msg -> ( a, Cmd Msg ) -> ( a, Cmd Msg )
@@ -92,3 +100,7 @@ reroute route model =
         Route.Questions ->
             Questions.init session
                 |> extractWith Questions GotQuestionsMsg
+
+        Route.Profile ->
+            Profile.init session
+                |> extractWith Profile GotProfileMsg
