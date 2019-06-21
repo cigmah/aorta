@@ -1,4 +1,4 @@
-module Page.NotFound exposing (Model, Msg, eject, init, subscriptions, update, view)
+module Page.NotFound exposing (Model, Msg(..), eject, init, subscriptions, update, view)
 
 import Browser exposing (Document)
 import Html exposing (..)
@@ -13,6 +13,7 @@ type alias Model =
 
 type Msg
     = NoOp
+    | Inject Session
 
 
 init : Session -> ( Model, Cmd Msg )
@@ -32,7 +33,12 @@ subscriptions model =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
+        Inject session ->
+            ( { model | session = session }, Cmd.none )
 
 
 view : Model -> Document Msg

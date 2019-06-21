@@ -1,4 +1,4 @@
-module Types.Session exposing (Session, addMessage)
+module Types.Session exposing (Session, addMessage, clearMessages)
 
 import Browser.Navigation exposing (Key)
 import Types.Credentials exposing (..)
@@ -19,3 +19,8 @@ addMessage session message =
 
         Nothing ->
             { session | message = Just [ message ] }
+
+
+clearMessages : Session -> Session
+clearMessages session =
+    { session | message = Nothing }

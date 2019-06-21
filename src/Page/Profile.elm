@@ -1,4 +1,4 @@
-module Page.Profile exposing (Model, Msg, eject, init, subscriptions, update, view)
+module Page.Profile exposing (Model, Msg(..), eject, init, subscriptions, update, view)
 
 import Browser exposing (Document)
 import Html exposing (..)
@@ -41,6 +41,7 @@ type alias Model =
 
 type Msg
     = NoOp
+    | Inject Session
     | ContactMsg ContactSubMsg
 
 
@@ -81,6 +82,9 @@ update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
+
+        Inject session ->
+            ( { model | session = session }, Cmd.none )
 
         ContactMsg contactSubMsg ->
             updateContact contactSubMsg model

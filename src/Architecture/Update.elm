@@ -1,4 +1,4 @@
-module Architecture.Update exposing (update)
+module Architecture.Update exposing (eject, update)
 
 import Architecture.Init exposing (extractWith, fromRoute)
 import Architecture.Model exposing (..)
@@ -37,9 +37,14 @@ update msg model =
                 Browser.External external ->
                     ( model, Navigation.load external )
 
-        ( UrlChanged url, oldModel ) ->
-            eject oldModel
+        ( UrlChanged url, _ ) ->
+            eject model
                 |> fromRoute (Route.fromUrl url)
+
+        ( ClearMessages, _ ) ->
+            eject model
+                |> Session.clearMessages
+                |> inject model
 
         ( GotHomeMsg subMsg, Home subModel ) ->
             Home.update subMsg subModel
@@ -77,9 +82,28 @@ eject page =
             Profile.eject model
 
 
-addCmdMsg : Cmd Msg -> ( a, Cmd Msg ) -> ( a, Cmd Msg )
-addCmdMsg extraCmd ( a, cmds ) =
-    ( a, Cmd.batch [ cmds, extraCmd ] )
+inject : Model -> Session -> ( Model, Cmd Msg )
+inject model session =
+    case model of
+        Home subModel ->
+            subModel
+                |> Home.update (Home.Inject session)
+                |> extractWith Home GotHomeMsg
+
+        NotFound subModel ->
+            subModel
+                |> NotFound.update (NotFound.Inject session)
+                |> extractWith NotFound GotNotFoundMsg
+
+        Questions subModel ->
+            subModel
+                |> Questions.update (Questions.Inject session)
+                |> extractWith Questions GotQuestionsMsg
+
+        Profile subModel ->
+            subModel
+                |> Profile.update (Profile.Inject session)
+                |> extractWith Profile GotProfileMsg
 
 
 reroute : Route -> Model -> ( Model, Cmd Msg )
@@ -104,3 +128,8 @@ reroute route model =
         Route.Profile ->
             Profile.init session
                 |> extractWith Profile GotProfileMsg
+
+
+addCmdMsg : Cmd Msg -> ( a, Cmd Msg ) -> ( a, Cmd Msg )
+addCmdMsg extraCmd ( a, cmds ) =
+    ( a, Cmd.batch [ cmds, extraCmd ] )

@@ -20,6 +20,8 @@ $nav-link-background: #E2E8F0;
 $nav-link-background-hover: #CBD5E0;
 $nav-link-foreground: #4A5568;
 
+$message-background: white;
+
 $modal-background: rgba(255, 255, 255, 0.7);
 
 $medium: "only screen and (max-width : 760px)";
@@ -133,6 +135,23 @@ main {
     display: block;
   }
 
+}
+
+// Classes
+
+.message-list {
+  background: $message-background;
+  box-shadow: 0 0.1em 0.5em $shadow;
+  z-index: 500;
+  cursor: pointer;
+
+  article {
+    box-shadow: none;
+  }
+
+  @media #{$medium} {
+    box-shadow: none;
+  }
 }
 
 // Utilities
@@ -250,7 +269,6 @@ nav {
       background: $nav-link-background;
       flex-grow: 1;
       cursor: pointer;
-      padding: 0.25rem;
 
       &:hover {
         background: $nav-link-background-hover;

@@ -13,6 +13,7 @@ type Msg
     = UrlRequested UrlRequest
     | UrlChanged Url
     | RouteChanged Route
+    | ClearMessages
     | GotHomeMsg Home.Msg
     | GotNotFoundMsg NotFound.Msg
     | GotQuestionsMsg Questions.Msg
