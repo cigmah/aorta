@@ -107,10 +107,11 @@ type Endpoint
     = GetQuestionList
     | GetQuestion Id
     | GetQuestionRandom
-    | PostUsername
+    | PostRegister
     | PostLogin
     | PostResponse
     | PostComment
+    | PostContact
     | PostQuestion
 
 
@@ -126,11 +127,11 @@ endpointToUrl endpoint =
         GetQuestionRandom ->
             [ "question", "random" ]
 
-        PostUsername ->
-            [ "user" ]
+        PostRegister ->
+            [ "users" ]
 
         PostLogin ->
-            [ "user", "authenticate" ]
+            [ "users", "authenticate" ]
 
         PostResponse ->
             [ "question", "response" ]
@@ -140,3 +141,6 @@ endpointToUrl endpoint =
 
         PostQuestion ->
             [ "question" ]
+
+        PostContact ->
+            [ "mail" ]
