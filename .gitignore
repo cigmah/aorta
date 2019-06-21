@@ -13,7 +13,7 @@ node_modules
 # Desktop Services Store on macOS
 .DS_Store
 
-# Ignore tailwind output
-output.css
+# Ignore SASS output
+main.css
 
 Secret.elm
