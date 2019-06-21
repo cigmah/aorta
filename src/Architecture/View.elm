@@ -41,11 +41,13 @@ viewPage toMsg page =
     }
 
 
-viewNavLink : { name : String, active : Bool, route : Route } -> Html Msg
+viewNavLink : { name : String, active : Bool, route : Route, icon : String } -> Html Msg
 viewNavLink data =
     li []
         [ a [ Route.toHref data.route ]
-            [ text data.name ]
+            [ i [ class "material-icons" ] [ text data.icon ]
+            , label [] [ text data.name ]
+            ]
         ]
 
 
@@ -53,9 +55,9 @@ wrapBody : List (Html Msg) -> List (Html Msg)
 wrapBody body =
     nav []
         [ ul []
-            [ viewNavLink { name = "Search", active = False, route = Route.Home }
-            , viewNavLink { name = "Revise", active = False, route = Route.Questions }
-            , viewNavLink { name = "Settings", active = False, route = Route.NotFound }
+            [ viewNavLink { name = "Search", active = False, route = Route.Home, icon = "search" }
+            , viewNavLink { name = "Revise", active = False, route = Route.Questions, icon = "notes" }
+            , viewNavLink { name = "Profile", active = False, route = Route.Profile, icon = "person" }
             ]
         ]
         :: body
