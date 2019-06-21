@@ -1,4 +1,4 @@
-module Page.Template exposing (Model, Msg(..), eject, init, subscriptions, update, view)
+module Page.Template exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
 import Browser exposing (Document)
 import Html exposing (..)
@@ -15,7 +15,6 @@ type alias Model =
 
 type Msg
     = NoOp
-    | Inject Session
 
 
 init : Session -> ( Model, Cmd Msg )
@@ -28,6 +27,11 @@ eject model =
     model.session
 
 
+inject : Model -> Session -> ( Model, Cmd Msg )
+inject model session =
+    ( { model | session = session }, Cmd.none )
+
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
@@ -38,9 +42,6 @@ update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
-
-        Inject session ->
-            ( { model | session = session }, Cmd.none )
 
 
 view : Model -> Document Msg

@@ -1,6 +1,6 @@
 module Architecture.Update exposing (eject, update)
 
-import Architecture.Init exposing (extractWith, fromRoute)
+import Architecture.Init as Init exposing (extractWith)
 import Architecture.Model exposing (..)
 import Architecture.Msg exposing (..)
 import Architecture.Route as Route exposing (Route)
@@ -39,7 +39,7 @@ update msg model =
 
         ( UrlChanged url, _ ) ->
             eject model
-                |> fromRoute (Route.fromUrl url)
+                |> Init.fromRoute (Route.fromUrl url)
 
         ( ClearMessages, _ ) ->
             eject model
@@ -83,51 +83,33 @@ eject page =
 
 
 inject : Model -> Session -> ( Model, Cmd Msg )
-inject model session =
-    case model of
-        Home subModel ->
-            subModel
-                |> Home.update (Home.Inject session)
+inject page session =
+    case page of
+        Home model ->
+            session
+                |> Home.inject model
                 |> extractWith Home GotHomeMsg
 
-        NotFound subModel ->
-            subModel
-                |> NotFound.update (NotFound.Inject session)
+        NotFound model ->
+            session
+                |> NotFound.inject model
                 |> extractWith NotFound GotNotFoundMsg
 
-        Questions subModel ->
-            subModel
-                |> Questions.update (Questions.Inject session)
+        Questions model ->
+            session
+                |> Questions.inject model
                 |> extractWith Questions GotQuestionsMsg
 
-        Profile subModel ->
-            subModel
-                |> Profile.update (Profile.Inject session)
+        Profile model ->
+            session
+                |> Profile.inject model
                 |> extractWith Profile GotProfileMsg
 
 
 reroute : Route -> Model -> ( Model, Cmd Msg )
 reroute route model =
-    let
-        session =
-            eject model
-    in
-    case route of
-        Route.Home ->
-            Home.init session
-                |> extractWith Home GotHomeMsg
-
-        Route.NotFound ->
-            NotFound.init session
-                |> extractWith NotFound GotNotFoundMsg
-
-        Route.Questions ->
-            Questions.init session
-                |> extractWith Questions GotQuestionsMsg
-
-        Route.Profile ->
-            Profile.init session
-                |> extractWith Profile GotProfileMsg
+    eject model
+        |> Init.fromRoute route
 
 
 addCmdMsg : Cmd Msg -> ( a, Cmd Msg ) -> ( a, Cmd Msg )

@@ -1,4 +1,4 @@
-module Page.Home exposing (Model, Msg(..), eject, init, subscriptions, update, view)
+module Page.Home exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
 import Browser exposing (Document)
 import Browser.Navigation as Navigation
@@ -22,7 +22,6 @@ type alias Model =
 
 type Msg
     = NoOp
-    | Inject Session
     | ClickedClassicMode
     | ClickedAdventureMode
 
@@ -51,6 +50,11 @@ eject model =
     model.session
 
 
+inject : Model -> Session -> ( Model, Cmd Msg )
+inject model session =
+    ( { model | session = session }, Cmd.none )
+
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
@@ -65,9 +69,6 @@ update msg model =
     case msg of
         NoOp ->
             ignore
-
-        Inject session ->
-            ( { model | session = session }, Cmd.none )
 
         ClickedClassicMode ->
             ( model, Navigation.pushUrl model.session.key "/#/classic" )

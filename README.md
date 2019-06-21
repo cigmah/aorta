@@ -29,7 +29,7 @@ Adding a page requires some boilerplate.
 4. Import the page and add a message mapper to `Msg.elm` as part of the `Msg` union type.
 5. Import the page and add the `init` function to `Init.elm` under the `fromRoute` function.
 6. Import the page and add the `subscribe` function to `Subscribe.elm` under the `subscriptions` function.
-7. Import the page and add the relevant functions to `Update.elm` under the `update`, `eject`, `inject` and `reroute` functions.
+7. Import the page and add the relevant functions to `Update.elm` under the `update`, `eject` and `inject` functions.
 8. Import the page and add the `view` function to `View.elm` under the `view` function.
 
 It's a lot, yes. This should be scriptable, so we may make a script for it sometime.
