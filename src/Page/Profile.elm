@@ -17,6 +17,7 @@ import Version exposing (version)
 
 -- TODO Prevent Enter keypress from closing modals when open.
 -- TODO Save credentials on receipt of login token.
+-- TODO Show modal on logout
 -- Model
 
 
@@ -47,6 +48,7 @@ type Msg
     | ClickedOpenLoginModal
     | ClickedOpenRegisterModal
     | ClickedCloseModal
+    | ClickedLogout
 
 
 type ContactSubMsg
@@ -102,7 +104,7 @@ subscriptions model =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg ({ session } as model) =
     case msg of
         NoOp ->
             ( model, Cmd.none )
@@ -134,6 +136,13 @@ update msg model =
 
         ClickedCloseModal ->
             ( { model | modal = None }, Cmd.none )
+
+        ClickedLogout ->
+            let
+                newSession =
+                    { session | auth = Guest }
+            in
+            ( { model | session = newSession }, Session.save newSession )
 
 
 updateContact : ContactSubMsg -> Model -> ( Model, Cmd Msg )
@@ -218,14 +227,15 @@ updateRegister msg data ({ session } as model) =
             in
             case responseRegisterWebData of
                 Success responseData ->
+                    let
+                        newSession =
+                            { session | auth = User { username = responseData.username, token = responseData.token } }
+                    in
                     ( { model
                         | modal = RegisterResponse responseData
-                        , session =
-                            { session
-                                | auth = User { username = responseData.username, token = responseData.token }
-                            }
+                        , session = newSession
                       }
-                    , Cmd.none
+                    , Session.save newSession
                     )
 
                 Failure error ->
@@ -268,11 +278,15 @@ updateLogin msg data ({ session } as model) =
             in
             case responseLoginWebData of
                 Success responseData ->
+                    let
+                        newSession =
+                            { session | auth = User responseData }
+                    in
                     ( { model
                         | modal = LoginResponse responseData
-                        , session = { session | auth = User responseData }
+                        , session = newSession
                       }
-                    , Cmd.none
+                    , Session.save newSession
                     )
 
                 Failure error ->
@@ -427,7 +441,7 @@ cardUser model =
                         ]
                     ]
                 , footer []
-                    [ button [] [ text "Logout" ] ]
+                    [ button [ onClick ClickedLogout ] [ text "Logout" ] ]
                 ]
 
 

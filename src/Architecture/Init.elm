@@ -4,22 +4,34 @@ import Architecture.Model exposing (..)
 import Architecture.Msg exposing (..)
 import Architecture.Route as Route exposing (Route)
 import Browser.Navigation as Navigation exposing (Key)
-import Json.Decode exposing (Value)
+import Json.Decode as Decode exposing (Value)
 import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.Profile as Profile
 import Page.Questions as Questions
 import Types.Credentials exposing (Auth(..))
-import Types.Session exposing (Session)
+import Types.Session as Session exposing (Session)
 import Url exposing (Url)
 
 
-init : () -> Url -> Key -> ( Model, Cmd Msg )
+init : Value -> Url -> Key -> ( Model, Cmd Msg )
 init flags url key =
-    { message = Nothing
-    , auth = Guest
-    , key = key
-    }
+    let
+        debugging =
+            flags
+                |> Decode.decodeValue Decode.string
+                |> Result.andThen (Decode.decodeString Session.decoder)
+                |> Result.map (\filler -> filler key)
+
+        _ =
+            Debug.log "debugging" debugging
+    in
+    -- TODO Add a message if decoding fails
+    flags
+        |> Decode.decodeValue Decode.string
+        |> Result.andThen (Decode.decodeString Session.decoder)
+        |> Result.map (\filler -> filler key)
+        |> Result.withDefault (Session.default key)
         |> fromRoute (Route.fromUrl url)
 
 

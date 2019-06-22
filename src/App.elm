@@ -7,9 +7,10 @@ import Architecture.Subscriptions exposing (subscriptions)
 import Architecture.Update exposing (update)
 import Architecture.View exposing (view)
 import Browser
+import Json.Decode exposing (Value)
 
 
-main : Program () Model Msg
+main : Program Value Model Msg
 main =
     Browser.application
         { init = init
