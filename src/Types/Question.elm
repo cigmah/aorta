@@ -3,6 +3,7 @@ module Types.Question exposing
     , ReadData
     , decoder
     , encode
+    , new
     )
 
 import Iso8601
@@ -32,14 +33,22 @@ type alias ReadData =
     }
 
 
+new : CreationData
+new =
+    { stem = ""
+    , choices = [ Choice.newCorrect, Choice.newIncorrect ]
+    }
+
+
 
 -- Json
 
 
-encode : CreationData -> Value
-encode data =
+encode : Int -> CreationData -> Value
+encode noteId data =
     Encode.object
-        [ ( "stem", Encode.string data.stem )
+        [ ( "note_id", Encode.int noteId )
+        , ( "stem", Encode.string data.stem )
         , ( "choices", Encode.list Choice.encode data.choices )
         ]
 

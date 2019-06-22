@@ -4,8 +4,10 @@ import Browser exposing (Document)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import List.Extra exposing (getAt, setAt)
 import Markdown
 import RemoteData exposing (RemoteData(..), WebData)
+import Types.Choice as Choice exposing (Choice)
 import Types.Comment as Comment
 import Types.Credentials as Credentials exposing (Auth(..))
 import Types.Note as Note
@@ -16,6 +18,10 @@ import Types.Session as Session exposing (Session)
 
 
 -- TODO Prevent get if loading
+-- TODO Read only if not logged in
+-- TODO Cap list of choices
+-- TODO Allow deleting choices
+-- TODO Suppress submit form on add distractor
 -- Model
 
 
@@ -45,6 +51,20 @@ type Msg
     | ChangedComment String
     | ClickedSubmitComment
     | GotSubmitCommentResponse (WebData Comment.ReadData)
+    | ClickedOpenAddQuestionModal
+    | ClickedCloseModal
+    | QuestionMsg QuestionSubMsg
+
+
+type QuestionSubMsg
+    = ChangedStem String
+    | ChangedCorrectChoiceContent String
+    | ChangedCorrectChoiceExplanation String
+    | AddedIncorrectChoice
+    | ChangedIncorrectChoiceContent Int String
+    | ChangedIncorrectChoiceExplanation Int String
+    | ClickedSubmitQuestion
+    | GotSubmitQuestionResponse (WebData Question.ReadData)
 
 
 
@@ -134,6 +154,91 @@ update msg model =
             in
             ( { model | commentResponse = webData, comment = comment }, cmd )
 
+        ClickedOpenAddQuestionModal ->
+            ( { model | modal = AddQuestionModal Question.new }, Cmd.none )
+
+        ClickedCloseModal ->
+            ( { model | modal = NoModal }, Cmd.none )
+
+        QuestionMsg subMsg ->
+            case model.modal of
+                NoModal ->
+                    ignore
+
+                AddQuestionModal data ->
+                    updateQuestionMsg subMsg data model
+
+
+updateQuestionMsg : QuestionSubMsg -> Question.CreationData -> Model -> ( Model, Cmd Msg )
+updateQuestionMsg msg data model =
+    let
+        insert newData =
+            ( { model | modal = AddQuestionModal newData }, Cmd.none )
+
+        unwrap process maybeValue =
+            case maybeValue of
+                Just value ->
+                    process value
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        setContentAt int newContent =
+            let
+                oldChoiceMaybe =
+                    getAt int data.choices
+
+                updateOld old =
+                    insert { data | choices = setAt int { old | content = newContent } data.choices }
+            in
+            oldChoiceMaybe
+                |> unwrap updateOld
+
+        setExplanationAt int newExplanation =
+            let
+                oldChoiceMaybe =
+                    getAt int data.choices
+
+                updateOld old =
+                    insert { data | choices = setAt int { old | explanation = newExplanation } data.choices }
+            in
+            oldChoiceMaybe
+                |> unwrap updateOld
+    in
+    case msg of
+        ChangedStem string ->
+            insert { data | stem = string }
+
+        ChangedCorrectChoiceContent string ->
+            setContentAt 0 string
+
+        ChangedCorrectChoiceExplanation string ->
+            setExplanationAt 0 string
+
+        AddedIncorrectChoice ->
+            -- :: would probably be more efficient, but for the moment, it is convenient to add it to the end
+            -- for rendering purposes
+            if List.length data.choices > 16 then
+                ( model, Cmd.none )
+
+            else
+                insert { data | choices = List.append data.choices [ Choice.newIncorrect ] }
+
+        ChangedIncorrectChoiceContent int string ->
+            setContentAt int string
+
+        ChangedIncorrectChoiceExplanation int string ->
+            setExplanationAt int string
+
+        ClickedSubmitQuestion ->
+            -- TODO Don't allow if loading
+            ( { model | debugging = Loading }
+            , Request.post (postQuestion model data) |> Cmd.map QuestionMsg
+            )
+
+        GotSubmitQuestionResponse webData ->
+            ( { model | debugging = webData }, Cmd.none )
+
 
 
 -- Requests
@@ -160,6 +265,16 @@ postComment model =
     }
 
 
+postQuestion : Model -> Question.CreationData -> Request.PostRequest Question.ReadData QuestionSubMsg
+postQuestion model data =
+    { endpoint = Request.PostQuestion
+    , auth = model.session.auth
+    , callback = GotSubmitQuestionResponse
+    , returnDecoder = Question.decoder
+    , body = Question.encode model.noteId data
+    }
+
+
 
 -- View
 
@@ -177,6 +292,7 @@ viewBody model =
         [ section []
             [ viewNote model model.response ]
         ]
+    , viewAddQuestionModal model
     ]
 
 
@@ -202,7 +318,7 @@ viewNote model webData =
                     , viewCommentForm model
                     ]
                 , footer []
-                    [ button [] [ text "Add EMQ" ] ]
+                    [ button [ onClick ClickedOpenAddQuestionModal ] [ text "Add EMQ" ] ]
                 ]
 
 
@@ -231,3 +347,85 @@ viewComment data =
         [ header [] [ text data.author.username ]
         , section [] (Markdown.toHtml Nothing data.content)
         ]
+
+
+viewAddQuestionModal : Model -> Html Msg
+viewAddQuestionModal model =
+    case model.modal of
+        NoModal ->
+            div [] []
+
+        AddQuestionModal data ->
+            section [ class "modal" ]
+                [ Html.form [ onSubmit (QuestionMsg ClickedSubmitQuestion) ]
+                    [ article []
+                        [ header [] [ text "Add EMQ" ]
+                        , section [ class "controls" ]
+                            [ div [ class "field" ]
+                                [ label [] [ text "Stem" ]
+                                , textarea
+                                    [ placeholder "Write your question here."
+                                    , value data.stem
+                                    , onInput (QuestionMsg << ChangedStem)
+                                    ]
+                                    []
+                                ]
+                            , button [ onClick (QuestionMsg AddedIncorrectChoice) ] [ text "Add Distractor" ]
+                            , section [] (List.indexedMap viewChoice data.choices) |> Html.map QuestionMsg
+                            ]
+                        , footer []
+                            [ button [ type_ "submit" ] [ text "Add EMQ" ]
+                            , button [ onClick ClickedCloseModal ] [ text "Cancel" ]
+                            ]
+                        ]
+                    ]
+                ]
+
+
+viewChoice : Int -> Choice -> Html QuestionSubMsg
+viewChoice index choice =
+    if index == 0 then
+        div []
+            [ div [ class "field" ]
+                [ label [] [ text "Answer" ]
+                , input
+                    [ type_ "text"
+                    , value choice.content
+                    , placeholder "Correct Choice"
+                    , onInput ChangedCorrectChoiceContent
+                    ]
+                    []
+                ]
+            , div [ class "field" ]
+                [ label [] [ text "Explanation" ]
+                , textarea
+                    [ value choice.explanation
+                    , placeholder "This is correct because..."
+                    , onInput ChangedCorrectChoiceExplanation
+                    ]
+                    []
+                ]
+            ]
+
+    else
+        div []
+            [ div [ class "field" ]
+                [ label [] [ text "Distractor" ]
+                , input
+                    [ type_ "text"
+                    , value choice.content
+                    , placeholder "Incorrect Choice"
+                    , onInput <| ChangedIncorrectChoiceContent index
+                    ]
+                    []
+                ]
+            , div [ class "field" ]
+                [ label [] [ text "Reasoning" ]
+                , textarea
+                    [ value choice.explanation
+                    , placeholder "This is incorrect because..."
+                    , onInput <| ChangedIncorrectChoiceExplanation index
+                    ]
+                    []
+                ]
+            ]

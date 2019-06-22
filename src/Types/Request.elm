@@ -122,13 +122,13 @@ endpointToUrl : Endpoint -> List String
 endpointToUrl endpoint =
     case endpoint of
         GetQuestionList ->
-            [ "question" ]
+            [ "questions" ]
 
         GetQuestion id ->
-            [ "question", String.fromInt id ]
+            [ "questions", String.fromInt id ]
 
         GetQuestionRandom ->
-            [ "question", "random" ]
+            [ "questions", "random" ]
 
         PostRegister ->
             [ "users" ]
@@ -137,13 +137,13 @@ endpointToUrl endpoint =
             [ "users", "authenticate" ]
 
         PostResponse ->
-            [ "question", "response" ]
+            [ "questions", "responses" ]
 
         PostComment ->
             [ "notes", "comments" ]
 
         PostQuestion ->
-            [ "question" ]
+            [ "questions" ]
 
         PostContact ->
             [ "mail" ]

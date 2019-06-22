@@ -2,6 +2,8 @@ module Types.Choice exposing
     ( Choice
     , decoder
     , encode
+    , newCorrect
+    , newIncorrect
     )
 
 import Json.Decode as Decode exposing (Decoder, Value)
@@ -13,6 +15,22 @@ type alias Choice =
     { content : String
     , explanation : String
     , isCorrect : Bool
+    }
+
+
+newCorrect : Choice
+newCorrect =
+    { content = ""
+    , explanation = ""
+    , isCorrect = True
+    }
+
+
+newIncorrect : Choice
+newIncorrect =
+    { content = ""
+    , explanation = ""
+    , isCorrect = False
     }
 
 

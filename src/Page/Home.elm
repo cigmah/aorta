@@ -19,6 +19,7 @@ import Types.YearLevel as YearLevel exposing (YearLevel)
 
 -- TODO init based on query parameters
 -- TODO Prevent get if loading
+-- TODO make API consistent i.e. note_id instead of note for comment post
 -- Model
 
 
