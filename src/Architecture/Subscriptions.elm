@@ -4,6 +4,7 @@ import Architecture.Model exposing (..)
 import Architecture.Msg exposing (..)
 import Page.Home as Home
 import Page.NotFound as NotFound
+import Page.Note as Note
 import Page.Profile as Profile
 import Page.Questions as Questions
 
@@ -22,3 +23,6 @@ subscriptions model =
 
         Profile subModel ->
             Sub.map GotProfileMsg (Profile.subscriptions subModel)
+
+        Note subModel ->
+            Sub.map GotNoteMsg (Note.subscriptions subModel)

@@ -11,6 +11,7 @@ import Html.Events exposing (onClick)
 import Markdown
 import Page.Home as Home
 import Page.NotFound as NotFound
+import Page.Note as Note
 import Page.Profile as Profile
 import Page.Questions as Questions
 import Secret exposing (baseUrl)
@@ -35,6 +36,10 @@ view model =
         Profile subModel ->
             Profile.view subModel
                 |> viewPage model GotProfileMsg
+
+        Note subModel ->
+            Note.view subModel
+                |> viewPage model GotNoteMsg
 
 
 viewPage : Model -> (subMsg -> Msg) -> Document subMsg -> Document Msg

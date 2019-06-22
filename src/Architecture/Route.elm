@@ -19,37 +19,29 @@ type Route
     | NotFound
     | Questions
     | Profile
+    | Note Int
 
 
 {-| This parser is completely fragment-based to accommodate GitHub pages. |
 -}
 parser : Parser (Route -> a) a
 parser =
-    map fragmentToRoute <| fragment identity
-
-
-fragmentToRoute : Maybe String -> Route
-fragmentToRoute string =
-    case string of
-        Just "/questions" ->
-            Questions
-
-        Just "/" ->
-            Home
-
-        Just "/profile" ->
-            Profile
-
-        Just _ ->
-            NotFound
-
-        Nothing ->
-            Home
+    oneOf
+        [ map Home <| s "/"
+        , map Questions <| s "/"
+        , map Profile <| s "/profile"
+        , map Note <| s "notes" </> int
+        ]
 
 
 fromUrl : Url -> Route
 fromUrl url =
-    parse parser url
+    -- Using hash routing at the moment, so moving the fragment into the path.
+    { url
+        | path = Maybe.withDefault "" url.fragment
+        , fragment = Nothing
+    }
+        |> parse parser
         |> Maybe.withDefault NotFound
 
 
@@ -69,6 +61,9 @@ toString route =
 
                 Profile ->
                     "profile"
+
+                Note noteId ->
+                    "note/" ++ String.fromInt noteId
     in
     "#/" ++ path
 

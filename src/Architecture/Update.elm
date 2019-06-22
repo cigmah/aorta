@@ -8,6 +8,7 @@ import Browser
 import Browser.Navigation as Navigation
 import Page.Home as Home
 import Page.NotFound as NotFound
+import Page.Note as Note
 import Page.Profile as Profile
 import Page.Questions as Questions
 import Types.Session as Session exposing (Session)
@@ -62,6 +63,10 @@ update msg model =
             Profile.update subMsg subModel
                 |> extractWith Profile GotProfileMsg
 
+        ( GotNoteMsg subMsg, Note subModel ) ->
+            Note.update subMsg subModel
+                |> extractWith Note GotNoteMsg
+
         _ ->
             ( model, Cmd.none )
 
@@ -80,6 +85,9 @@ eject page =
 
         Profile model ->
             Profile.eject model
+
+        Note model ->
+            Note.eject model
 
 
 inject : Model -> Session -> ( Model, Cmd Msg )
@@ -104,6 +112,11 @@ inject page session =
             session
                 |> Profile.inject model
                 |> extractWith Profile GotProfileMsg
+
+        Note model ->
+            session
+                |> Note.inject model
+                |> extractWith Note GotNoteMsg
 
 
 reroute : Route -> Model -> ( Model, Cmd Msg )
