@@ -1,5 +1,16 @@
-module Types.Domain exposing (Domain(..), decoder, encode, fromInt, list, toInt, toString)
+module Types.Domain exposing
+    ( Domain(..)
+    , decoder
+    , encode
+    , fromInt
+    , list
+    , option
+    , toInt
+    , toString
+    )
 
+import Html exposing (Html)
+import Html.Attributes as Attributes
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
 
@@ -90,6 +101,13 @@ list =
     , Diagnosis
     , Management
     ]
+
+
+option : Domain -> Html msg
+option domain =
+    Html.option
+        [ Attributes.value (domain |> toInt |> String.fromInt) ]
+        [ Html.text (domain |> toString) ]
 
 
 encode : Domain -> Value

@@ -1,5 +1,16 @@
-module Types.Specialty exposing (Specialty(..), decoder, encode, fromInt, toInt, toString)
+module Types.Specialty exposing
+    ( Specialty(..)
+    , decoder
+    , encode
+    , fromInt
+    , list
+    , option
+    , toInt
+    , toString
+    )
 
+import Html exposing (Html)
+import Html.Attributes as Attributes
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
 
@@ -344,6 +355,13 @@ list =
     , Law
     , Ethics
     ]
+
+
+option : Specialty -> Html msg
+option specialty =
+    Html.option
+        [ Attributes.value (specialty |> toInt |> String.fromInt) ]
+        [ Html.text (specialty |> toString) ]
 
 
 encode : Specialty -> Value

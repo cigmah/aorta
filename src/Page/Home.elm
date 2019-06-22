@@ -15,6 +15,7 @@ import Types.YearLevel as YearLevel exposing (YearLevel)
 
 
 
+-- TODO init based on query parameters
 -- Model
 
 
@@ -39,6 +40,20 @@ type Modal
 
 type Msg
     = NoOp
+    | ChangedSearchQuery String
+    | ClickedOpenAddNoteModal
+    | ClickedCloseModal
+    | AddNoteMsg AddNoteSubMsg
+
+
+type AddNoteSubMsg
+    = AddChangedYearLevel String
+    | AddChangedSpecialty String
+    | AddChangedDomain String
+    | AddChangedTitle String
+    | AddChangedContent String
+    | AddClickedSubmit
+    | AddGotSubmissionResponse (WebData ())
 
 
 init : Session -> ( Model, Cmd Msg )
@@ -75,6 +90,56 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
+        ChangedSearchQuery query ->
+            ( { model | query = query }, Cmd.none )
+
+        ClickedOpenAddNoteModal ->
+            ( { model | modal = AddNote Note.new }, Cmd.none )
+
+        ClickedCloseModal ->
+            ( { model | modal = NoModal }, Cmd.none )
+
+        AddNoteMsg subMsg ->
+            case model.modal of
+                AddNote data ->
+                    updateAddNoteMsg subMsg data model
+
+                _ ->
+                    ( model, Cmd.none )
+
+
+updateAddNoteMsg : AddNoteSubMsg -> Note.CreationData -> Model -> ( Model, Cmd Msg )
+updateAddNoteMsg addNoteSubMsg data model =
+    let
+        insert newData =
+            ( { model | modal = AddNote newData }, Cmd.none )
+
+        unwrap intString =
+            String.toInt intString
+                |> Maybe.withDefault 0
+    in
+    case addNoteSubMsg of
+        AddChangedYearLevel string ->
+            insert { data | yearLevel = string |> unwrap |> YearLevel.fromInt }
+
+        AddChangedSpecialty string ->
+            insert { data | specialty = string |> unwrap |> Specialty.fromInt }
+
+        AddChangedDomain string ->
+            insert { data | domain = string |> unwrap |> Domain.fromInt }
+
+        AddChangedTitle new ->
+            insert { data | title = new }
+
+        AddChangedContent new ->
+            insert { data | content = new }
+
+        AddClickedSubmit ->
+            ( model, Cmd.none )
+
+        AddGotSubmissionResponse _ ->
+            ( model, Cmd.none )
+
 
 view : Model -> Document Msg
 view model =
@@ -85,4 +150,82 @@ view model =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    []
+    [ main_ []
+        [ section []
+            [ input
+                [ type_ "text"
+                , placeholder "Search"
+                , class "search"
+                , onInput ChangedSearchQuery
+                , value model.query
+                ]
+                []
+            , button []
+                [ text "Search" ]
+            , button [ onClick ClickedOpenAddNoteModal ]
+                [ text "Add Note" ]
+            ]
+        ]
+    , viewAddNoteModal model
+    ]
+
+
+viewAddNoteModal : Model -> Html Msg
+viewAddNoteModal model =
+    case model.modal of
+        NoModal ->
+            div [] []
+
+        AddNote data ->
+            section [ class "modal" ]
+                [ Html.form [ onSubmit <| AddNoteMsg AddClickedSubmit ]
+                    [ article []
+                        [ header [] [ text "Add Note" ]
+                        , section []
+                            [ section [ class "controls" ]
+                                [ div [ class "field" ]
+                                    [ label [] [ text "Year Level" ]
+                                    , select
+                                        [ onInput <| AddNoteMsg << AddChangedYearLevel ]
+                                        (List.map YearLevel.option YearLevel.list)
+                                    ]
+                                , div [ class "field" ]
+                                    [ label [] [ text "Specialty" ]
+                                    , select
+                                        [ onInput <| AddNoteMsg << AddChangedSpecialty ]
+                                        (List.map Specialty.option Specialty.list)
+                                    ]
+                                , div [ class "field" ]
+                                    [ label [] [ text "Domain" ]
+                                    , select
+                                        [ onInput <| AddNoteMsg << AddChangedDomain ]
+                                        (List.map Domain.option Domain.list)
+                                    ]
+                                , div [ class "field" ]
+                                    [ label [] [ text "Title" ]
+                                    , input
+                                        [ type_ "text"
+                                        , value data.title
+                                        , onInput <| AddNoteMsg << AddChangedTitle
+                                        , placeholder "Title"
+                                        ]
+                                        []
+                                    ]
+                                , div [ class "field" ]
+                                    [ label [] [ text "Content" ]
+                                    , textarea
+                                        [ value data.content
+                                        , onInput <| AddNoteMsg << AddChangedContent
+                                        , placeholder "Content"
+                                        ]
+                                        []
+                                    ]
+                                ]
+                            ]
+                        , footer []
+                            [ button [ onClick ClickedCloseModal ] [ text "Cancel" ]
+                            , button [ type_ "submit" ] [ text "Submit" ]
+                            ]
+                        ]
+                    ]
+                ]

@@ -1,4 +1,4 @@
-module Types.Note exposing (CreationData, ReadData, decoder, encode)
+module Types.Note exposing (CreationData, ReadData, decoder, encode, new)
 
 import Iso8601
 import Json.Decode as Decode exposing (Decoder, Value)
@@ -21,6 +21,16 @@ type alias CreationData =
     , domain : Domain
     , title : String
     , content : String
+    }
+
+
+new : CreationData
+new =
+    { yearLevel = YearLevel.YearNone
+    , specialty = Specialty.SpecialtyNone
+    , domain = Domain.DomainNone
+    , title = ""
+    , content = ""
     }
 
 

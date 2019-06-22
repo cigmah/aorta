@@ -3,10 +3,14 @@ module Types.YearLevel exposing
     , decoder
     , encode
     , fromInt
+    , list
+    , option
     , toInt
     , toString
     )
 
+import Html exposing (Html)
+import Html.Attributes as Attributes
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
 
@@ -97,6 +101,13 @@ list =
     , Year4c
     , Year5d
     ]
+
+
+option : YearLevel -> Html msg
+option yearLevel =
+    Html.option
+        [ Attributes.value (yearLevel |> toInt |> String.fromInt) ]
+        [ Html.text (yearLevel |> toString) ]
 
 
 encode : YearLevel -> Value
