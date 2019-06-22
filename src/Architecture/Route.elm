@@ -27,10 +27,9 @@ type Route
 parser : Parser (Route -> a) a
 parser =
     oneOf
-        [ map Home <| s "/"
-        , map Questions <| s "/"
-        , map Profile <| s "/profile"
+        [ map Profile <| s "profile"
         , map Note <| s "notes" </> int
+        , map Home top
         ]
 
 

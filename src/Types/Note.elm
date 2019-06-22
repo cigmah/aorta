@@ -12,6 +12,7 @@ import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Decode.Pipeline as Pipeline exposing (optional, required)
 import Json.Encode as Encode
 import Time exposing (Posix)
+import Types.Comment as Comment
 import Types.Domain as Domain exposing (Domain)
 import Types.Specialty as Specialty exposing (Specialty)
 import Types.User as User exposing (User)
@@ -42,7 +43,8 @@ new =
 
 
 type alias ReadData =
-    { yearLevel : YearLevel
+    { id : Int
+    , yearLevel : YearLevel
     , specialty : Specialty
     , domain : Domain
     , title : String
@@ -50,6 +52,7 @@ type alias ReadData =
     , contributor : User
     , createdAt : Posix
     , modifiedAt : Posix
+    , commentList : List Comment.ReadData
     }
 
 
@@ -67,6 +70,7 @@ encode data =
 decoder : Decoder ReadData
 decoder =
     Decode.succeed ReadData
+        |> required "id" Decode.int
         |> required "year_level" YearLevel.decoder
         |> required "specialty" Specialty.decoder
         |> required "domain" Domain.decoder
@@ -75,6 +79,7 @@ decoder =
         |> required "contributor" User.decoder
         |> required "created_at" Iso8601.decoder
         |> required "modified_at" Iso8601.decoder
+        |> required "comments" (Decode.list Comment.decoder)
 
 
 decoderList : Decoder (List ReadData)

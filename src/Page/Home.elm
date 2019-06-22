@@ -1,6 +1,7 @@
 module Page.Home exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
 import Browser exposing (Document)
+import Browser.Navigation as Navigation
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -17,6 +18,7 @@ import Types.YearLevel as YearLevel exposing (YearLevel)
 
 
 -- TODO init based on query parameters
+-- TODO Prevent get if loading
 -- Model
 
 
@@ -67,7 +69,7 @@ init session =
       , specialty = Nothing
       , domain = Nothing
       , modal = NoModal
-      , results = NotAsked
+      , results = Loading
       }
     , Request.get (getNoteListRequest session)
     )
@@ -145,7 +147,16 @@ updateAddNoteMsg addNoteSubMsg data model =
             ( model, Request.post <| addNoteRequest model data )
 
         AddGotSubmissionResponse response ->
-            ( model, Cmd.none )
+            case response of
+                Success note ->
+                    ( model
+                    , Navigation.pushUrl
+                        model.session.key
+                        ("./#/notes/" ++ String.fromInt note.id)
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
 
 
@@ -233,9 +244,12 @@ viewResultList model =
 
 viewResult : Note.ReadData -> Html Msg
 viewResult note =
-    article []
-        [ header [] [ text note.title ]
-        , section [] (Markdown.toHtml Nothing note.content)
+    -- TODO Type-safe href
+    a [ href <| "./#/notes/" ++ String.fromInt note.id ]
+        [ article []
+            [ header [] [ text note.title ]
+            , section [] (Markdown.toHtml Nothing note.content)
+            ]
         ]
 
 

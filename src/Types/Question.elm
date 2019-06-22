@@ -1,5 +1,6 @@
 module Types.Question exposing
-    ( Question
+    ( CreationData
+    , ReadData
     , decoder
     , encode
     )
@@ -9,33 +10,25 @@ import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Decode.Pipeline as Pipeline exposing (optional, required)
 import Json.Encode as Encode
 import Time exposing (Posix)
-import Types.Choice as Choice exposing (Choice, ChoiceBase)
-import Types.Comment as Comment exposing (Comment)
-import Types.Tag as Tag exposing (Tag, TagBase)
+import Types.Choice as Choice exposing (Choice)
+import Types.Note as Note
 import Types.User as User exposing (User)
 
 
-type alias QuestionBase =
-    { tags : List TagBase
-    , stem : String
-    , answer : ChoiceBase
-    , distractors : List ChoiceBase
-    , explanation : String
+type alias CreationData =
+    { stem : String
+    , choices : List Choice
     }
 
 
-type alias Question =
+type alias ReadData =
     { id : Int
-    , userId : User
-    , tags : List Tag
+    , note : Note.ReadData
     , stem : String
-    , answer : Choice
-    , distractors : List Choice
-    , explanation : String
-    , likes : List User
-    , comments : List Comment
-    , flagged : Bool
-    , timestamp : Posix
+    , choices : List Choice
+    , createdAt : Posix
+    , modifiedAt : Posix
+    , contributor : User
     }
 
 
@@ -43,28 +36,21 @@ type alias Question =
 -- Json
 
 
-decoder : Decoder Question
-decoder =
-    Decode.succeed Question
-        |> required "id" Decode.int
-        |> required "user_id" User.decoder
-        |> required "tags" (Decode.list Tag.decoder)
-        |> required "stem" Decode.string
-        |> required "answer" Choice.decoder
-        |> required "distractors" (Decode.list Choice.decoder)
-        |> required "explanation" Decode.string
-        |> required "likes" (Decode.list User.decoder)
-        |> required "comments" (Decode.list Comment.decoder)
-        |> required "flagged" Decode.bool
-        |> required "timestamp" Iso8601.decoder
-
-
-encode : QuestionBase -> Value
-encode question =
+encode : CreationData -> Value
+encode data =
     Encode.object
-        [ ( "tags", Encode.list Tag.encode question.tags )
-        , ( "stem", Encode.string question.stem )
-        , ( "answer", Choice.encode question.answer )
-        , ( "distractors", Encode.list Choice.encode question.distractors )
-        , ( "explanation", Encode.string question.explanation )
+        [ ( "stem", Encode.string data.stem )
+        , ( "choices", Encode.list Choice.encode data.choices )
         ]
+
+
+decoder : Decoder ReadData
+decoder =
+    Decode.succeed ReadData
+        |> required "id" Decode.int
+        |> required "note" Note.decoder
+        |> required "stem" Decode.string
+        |> required "choices" (Decode.list Choice.decoder)
+        |> required "created_at" Iso8601.decoder
+        |> required "modified_at" Iso8601.decoder
+        |> required "contributor" User.decoder

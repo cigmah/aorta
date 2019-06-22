@@ -108,6 +108,7 @@ type Endpoint
     | GetQuestion Id
     | GetQuestionRandom
     | GetNoteList
+    | GetNote Id
     | PostRegister
     | PostLogin
     | PostResponse
@@ -139,7 +140,7 @@ endpointToUrl endpoint =
             [ "question", "response" ]
 
         PostComment ->
-            [ "question", "comment" ]
+            [ "notes", "comments" ]
 
         PostQuestion ->
             [ "question" ]
@@ -152,3 +153,6 @@ endpointToUrl endpoint =
 
         GetNoteList ->
             [ "notes" ]
+
+        GetNote noteId ->
+            [ "notes", String.fromInt noteId ]
