@@ -107,6 +107,7 @@ type Endpoint
     = GetQuestionList
     | GetQuestion Id
     | GetQuestionRandom
+    | GetNoteList
     | PostRegister
     | PostLogin
     | PostResponse
@@ -147,4 +148,7 @@ endpointToUrl endpoint =
             [ "mail" ]
 
         PostNote ->
+            [ "notes" ]
+
+        GetNoteList ->
             [ "notes" ]

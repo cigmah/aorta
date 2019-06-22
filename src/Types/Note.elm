@@ -1,4 +1,11 @@
-module Types.Note exposing (CreationData, ReadData, decoder, encode, new)
+module Types.Note exposing
+    ( CreationData
+    , ReadData
+    , decoder
+    , decoderList
+    , encode
+    , new
+    )
 
 import Iso8601
 import Json.Decode as Decode exposing (Decoder, Value)
@@ -68,3 +75,8 @@ decoder =
         |> required "contributor" User.decoder
         |> required "created_at" Iso8601.decoder
         |> required "modified_at" Iso8601.decoder
+
+
+decoderList : Decoder (List ReadData)
+decoderList =
+    Decode.field "results" (Decode.list decoder)

@@ -4,6 +4,7 @@ import Browser exposing (Document)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Markdown
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Credentials as Credentials exposing (Auth(..))
 import Types.Domain as Domain exposing (Domain)
@@ -26,7 +27,7 @@ type alias Model =
     , specialty : Maybe Specialty
     , domain : Maybe Domain
     , modal : Modal
-    , debugging : WebData Note.ReadData
+    , results : WebData (List Note.ReadData)
     }
 
 
@@ -45,6 +46,7 @@ type Msg
     | ClickedOpenAddNoteModal
     | ClickedCloseModal
     | AddNoteMsg AddNoteSubMsg
+    | GotNoteList (WebData (List Note.ReadData))
 
 
 type AddNoteSubMsg
@@ -65,9 +67,9 @@ init session =
       , specialty = Nothing
       , domain = Nothing
       , modal = NoModal
-      , debugging = NotAsked
+      , results = NotAsked
       }
-    , Cmd.none
+    , Request.get (getNoteListRequest session)
     )
 
 
@@ -100,6 +102,9 @@ update msg model =
 
         ClickedCloseModal ->
             ( { model | modal = NoModal }, Cmd.none )
+
+        GotNoteList webData ->
+            ( { model | results = webData }, Cmd.none )
 
         AddNoteMsg subMsg ->
             case model.modal of
@@ -140,7 +145,7 @@ updateAddNoteMsg addNoteSubMsg data model =
             ( model, Request.post <| addNoteRequest model data )
 
         AddGotSubmissionResponse response ->
-            ( { model | debugging = response }, Cmd.none )
+            ( model, Cmd.none )
 
 
 
@@ -154,6 +159,15 @@ addNoteRequest model data =
     , returnDecoder = Note.decoder
     , callback = AddNoteMsg << AddGotSubmissionResponse
     , auth = model.session.auth
+    }
+
+
+getNoteListRequest : Session -> Request.GetRequest (List Note.ReadData) Msg
+getNoteListRequest session =
+    { auth = session.auth
+    , endpoint = Request.GetNoteList
+    , callback = GotNoteList
+    , returnDecoder = Note.decoderList
     }
 
 
@@ -195,9 +209,34 @@ viewBody model =
                 [ text "Search" ]
             , viewAddNoteButton model
             ]
+        , section [] (viewResultList model)
         ]
     , viewAddNoteModal model
     ]
+
+
+viewResultList : Model -> List (Html Msg)
+viewResultList model =
+    case model.results of
+        NotAsked ->
+            [ text "Not asked." ]
+
+        Failure e ->
+            [ text "Failure" ]
+
+        Success noteList ->
+            List.map viewResult noteList
+
+        Loading ->
+            [ text "Loading" ]
+
+
+viewResult : Note.ReadData -> Html Msg
+viewResult note =
+    article []
+        [ header [] [ text note.title ]
+        , section [] (Markdown.toHtml Nothing note.content)
+        ]
 
 
 viewAddNoteModal : Model -> Html Msg
