@@ -1,7 +1,8 @@
-module Types.Login exposing (Data, Response, encode, init, responseDecoder)
+module Types.Login exposing (Data, encode, init, responseDecoder)
 
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
+import Types.Credentials as Credentials exposing (Credentials)
 
 
 type alias Data =
@@ -21,11 +22,8 @@ encode v =
         ]
 
 
-type alias Response =
-    { token : String }
-
-
-responseDecoder : Decoder Response
+responseDecoder : Decoder Credentials
 responseDecoder =
-    Decode.map Response
+    Decode.map2 Credentials
         (Decode.field "token" Decode.string)
+        (Decode.field "username" Decode.string)

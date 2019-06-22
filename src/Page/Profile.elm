@@ -6,6 +6,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Contact as Contact
+import Types.Credentials as Credentials exposing (Auth(..), Credentials)
 import Types.Login as Login
 import Types.Register as Register
 import Types.Request as Request
@@ -29,7 +30,7 @@ type alias Model =
 type Modal
     = None
     | Login Login.Data
-    | LoginResponse Login.Response
+    | LoginResponse Credentials
     | Register Register.Data
     | RegisterResponse Register.Response
 
@@ -68,7 +69,7 @@ type LoginSubMsg
     = LoginChangedUsername String
     | LoginChangedPassword String
     | LoginClickedSubmit
-    | LoginGotSubmissionResponse (WebData Login.Response)
+    | LoginGotSubmissionResponse (WebData Credentials)
 
 
 init : Session -> ( Model, Cmd Msg )
@@ -217,7 +218,15 @@ updateRegister msg data ({ session } as model) =
             in
             case responseRegisterWebData of
                 Success responseData ->
-                    ( { model | modal = RegisterResponse responseData }, Cmd.none )
+                    ( { model
+                        | modal = RegisterResponse responseData
+                        , session =
+                            { session
+                                | auth = User { username = responseData.username, token = responseData.token }
+                            }
+                      }
+                    , Cmd.none
+                    )
 
                 Failure error ->
                     ( { unloaded
@@ -259,7 +268,12 @@ updateLogin msg data ({ session } as model) =
             in
             case responseLoginWebData of
                 Success responseData ->
-                    ( { model | modal = LoginResponse responseData }, Cmd.none )
+                    ( { model
+                        | modal = LoginResponse responseData
+                        , session = { session | auth = User responseData }
+                      }
+                    , Cmd.none
+                    )
 
                 Failure error ->
                     -- TODO handle network errors etc. separately
@@ -287,7 +301,7 @@ postContactData model =
     }
 
 
-postLoginData : Model -> Login.Data -> Request.PostRequest Login.Response LoginSubMsg
+postLoginData : Model -> Login.Data -> Request.PostRequest Credentials LoginSubMsg
 postLoginData model data =
     { endpoint = Request.PostLogin
     , body = Login.encode data
@@ -391,14 +405,30 @@ cardVersion =
 
 cardUser : Model -> Html Msg
 cardUser model =
-    article []
-        [ header [] [ h1 [] [ text "User" ] ]
-        , section [] [ p [] [ text "You are not logged in." ] ]
-        , footer []
-            [ button [ onClick ClickedOpenRegisterModal ] [ text "Register" ]
-            , button [ onClick ClickedOpenLoginModal ] [ text "Login" ]
-            ]
-        ]
+    case model.session.auth of
+        Guest ->
+            article []
+                [ header [] [ h1 [] [ text "User" ] ]
+                , section [] [ p [] [ text "You are not logged in." ] ]
+                , footer []
+                    [ button [ onClick ClickedOpenRegisterModal ] [ text "Register" ]
+                    , button [ onClick ClickedOpenLoginModal ] [ text "Login" ]
+                    ]
+                ]
+
+        User credentials ->
+            article []
+                [ header [] [ h1 [] [ text "User" ] ]
+                , section []
+                    [ p []
+                        [ text "You are logged in as "
+                        , strong [] [ text credentials.username ]
+                        , text "."
+                        ]
+                    ]
+                , footer []
+                    [ button [] [ text "Logout" ] ]
+                ]
 
 
 submitContent : Model -> Html msg
@@ -666,11 +696,11 @@ viewLoginData data =
         ]
 
 
-viewLoginResponse : Login.Response -> Html Msg
+viewLoginResponse : Credentials -> Html Msg
 viewLoginResponse data =
     section []
         [ p []
-            [ text "Thank you for logging in. You now close this modal." ]
+            [ text "Thank you for logging in. You can now close this modal." ]
         ]
 
 

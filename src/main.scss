@@ -1,7 +1,7 @@
 // Variables
 
 $article-background: white;
-$article-header-background: #E2E8F0;
+$article-header-background: #006cab;
 $article-footer-background: #EDF2F7;
 
 $button-background: #CBD5E0;
@@ -16,9 +16,9 @@ $shadow: #A0AEC0;
 
 $body-background: #F7FAFC;
 
-$nav-link-background: #E2E8F0;
+$nav-link-background: #006cab;
 $nav-link-background-hover: #CBD5E0;
-$nav-link-foreground: #4A5568;
+$nav-link-foreground: white;
 
 $message-background: white;
 
@@ -302,10 +302,12 @@ article {
     padding: 0.5rem;
     padding-left: 1rem;
     padding-right: 1rem;
-    color: darken($article-header-background, 50);
+    color: white;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-top-right-radius: 0.25em;
+    border-top-left-radius: 0.25rem;
 
     button {
       margin: 0;
@@ -344,6 +346,7 @@ article {
   p {
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;
+    font-size: 0.95rem;
   }
 
 }

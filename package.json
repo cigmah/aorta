@@ -21,7 +21,8 @@
     "url": "https://github.com/cigmah/cigmah-mert/issues"
   },
   "homepage": "https://github.com/cigmah/cigmah-mert#readme",
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "node-sass-chokidar": "^1.3.5"
   }
 }
