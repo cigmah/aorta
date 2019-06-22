@@ -7,10 +7,15 @@ import Html.Events exposing (..)
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Credentials as Credentials exposing (Auth)
 import Types.Domain as Domain exposing (Domain)
+import Types.Note as Note
 import Types.Request as Request
 import Types.Session as Session exposing (Session)
 import Types.Specialty as Specialty exposing (Specialty)
 import Types.YearLevel as YearLevel exposing (YearLevel)
+
+
+
+-- Model
 
 
 type alias Model =
@@ -19,7 +24,17 @@ type alias Model =
     , yearLevel : Maybe YearLevel
     , specialty : Maybe Specialty
     , domain : Maybe Domain
+    , modal : Modal
     }
+
+
+type Modal
+    = NoModal
+    | AddNote Note.CreationData
+
+
+
+-- Msg
 
 
 type Msg
@@ -33,6 +48,7 @@ init session =
       , yearLevel = Nothing
       , specialty = Nothing
       , domain = Nothing
+      , modal = NoModal
       }
     , Cmd.none
     )
