@@ -5,7 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import RemoteData exposing (RemoteData(..), WebData)
-import Types.Credentials as Credentials exposing (Auth)
+import Types.Credentials as Credentials exposing (Auth(..))
 import Types.Request as Request
 import Types.Session as Session exposing (Session)
 

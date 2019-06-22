@@ -5,7 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import RemoteData exposing (RemoteData(..), WebData)
-import Types.Credentials as Credentials exposing (Auth)
+import Types.Credentials as Credentials exposing (Auth(..))
 import Types.Domain as Domain exposing (Domain)
 import Types.Note as Note
 import Types.Request as Request
@@ -26,6 +26,7 @@ type alias Model =
     , specialty : Maybe Specialty
     , domain : Maybe Domain
     , modal : Modal
+    , debugging : WebData Note.ReadData
     }
 
 
@@ -53,7 +54,7 @@ type AddNoteSubMsg
     | AddChangedTitle String
     | AddChangedContent String
     | AddClickedSubmit
-    | AddGotSubmissionResponse (WebData ())
+    | AddGotSubmissionResponse (WebData Note.ReadData)
 
 
 init : Session -> ( Model, Cmd Msg )
@@ -64,6 +65,7 @@ init session =
       , specialty = Nothing
       , domain = Nothing
       , modal = NoModal
+      , debugging = NotAsked
       }
     , Cmd.none
     )
@@ -135,10 +137,28 @@ updateAddNoteMsg addNoteSubMsg data model =
             insert { data | content = new }
 
         AddClickedSubmit ->
-            ( model, Cmd.none )
+            ( model, Request.post <| addNoteRequest model data )
 
-        AddGotSubmissionResponse _ ->
-            ( model, Cmd.none )
+        AddGotSubmissionResponse response ->
+            ( { model | debugging = response }, Cmd.none )
+
+
+
+-- Requests
+
+
+addNoteRequest : Model -> Note.CreationData -> Request.PostRequest Note.ReadData Msg
+addNoteRequest model data =
+    { endpoint = Request.PostNote
+    , body = Note.encode data
+    , returnDecoder = Note.decoder
+    , callback = AddNoteMsg << AddGotSubmissionResponse
+    , auth = model.session.auth
+    }
+
+
+
+-- View
 
 
 view : Model -> Document Msg
@@ -146,6 +166,17 @@ view model =
     { title = ""
     , body = viewBody model
     }
+
+
+viewAddNoteButton : Model -> Html Msg
+viewAddNoteButton model =
+    case model.session.auth of
+        Guest ->
+            div [] []
+
+        User _ ->
+            button [ onClick ClickedOpenAddNoteModal ]
+                [ text "Add Note" ]
 
 
 viewBody : Model -> List (Html Msg)
@@ -162,8 +193,7 @@ viewBody model =
                 []
             , button []
                 [ text "Search" ]
-            , button [ onClick ClickedOpenAddNoteModal ]
-                [ text "Add Note" ]
+            , viewAddNoteButton model
             ]
         ]
     , viewAddNoteModal model
@@ -208,6 +238,7 @@ viewAddNoteModal model =
                                         , value data.title
                                         , onInput <| AddNoteMsg << AddChangedTitle
                                         , placeholder "Title"
+                                        , required True
                                         ]
                                         []
                                     ]
@@ -217,6 +248,7 @@ viewAddNoteModal model =
                                         [ value data.content
                                         , onInput <| AddNoteMsg << AddChangedContent
                                         , placeholder "Content"
+                                        , required True
                                         ]
                                         []
                                     ]

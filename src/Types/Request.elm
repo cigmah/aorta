@@ -113,6 +113,7 @@ type Endpoint
     | PostComment
     | PostContact
     | PostQuestion
+    | PostNote
 
 
 endpointToUrl : Endpoint -> List String
@@ -144,3 +145,6 @@ endpointToUrl endpoint =
 
         PostContact ->
             [ "mail" ]
+
+        PostNote ->
+            [ "notes" ]
