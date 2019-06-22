@@ -1,48 +1,41 @@
 module Page.Home exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
 import Browser exposing (Document)
-import Browser.Navigation as Navigation
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Markdown
-import Secret exposing (baseUrl)
-import Types.Credentials exposing (Auth(..))
-import Types.Question
-import Types.Request
-import Types.Session exposing (Session)
-import Types.User as User
+import RemoteData exposing (RemoteData(..), WebData)
+import Types.Credentials as Credentials exposing (Auth)
+import Types.Domain as Domain exposing (Domain)
+import Types.Request as Request
+import Types.Session as Session exposing (Session)
+import Types.Specialty as Specialty exposing (Specialty)
+import Types.YearLevel as YearLevel exposing (YearLevel)
 
 
 type alias Model =
     { session : Session
-    , stats : Maybe User.Stats
+    , query : String
+    , yearLevel : Maybe YearLevel
+    , specialty : Maybe Specialty
+    , domain : Maybe Domain
     }
 
 
 type Msg
     = NoOp
-    | ClickedClassicMode
-    | ClickedAdventureMode
 
 
 init : Session -> ( Model, Cmd Msg )
 init session =
-    case session.auth of
-        Guest ->
-            ( { session = session
-              , stats = Nothing
-              }
-            , Cmd.none
-            )
-
-        User credentials ->
-            -- TODO Request stats
-            ( { session = session
-              , stats = Nothing
-              }
-            , Cmd.none
-            )
+    ( { session = session
+      , query = ""
+      , yearLevel = Nothing
+      , specialty = Nothing
+      , domain = Nothing
+      }
+    , Cmd.none
+    )
 
 
 eject : Model -> Session
@@ -62,29 +55,18 @@ subscriptions model =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    let
-        ignore =
-            ( model, Cmd.none )
-    in
     case msg of
         NoOp ->
-            ignore
-
-        ClickedClassicMode ->
-            ( model, Navigation.pushUrl model.session.key "/#/classic" )
-
-        ClickedAdventureMode ->
-            -- TODO
-            ignore
+            ( model, Cmd.none )
 
 
 view : Model -> Document Msg
 view model =
-    { title = "AORTA - Search"
+    { title = ""
     , body = viewBody model
     }
 
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    [ main_ [] [] ]
+    []

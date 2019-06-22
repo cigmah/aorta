@@ -18,6 +18,7 @@ import Version exposing (version)
 -- TODO Prevent Enter keypress from closing modals when open.
 -- TODO Save credentials on receipt of login token.
 -- TODO Show modal on logout
+-- TODO Put WebData as response in model and create view from that
 -- Model
 
 
