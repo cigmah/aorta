@@ -11,12 +11,14 @@ import Browser.Navigation exposing (Key)
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
 import Types.Credentials as Credentials exposing (..)
+import Types.Test as Test exposing (Test)
 
 
 type alias Session =
     { message : Maybe (List String)
     , auth : Auth
     , key : Key
+    , test : Maybe Test
     }
 
 
@@ -25,12 +27,13 @@ fillKey auth key =
     { message = Nothing
     , auth = auth
     , key = key
+    , test = Nothing
     }
 
 
 default : Key -> Session
 default key =
-    { message = Nothing, auth = Guest, key = key }
+    { message = Nothing, auth = Guest, key = key, test = Nothing }
 
 
 addMessage : Session -> String -> Session

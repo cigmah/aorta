@@ -105,7 +105,7 @@ type alias Id =
 
 type Endpoint
     = GetQuestion Id
-    | GetQuestionRandom
+    | GetQuestionListRandom
     | GetNoteList
     | GetNote Id
     | PostRegister
@@ -125,7 +125,7 @@ endpointToUrl endpoint =
         GetQuestion questionId ->
             [ "questions", String.fromInt questionId ]
 
-        GetQuestionRandom ->
+        GetQuestionListRandom ->
             [ "questions", "random" ]
 
         PostFlag ->
