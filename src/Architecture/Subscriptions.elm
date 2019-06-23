@@ -7,6 +7,7 @@ import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
 import Page.Question as Question
+import Page.Revise as Revise
 
 
 subscriptions : Model -> Sub Msg
@@ -26,3 +27,6 @@ subscriptions model =
 
         Note subModel ->
             Sub.map GotNoteMsg (Note.subscriptions subModel)
+
+        Revise subModel ->
+            Sub.map GotReviseMsg (Revise.subscriptions subModel)

@@ -7,6 +7,7 @@ import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
 import Page.Question as Question
+import Page.Revise as Revise
 import Url exposing (Url)
 
 
@@ -20,3 +21,4 @@ type Msg
     | GotQuestionMsg Question.Msg
     | GotProfileMsg Profile.Msg
     | GotNoteMsg Note.Msg
+    | GotReviseMsg Revise.Msg
