@@ -6,7 +6,7 @@ import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
-import Page.Questions as Questions
+import Page.Question as Question
 import Url exposing (Url)
 
 
@@ -17,6 +17,6 @@ type Msg
     | ClearMessages
     | GotHomeMsg Home.Msg
     | GotNotFoundMsg NotFound.Msg
-    | GotQuestionsMsg Questions.Msg
+    | GotQuestionMsg Question.Msg
     | GotProfileMsg Profile.Msg
     | GotNoteMsg Note.Msg

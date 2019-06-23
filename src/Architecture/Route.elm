@@ -17,7 +17,7 @@ import Url.Parser exposing (..)
 type Route
     = Home
     | NotFound
-    | Questions
+    | Question Int
     | Profile
     | Note Int
 
@@ -29,6 +29,7 @@ parser =
     oneOf
         [ map Profile <| s "profile"
         , map Note <| s "notes" </> int
+        , map Question <| s "questions" </> int
         , map Home top
         ]
 
@@ -55,8 +56,8 @@ toString route =
                 NotFound ->
                     "404"
 
-                Questions ->
-                    "questions"
+                Question questionId ->
+                    "question/" ++ String.fromInt questionId
 
                 Profile ->
                     "profile"

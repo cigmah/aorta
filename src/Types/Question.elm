@@ -11,14 +11,14 @@ import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Decode.Pipeline as Pipeline exposing (optional, required)
 import Json.Encode as Encode
 import Time exposing (Posix)
-import Types.Choice as Choice exposing (Choice)
+import Types.Choice as Choice
 import Types.Note as Note
 import Types.User as User exposing (User)
 
 
 type alias CreationData =
     { stem : String
-    , choices : List Choice
+    , choices : List Choice.CreationData
     }
 
 
@@ -26,7 +26,7 @@ type alias ReadData =
     { id : Int
     , note : Note.ReadData
     , stem : String
-    , choices : List Choice
+    , choices : List Choice.ReadData
     , createdAt : Posix
     , modifiedAt : Posix
     , contributor : User

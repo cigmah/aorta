@@ -1,13 +1,14 @@
 module Page.Note exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
 import Browser exposing (Document)
+import Browser.Navigation as Navigation
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import List.Extra exposing (getAt, setAt)
 import Markdown
 import RemoteData exposing (RemoteData(..), WebData)
-import Types.Choice as Choice exposing (Choice)
+import Types.Choice as Choice
 import Types.Comment as Comment
 import Types.Credentials as Credentials exposing (Auth(..))
 import Types.Note as Note
@@ -237,7 +238,16 @@ updateQuestionMsg msg data model =
             )
 
         GotSubmitQuestionResponse webData ->
-            ( { model | debugging = webData }, Cmd.none )
+            case webData of
+                Success question ->
+                    ( model
+                    , Navigation.pushUrl
+                        model.session.key
+                        ("./#/questions/" ++ String.fromInt question.id)
+                    )
+
+                _ ->
+                    ( { model | debugging = webData }, Cmd.none )
 
 
 
@@ -382,7 +392,7 @@ viewAddQuestionModal model =
                 ]
 
 
-viewChoice : Int -> Choice -> Html QuestionSubMsg
+viewChoice : Int -> Choice.CreationData -> Html QuestionSubMsg
 viewChoice index choice =
     if index == 0 then
         div []

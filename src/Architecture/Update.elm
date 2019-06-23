@@ -10,7 +10,7 @@ import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
-import Page.Questions as Questions
+import Page.Question as Question
 import Types.Session as Session exposing (Session)
 import Url
 
@@ -55,9 +55,9 @@ update msg model =
             NotFound.update subMsg subModel
                 |> extractWith NotFound GotNotFoundMsg
 
-        ( GotQuestionsMsg subMsg, Questions submodel ) ->
-            Questions.update subMsg submodel
-                |> extractWith Questions GotQuestionsMsg
+        ( GotQuestionMsg subMsg, Question submodel ) ->
+            Question.update subMsg submodel
+                |> extractWith Question GotQuestionMsg
 
         ( GotProfileMsg subMsg, Profile subModel ) ->
             Profile.update subMsg subModel
@@ -80,8 +80,8 @@ eject page =
         NotFound model ->
             NotFound.eject model
 
-        Questions model ->
-            Questions.eject model
+        Question model ->
+            Question.eject model
 
         Profile model ->
             Profile.eject model
@@ -103,10 +103,10 @@ inject page session =
                 |> NotFound.inject model
                 |> extractWith NotFound GotNotFoundMsg
 
-        Questions model ->
+        Question model ->
             session
-                |> Questions.inject model
-                |> extractWith Questions GotQuestionsMsg
+                |> Question.inject model
+                |> extractWith Question GotQuestionMsg
 
         Profile model ->
             session

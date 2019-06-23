@@ -13,7 +13,7 @@ import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
-import Page.Questions as Questions
+import Page.Question as Question
 import Secret exposing (baseUrl)
 import Types.Session as Session exposing (Session)
 
@@ -29,9 +29,9 @@ view model =
             NotFound.view session
                 |> viewPage model GotNotFoundMsg
 
-        Questions subModel ->
-            Questions.view subModel
-                |> viewPage model GotQuestionsMsg
+        Question subModel ->
+            Question.view subModel
+                |> viewPage model GotQuestionMsg
 
         Profile subModel ->
             Profile.view subModel
@@ -81,7 +81,7 @@ wrapBody model body =
     [ nav []
         [ ul []
             [ viewNavLink { name = "Search", active = False, route = Route.Home, icon = "search" }
-            , viewNavLink { name = "Revise", active = False, route = Route.Questions, icon = "notes" }
+            , viewNavLink { name = "Revise", active = False, route = Route.NotFound, icon = "notes" }
             , viewNavLink { name = "Profile", active = False, route = Route.Profile, icon = "person" }
             ]
         ]

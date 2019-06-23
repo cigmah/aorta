@@ -1,5 +1,6 @@
 module Types.Choice exposing
-    ( Choice
+    ( CreationData
+    , ReadData
     , decoder
     , encode
     , newCorrect
@@ -11,14 +12,22 @@ import Json.Decode.Pipeline as Pipeline exposing (optional, required)
 import Json.Encode as Encode
 
 
-type alias Choice =
+type alias CreationData =
     { content : String
     , explanation : String
     , isCorrect : Bool
     }
 
 
-newCorrect : Choice
+type alias ReadData =
+    { id : Int
+    , content : String
+    , explanation : String
+    , isCorrect : Bool
+    }
+
+
+newCorrect : CreationData
 newCorrect =
     { content = ""
     , explanation = ""
@@ -26,7 +35,7 @@ newCorrect =
     }
 
 
-newIncorrect : Choice
+newIncorrect : CreationData
 newIncorrect =
     { content = ""
     , explanation = ""
@@ -34,7 +43,7 @@ newIncorrect =
     }
 
 
-encode : Choice -> Value
+encode : CreationData -> Value
 encode data =
     Encode.object
         [ ( "content", Encode.string data.content )
@@ -43,9 +52,10 @@ encode data =
         ]
 
 
-decoder : Decoder Choice
+decoder : Decoder ReadData
 decoder =
-    Decode.map3 Choice
+    Decode.map4 ReadData
+        (Decode.field "id" Decode.int)
         (Decode.field "content" Decode.string)
         (Decode.field "explanation" Decode.string)
         (Decode.field "is_correct" Decode.bool)

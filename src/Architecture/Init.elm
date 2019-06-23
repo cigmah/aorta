@@ -9,7 +9,7 @@ import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
-import Page.Questions as Questions
+import Page.Question as Question
 import Types.Credentials exposing (Auth(..))
 import Types.Session as Session exposing (Session)
 import Url exposing (Url)
@@ -52,9 +52,9 @@ fromRoute route session =
             NotFound.init session
                 |> extractWith NotFound GotNotFoundMsg
 
-        Route.Questions ->
-            Questions.init session
-                |> extractWith Questions GotQuestionsMsg
+        Route.Question questionId ->
+            Question.init session questionId
+                |> extractWith Question GotQuestionMsg
 
         Route.Profile ->
             Profile.init session
