@@ -313,6 +313,7 @@ postContactData model =
     , returnDecoder = Contact.responseDecoder
     , callback = ContactGotSubmissionResponse
     , auth = model.session.auth
+    , queryList = []
     }
 
 
@@ -323,6 +324,7 @@ postLoginData model data =
     , returnDecoder = Login.responseDecoder
     , callback = LoginGotSubmissionResponse
     , auth = model.session.auth
+    , queryList = []
     }
 
 
@@ -333,6 +335,7 @@ postRegisterData model data =
     , returnDecoder = Register.responseDecoder
     , callback = RegisterGotSubmissionResponse
     , auth = model.session.auth
+    , queryList = []
     }
 
 

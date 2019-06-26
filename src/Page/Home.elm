@@ -1,42 +1,27 @@
 module Page.Home exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
 import Browser exposing (Document)
-import Browser.Navigation as Navigation
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Markdown
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Credentials as Credentials exposing (Auth(..))
-import Types.Domain as Domain exposing (Domain)
 import Types.Note as Note
 import Types.Request as Request
 import Types.Session as Session exposing (Session)
-import Types.Specialty as Specialty exposing (Specialty)
 import Types.YearLevel as YearLevel exposing (YearLevel)
+import Url.Builder as Builder
 
 
 
--- TODO init based on query parameters
--- TODO Prevent get if loading
--- TODO make API consistent i.e. note_id instead of note for comment post
 -- Model
 
 
 type alias Model =
     { session : Session
-    , query : String
-    , yearLevel : Maybe YearLevel
-    , specialty : Maybe Specialty
-    , domain : Maybe Domain
-    , modal : Modal
-    , results : WebData (List Note.ReadData)
+    , yearLevel : YearLevel
+    , webDataNoteList : WebData (List Note.ListData)
     }
-
-
-type Modal
-    = NoModal
-    | AddNote Note.CreationData
 
 
 
@@ -45,35 +30,30 @@ type Modal
 
 type Msg
     = NoOp
-    | ChangedSearchQuery String
-    | ClickedOpenAddNoteModal
-    | ClickedCloseModal
-    | AddNoteMsg AddNoteSubMsg
-    | GotNoteList (WebData (List Note.ReadData))
+    | GotNoteList (WebData (List Note.ListData))
+    | ChangedYearLevel YearLevel
 
 
-type AddNoteSubMsg
-    = AddChangedYearLevel String
-    | AddChangedSpecialty String
-    | AddChangedDomain String
-    | AddChangedTitle String
-    | AddChangedContent String
-    | AddClickedSubmit
-    | AddGotSubmissionResponse (WebData Note.ReadData)
+
+-- Init
 
 
 init : Session -> ( Model, Cmd Msg )
 init session =
-    ( { session = session
-      , query = ""
-      , yearLevel = Nothing
-      , specialty = Nothing
-      , domain = Nothing
-      , modal = NoModal
-      , results = Loading
-      }
-    , Request.get (getNoteListRequest session)
+    let
+        initialModel =
+            { session = session
+            , yearLevel = session.yearLevel
+            , webDataNoteList = Loading
+            }
+    in
+    ( initialModel
+    , Request.get (getNoteList initialModel)
     )
+
+
+
+-- Eject
 
 
 eject : Model -> Session
@@ -81,9 +61,17 @@ eject model =
     model.session
 
 
+
+-- Inject
+
+
 inject : Model -> Session -> ( Model, Cmd Msg )
 inject model session =
     ( { model | session = session }, Cmd.none )
+
+
+
+-- Subscriptions
 
 
 subscriptions : Model -> Sub Msg
@@ -91,95 +79,58 @@ subscriptions model =
     Sub.none
 
 
+
+-- Update
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        ignore =
+            ( model, Cmd.none )
+    in
     case msg of
         NoOp ->
-            ( model, Cmd.none )
-
-        ChangedSearchQuery query ->
-            ( { model | query = query }, Cmd.none )
-
-        ClickedOpenAddNoteModal ->
-            ( { model | modal = AddNote Note.new }, Cmd.none )
-
-        ClickedCloseModal ->
-            ( { model | modal = NoModal }, Cmd.none )
+            ignore
 
         GotNoteList webData ->
-            ( { model | results = webData }, Cmd.none )
+            ( { model | webDataNoteList = webData }, Cmd.none )
 
-        AddNoteMsg subMsg ->
-            case model.modal of
-                AddNote data ->
-                    updateAddNoteMsg subMsg data model
+        ChangedYearLevel yearLevel ->
+            if model.yearLevel /= yearLevel then
+                let
+                    newSession =
+                        Session.changeYearLevel model.session yearLevel
 
-                _ ->
-                    ( model, Cmd.none )
+                    newModel =
+                        { model
+                            | yearLevel = yearLevel
+                            , webDataNoteList = Loading
+                            , session = newSession
+                        }
+                in
+                ( newModel
+                , Cmd.batch
+                    [ Request.get (getNoteList newModel)
+                    , Session.save newSession
+                    ]
+                )
 
-
-updateAddNoteMsg : AddNoteSubMsg -> Note.CreationData -> Model -> ( Model, Cmd Msg )
-updateAddNoteMsg addNoteSubMsg data model =
-    let
-        insert newData =
-            ( { model | modal = AddNote newData }, Cmd.none )
-
-        unwrap intString =
-            String.toInt intString
-                |> Maybe.withDefault 0
-    in
-    case addNoteSubMsg of
-        AddChangedYearLevel string ->
-            insert { data | yearLevel = string |> unwrap |> YearLevel.fromInt }
-
-        AddChangedSpecialty string ->
-            insert { data | specialty = string |> unwrap |> Specialty.fromInt }
-
-        AddChangedDomain string ->
-            insert { data | domain = string |> unwrap |> Domain.fromInt }
-
-        AddChangedTitle new ->
-            insert { data | title = new }
-
-        AddChangedContent new ->
-            insert { data | content = new }
-
-        AddClickedSubmit ->
-            ( model, Request.post <| addNoteRequest model data )
-
-        AddGotSubmissionResponse response ->
-            case response of
-                Success note ->
-                    ( model
-                    , Navigation.pushUrl
-                        model.session.key
-                        ("./#/notes/" ++ String.fromInt note.id)
-                    )
-
-                _ ->
-                    ( model, Cmd.none )
+            else
+                ignore
 
 
 
 -- Requests
 
 
-addNoteRequest : Model -> Note.CreationData -> Request.PostRequest Note.ReadData Msg
-addNoteRequest model data =
-    { endpoint = Request.PostNote
-    , body = Note.encode data
-    , returnDecoder = Note.decoder
-    , callback = AddNoteMsg << AddGotSubmissionResponse
-    , auth = model.session.auth
-    }
-
-
-getNoteListRequest : Session -> Request.GetRequest (List Note.ReadData) Msg
-getNoteListRequest session =
-    { auth = session.auth
+getNoteList : Model -> Request.GetRequest (List Note.ListData) Msg
+getNoteList model =
+    { auth = model.session.auth
     , endpoint = Request.GetNoteList
     , callback = GotNoteList
     , returnDecoder = Note.decoderList
+    , queryList = [ Builder.int "year_level" (YearLevel.toInt model.yearLevel) ]
     }
 
 
@@ -189,129 +140,71 @@ getNoteListRequest session =
 
 view : Model -> Document Msg
 view model =
-    { title = ""
+    { title = "AORTA - Matrix"
     , body = viewBody model
     }
-
-
-viewAddNoteButton : Model -> Html Msg
-viewAddNoteButton model =
-    case model.session.auth of
-        Guest ->
-            div [] []
-
-        User _ ->
-            button [ onClick ClickedOpenAddNoteModal ]
-                [ text "Add Note" ]
 
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
     [ main_ []
-        [ section []
-            [ input
-                [ type_ "text"
-                , placeholder "Search"
-                , class "search"
-                , onInput ChangedSearchQuery
-                , value model.query
-                ]
-                []
-            , button []
-                [ text "Search" ]
-            , viewAddNoteButton model
+        [ article []
+            [ viewHeader model
+            , section []
+                [ viewGrid model.webDataNoteList ]
             ]
-        , section [] (viewResultList model)
         ]
-    , viewAddNoteModal model
     ]
 
 
-viewResultList : Model -> List (Html Msg)
-viewResultList model =
-    case model.results of
+viewHeader : Model -> Html Msg
+viewHeader model =
+    header []
+        (List.map
+            (viewHeaderItem model.yearLevel)
+            [ YearLevel.Year1, YearLevel.Year2a, YearLevel.Year3b, YearLevel.Year4c ]
+        )
+
+
+viewHeaderItem : YearLevel -> YearLevel -> Html Msg
+viewHeaderItem active yearLevel =
+    div
+        [ classList [ ( "active", active == yearLevel ) ]
+        , onClick (ChangedYearLevel yearLevel)
+        ]
+        [ text (YearLevel.toString yearLevel) ]
+
+
+viewGrid : WebData (List Note.ListData) -> Html Msg
+viewGrid webData =
+    case webData of
         NotAsked ->
-            [ text "Not asked." ]
-
-        Failure e ->
-            [ text "Failure" ]
-
-        Success noteList ->
-            List.map viewResult noteList
+            div []
+                [ text "Not asked" ]
 
         Loading ->
-            [ text "Loading" ]
+            div []
+                [ text "Loading" ]
+
+        Failure e ->
+            div []
+                [ text "Failure" ]
+
+        Success listData ->
+            case listData of
+                [] ->
+                    div []
+                        [ text "Oh no! There aren't any notes for this year level yet..." ]
+
+                nonEmptyData ->
+                    div [ class "grid" ]
+                        (List.map viewGridItem nonEmptyData)
 
 
-viewResult : Note.ReadData -> Html Msg
-viewResult note =
-    -- TODO Type-safe href
-    a [ href <| "./#/notes/" ++ String.fromInt note.id ]
-        [ article []
-            [ header [] [ text note.title ]
-            , section [] (Markdown.toHtml Nothing note.content)
-            ]
+viewGridItem : Note.ListData -> Html Msg
+viewGridItem note =
+    a
+        [ id "note"
+        , href ("#/notes/" ++ String.fromInt note.id)
         ]
-
-
-viewAddNoteModal : Model -> Html Msg
-viewAddNoteModal model =
-    case model.modal of
-        NoModal ->
-            div [] []
-
-        AddNote data ->
-            section [ class "modal" ]
-                [ Html.form [ onSubmit <| AddNoteMsg AddClickedSubmit ]
-                    [ article []
-                        [ header [] [ text "Add Note" ]
-                        , section []
-                            [ section [ class "controls" ]
-                                [ div [ class "field" ]
-                                    [ label [] [ text "Year Level" ]
-                                    , select
-                                        [ onInput <| AddNoteMsg << AddChangedYearLevel ]
-                                        (List.map YearLevel.option YearLevel.list)
-                                    ]
-                                , div [ class "field" ]
-                                    [ label [] [ text "Specialty" ]
-                                    , select
-                                        [ onInput <| AddNoteMsg << AddChangedSpecialty ]
-                                        (List.map Specialty.option Specialty.list)
-                                    ]
-                                , div [ class "field" ]
-                                    [ label [] [ text "Domain" ]
-                                    , select
-                                        [ onInput <| AddNoteMsg << AddChangedDomain ]
-                                        (List.map Domain.option Domain.list)
-                                    ]
-                                , div [ class "field" ]
-                                    [ label [] [ text "Title" ]
-                                    , input
-                                        [ type_ "text"
-                                        , value data.title
-                                        , onInput <| AddNoteMsg << AddChangedTitle
-                                        , placeholder "Title"
-                                        , required True
-                                        ]
-                                        []
-                                    ]
-                                , div [ class "field" ]
-                                    [ label [] [ text "Content" ]
-                                    , textarea
-                                        [ value data.content
-                                        , onInput <| AddNoteMsg << AddChangedContent
-                                        , placeholder "Content"
-                                        , required True
-                                        ]
-                                        []
-                                    ]
-                                ]
-                            ]
-                        , footer []
-                            [ button [ onClick ClickedCloseModal ] [ text "Cancel" ]
-                            , button [ type_ "submit" ] [ text "Submit" ]
-                            ]
-                        ]
-                    ]
-                ]
+        [ text note.title ]

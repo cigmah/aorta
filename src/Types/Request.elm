@@ -53,10 +53,9 @@ authToConfig auth =
 -- Helpers
 
 
-buildUrl : List String -> String
-buildUrl stringList =
-    Builder.crossOrigin apiBase stringList []
-        |> (\x -> String.append x "/")
+buildUrl : List String -> List Builder.QueryParameter -> String
+buildUrl stringList queryList =
+    Builder.crossOrigin apiBase stringList queryList
 
 
 type alias PostRequest response msg =
@@ -65,6 +64,7 @@ type alias PostRequest response msg =
     , returnDecoder : Decoder response
     , callback : WebData response -> msg
     , auth : Auth
+    , queryList : List Builder.QueryParameter
     }
 
 
@@ -73,6 +73,7 @@ type alias GetRequest response msg =
     , endpoint : Endpoint
     , callback : WebData response -> msg
     , returnDecoder : Decoder response
+    , queryList : List Builder.QueryParameter
     }
 
 
@@ -80,7 +81,7 @@ post : PostRequest response msg -> Cmd msg
 post request =
     RemoteData.Http.postWithConfig
         (authToConfig request.auth)
-        (buildUrl <| endpointToUrl request.endpoint)
+        (buildUrl (endpointToUrl request.endpoint) request.queryList)
         request.callback
         request.returnDecoder
         request.body
@@ -90,7 +91,7 @@ get : GetRequest response msg -> Cmd msg
 get request =
     RemoteData.Http.getWithConfig
         (authToConfig request.auth)
-        (buildUrl <| endpointToUrl request.endpoint)
+        (buildUrl (endpointToUrl request.endpoint) request.queryList)
         request.callback
         request.returnDecoder
 

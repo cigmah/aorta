@@ -24,7 +24,6 @@ type alias CreationData =
 
 type alias ReadData =
     { id : Int
-    , note : Note.ReadData
     , stem : String
     , choices : List Choice.ReadData
     , createdAt : Posix
@@ -57,7 +56,6 @@ decoder : Decoder ReadData
 decoder =
     Decode.succeed ReadData
         |> required "id" Decode.int
-        |> required "note" Note.decoder
         |> required "stem" Decode.string
         |> required "choices" (Decode.list Choice.decoder)
         |> required "created_at" Iso8601.decoder

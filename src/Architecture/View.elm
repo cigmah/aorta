@@ -13,8 +13,6 @@ import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
-import Page.Question as Question
-import Page.Revise as Revise
 import Secret exposing (baseUrl)
 import Types.Session as Session exposing (Session)
 
@@ -30,10 +28,6 @@ view model =
             NotFound.view session
                 |> viewPage model GotNotFoundMsg
 
-        Question subModel ->
-            Question.view subModel
-                |> viewPage model GotQuestionMsg
-
         Profile subModel ->
             Profile.view subModel
                 |> viewPage model GotProfileMsg
@@ -41,10 +35,6 @@ view model =
         Note subModel ->
             Note.view subModel
                 |> viewPage model GotNoteMsg
-
-        Revise subModel ->
-            Revise.view subModel
-                |> viewPage model GotReviseMsg
 
 
 viewPage : Model -> (subMsg -> Msg) -> Document subMsg -> Document Msg
@@ -85,8 +75,7 @@ wrapBody : Model -> List (Html Msg) -> List (Html Msg)
 wrapBody model body =
     [ nav []
         [ ul []
-            [ viewNavLink { name = "Search", active = False, route = Route.Home, icon = "search" }
-            , viewNavLink { name = "Revise", active = False, route = Route.Revise, icon = "notes" }
+            [ viewNavLink { name = "Matrix", active = False, route = Route.Home, icon = "table" }
             , viewNavLink { name = "Profile", active = False, route = Route.Profile, icon = "person" }
             ]
         ]

@@ -1,10 +1,6 @@
 module Types.Note exposing
-    ( CreationData
-    , ReadData
-    , decoder
+    ( ListData
     , decoderList
-    , encode
-    , new
     )
 
 import Iso8601
@@ -19,69 +15,30 @@ import Types.User as User exposing (User)
 import Types.YearLevel as YearLevel exposing (YearLevel)
 
 
-
--- TODO decode comments
-
-
-type alias CreationData =
-    { yearLevel : YearLevel
-    , specialty : Specialty
-    , domain : Domain
-    , title : String
-    , content : String
-    }
-
-
-new : CreationData
-new =
-    { yearLevel = YearLevel.YearNone
-    , specialty = Specialty.SpecialtyNone
-    , domain = Domain.DomainNone
-    , title = ""
-    , content = ""
-    }
-
-
-type alias ReadData =
+type alias ListData =
     { id : Int
     , yearLevel : YearLevel
     , specialty : Specialty
-    , domain : Domain
-    , title : String
-    , content : String
-    , contributor : User
-    , createdAt : Posix
     , modifiedAt : Posix
-    , commentList : List Comment.ReadData
+    , title : String
+    , numQuestions : Int
+    , numComments : Int
+    , numDue : Maybe Int
+    , numKnown : Maybe Int
     }
 
 
-encode : CreationData -> Value
-encode data =
-    Encode.object
-        [ ( "year_level", YearLevel.encode data.yearLevel )
-        , ( "specialty", Specialty.encode data.specialty )
-        , ( "domain", Domain.encode data.domain )
-        , ( "title", Encode.string data.title )
-        , ( "content", Encode.string data.content )
-        ]
-
-
-decoder : Decoder ReadData
-decoder =
-    Decode.succeed ReadData
-        |> required "id" Decode.int
-        |> required "year_level" YearLevel.decoder
-        |> required "specialty" Specialty.decoder
-        |> required "domain" Domain.decoder
-        |> required "title" Decode.string
-        |> required "content" Decode.string
-        |> required "contributor" User.decoder
-        |> required "created_at" Iso8601.decoder
-        |> required "modified_at" Iso8601.decoder
-        |> required "comments" (Decode.list Comment.decoder)
-
-
-decoderList : Decoder (List ReadData)
+decoderList : Decoder (List ListData)
 decoderList =
-    Decode.field "results" (Decode.list decoder)
+    Decode.list
+        (Decode.succeed ListData
+            |> required "id" Decode.int
+            |> required "year_level" YearLevel.decoder
+            |> required "specialty" Specialty.decoder
+            |> required "modified_at" Iso8601.decoder
+            |> required "title" Decode.string
+            |> required "num_questions" Decode.int
+            |> required "num_comments" Decode.int
+            |> optional "num_due" (Decode.maybe Decode.int) Nothing
+            |> optional "num_known" (Decode.maybe Decode.int) Nothing
+        )

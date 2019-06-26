@@ -17,10 +17,8 @@ import Url.Parser exposing (..)
 type Route
     = Home
     | NotFound
-    | Question Int
     | Profile
     | Note Int
-    | Revise
 
 
 {-| This parser is completely fragment-based to accommodate GitHub pages. |
@@ -30,8 +28,6 @@ parser =
     oneOf
         [ map Profile <| s "profile"
         , map Note <| s "notes" </> int
-        , map Question <| s "questions" </> int
-        , map Revise <| s "revise"
         , map Home top
         ]
 
@@ -58,17 +54,11 @@ toString route =
                 NotFound ->
                     "404"
 
-                Question questionId ->
-                    "question/" ++ String.fromInt questionId
-
                 Profile ->
                     "profile"
 
                 Note noteId ->
                     "note/" ++ String.fromInt noteId
-
-                Revise ->
-                    "revise/"
     in
     "#/" ++ path
 
