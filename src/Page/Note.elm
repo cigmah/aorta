@@ -283,7 +283,7 @@ viewBody model =
     [ main_
         [ id "note" ]
         [ header []
-            [ viewHeader model.webDataNote ]
+            (viewHeader model.webDataNote)
         , section []
             [ div [ id "dashboard" ]
                 [ viewStats model.webDataNote
@@ -296,14 +296,13 @@ viewBody model =
     ]
 
 
-viewHeader : WebData Note.Data -> Html Msg
+viewHeader : WebData Note.Data -> List (Html Msg)
 viewHeader dataNoteWebData =
     let
         wrap string =
-            div []
-                [ a [ href "/" ] [ text "Back" ]
-                , text string
-                ]
+            [ a [ href "/" ] [ text "Back" ]
+            , div [ class "title" ] [ text string ]
+            ]
     in
     case dataNoteWebData of
         Loading ->

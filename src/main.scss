@@ -69,13 +69,19 @@ article {
     margin-bottom: 1em;
   }
 
+  > section {
+    p {
+      margin-top: 1em;
+    }
+  }
+
   > footer {
     display: flex;
     justify-content: flex-end;
   }
 }
 
-input, textarea {
+input, textarea, select {
   width: 100%;
   font-size: 1em;
   background: lightgrey;
@@ -93,6 +99,7 @@ input, textarea {
     background: white;
   }
 }
+
 
 .field {
   margin-top: 0.5em;
@@ -351,6 +358,23 @@ body {
 
     > header {
       width: 100%;
+      padding: 0.5em;
+      box-sizing: border-box;
+      box-shadow: 0 1px 4px lightgrey;
+      display: grid;
+      grid-gap: 0.5em;
+      grid-template-columns: min-content;
+
+      .title {
+        font-weight: bold;
+      }
+
+      a, div {
+        grid-row: 1;
+        padding-left: 1em;
+        padding-right: 1em;
+      }
+
     }
 
     > section {
@@ -369,17 +393,24 @@ body {
         display: grid;
         grid-template-columns: 1fr 1fr;
         grid-template-rows: 1fr 1fr;
+        grid-gap: 1em;
+
+        article {
+          box-shadow: 0 1px 4px lightgrey;
+          margin: 0;
+        }
 
         article#stats {
-          background: yellow;
+
         }
 
         article#controls {
-          background: red;
+          display: flex;
+          justify-content: center;
+          align-items: center;
         }
 
         article#content {
-          background: blue;
           grid-column: 2;
           grid-row-start: 1;
           grid-row-end: 3;
