@@ -22,6 +22,14 @@ img, svg, video, canvas, audio, iframe, embed, object {
   border-style: solid;
 }
 
+/* Utilities */
+
+.hidden {
+  display: none !important;
+}
+
+/* Main */
+
 html {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   line-height: 1.6;
@@ -87,6 +95,10 @@ body {
           text-align: center;
           cursor: pointer;
 
+          &.active {
+            background: grey;
+          }
+
           &:hover {
             background: grey;
           }
@@ -124,6 +136,91 @@ body {
 
     }
 
+  }
+
+  section#modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 1em;
+    box-sizing: border-box;
+
+    > form > article, > article {
+      width: 100%;
+      max-width: 960px;
+    }
+
+  }
+
+  main#note {
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+
+    > header {
+      width: 100%;
+    }
+
+    > section {
+      flex-grow: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1em;
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 960px;
+
+      div#dashboard {
+        height: 90%;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+
+        article#stats {
+          background: yellow;
+        }
+
+        article#controls {
+          background: red;
+        }
+
+        article#content {
+          background: blue;
+          grid-column: 2;
+          grid-row-start: 1;
+          grid-row-end: 3;
+        }
+
+      }
+
+    }
+
+  }
+
+  > main#profile {
+    > section {
+      max-width: 960px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-gap: 1em;
+
+      > section {
+        display: flex;
+        flex-direction: column;
+      }
+    }
   }
 
   @media #{$medium} {

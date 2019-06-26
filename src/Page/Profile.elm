@@ -352,8 +352,8 @@ view model =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    [ main_ []
-        [ section [ class "screen profile" ]
+    [ main_ [ id "profile" ]
+        [ section []
             [ section []
                 [ cardIntro
                 , cardVersion
@@ -460,7 +460,10 @@ submitContent model =
 
 cardContact : Model -> Html ContactSubMsg
 cardContact model =
-    Html.form [ onSubmit ContactClickedSubmit ]
+    Html.form
+        [ onSubmit ContactClickedSubmit
+        , classList [ ( "hidden", not (None == model.modal) ) ]
+        ]
         [ article []
             [ header [] [ h1 [] [ text "Contact Us" ] ]
             , section []
@@ -635,7 +638,7 @@ modalRegister model =
                     div [] []
     in
     section
-        [ class "modal"
+        [ id "modal"
         , classList [ ( "hidden", hideRegister model ) ]
         ]
         [ Html.form [ onSubmit (RegisterMsg RegisterClickedSubmit) ]
@@ -759,7 +762,7 @@ modalLogin model =
                     div [] []
     in
     section
-        [ class "modal"
+        [ id "modal"
         , classList [ ( "hidden", hideLogin model ) ]
         ]
         [ Html.form [ onSubmit (LoginMsg LoginClickedSubmit) ]

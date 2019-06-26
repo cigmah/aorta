@@ -55,7 +55,13 @@ authToConfig auth =
 
 buildUrl : List String -> List Builder.QueryParameter -> String
 buildUrl stringList queryList =
-    Builder.crossOrigin apiBase stringList queryList
+    case queryList of
+        [] ->
+            Builder.crossOrigin apiBase stringList queryList
+                |> (\url -> String.append url "/")
+
+        _ ->
+            Builder.crossOrigin apiBase stringList queryList
 
 
 type alias PostRequest response msg =

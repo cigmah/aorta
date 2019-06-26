@@ -83,13 +83,17 @@ isRouteEqual route model =
         ( Route.Profile, Profile _ ) ->
             True
 
+        ( Route.Note _, Note _ ) ->
+            True
+
         _ ->
             False
 
 
 wrapBody : Model -> List (Html Msg) -> List (Html Msg)
 wrapBody model body =
-    [ nav []
+    [ nav
+        [ classList [ ( "hidden", isRouteEqual (Route.Note 0) model ) ] ]
         [ viewNavLink
             { name = "Matrix"
             , active = isRouteEqual Route.Home model
