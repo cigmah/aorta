@@ -394,8 +394,8 @@ cardIntro =
                 , text " and "
                 , a [ href "https://github.com/cigmah/aorticroot" ] [ text "backend" ]
                 , text " code are available from our "
-                , a [ href "https://github.com/cigmah" ] [ text " GitHub organisation " ]
-                , text " . We welcome pull requests. "
+                , a [ href "https://github.com/cigmah" ] [ text " GitHub organisation" ]
+                , text ". We welcome pull requests. "
                 ]
             , p []
                 [ text "Content on this website is written by users and volunteers, and provided under a "
