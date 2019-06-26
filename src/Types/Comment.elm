@@ -1,4 +1,4 @@
-module Types.Comment exposing (Comment, decoder)
+module Types.Comment exposing (CreationData, ReadData, decoder, encode)
 
 import Iso8601
 import Json.Decode as Decode exposing (Decoder, Value)
@@ -8,10 +8,14 @@ import Time exposing (Posix)
 import Types.User as User exposing (User)
 
 
-type alias Comment =
-    { user : User
+type alias CreationData =
+    { noteId : Int, content : String }
+
+
+type alias ReadData =
+    { author : User
     , content : String
-    , timestamp : Posix
+    , created_at : Posix
     }
 
 
@@ -19,9 +23,17 @@ type alias Comment =
 -- Json
 
 
-decoder : Decoder Comment
+encode : CreationData -> Value
+encode data =
+    Encode.object
+        [ ( "note", Encode.int data.noteId )
+        , ( "content", Encode.string data.content )
+        ]
+
+
+decoder : Decoder ReadData
 decoder =
-    Decode.succeed Comment
-        |> required "user" User.decoder
+    Decode.succeed ReadData
+        |> required "author" User.decoder
         |> required "content" Decode.string
-        |> required "timestamp" Iso8601.decoder
+        |> required "created_at" Iso8601.decoder

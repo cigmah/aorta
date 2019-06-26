@@ -8,8 +8,10 @@ import Browser
 import Browser.Navigation as Navigation
 import Page.Home as Home
 import Page.NotFound as NotFound
+import Page.Note as Note
 import Page.Profile as Profile
-import Page.Questions as Questions
+import Page.Question as Question
+import Page.Revise as Revise
 import Types.Session as Session exposing (Session)
 import Url
 
@@ -54,13 +56,21 @@ update msg model =
             NotFound.update subMsg subModel
                 |> extractWith NotFound GotNotFoundMsg
 
-        ( GotQuestionsMsg subMsg, Questions submodel ) ->
-            Questions.update subMsg submodel
-                |> extractWith Questions GotQuestionsMsg
+        ( GotQuestionMsg subMsg, Question submodel ) ->
+            Question.update subMsg submodel
+                |> extractWith Question GotQuestionMsg
 
         ( GotProfileMsg subMsg, Profile subModel ) ->
             Profile.update subMsg subModel
                 |> extractWith Profile GotProfileMsg
+
+        ( GotNoteMsg subMsg, Note subModel ) ->
+            Note.update subMsg subModel
+                |> extractWith Note GotNoteMsg
+
+        ( GotReviseMsg subMsg, Revise subModel ) ->
+            Revise.update subMsg subModel
+                |> extractWith Revise GotReviseMsg
 
         _ ->
             ( model, Cmd.none )
@@ -75,11 +85,17 @@ eject page =
         NotFound model ->
             NotFound.eject model
 
-        Questions model ->
-            Questions.eject model
+        Question model ->
+            Question.eject model
 
         Profile model ->
             Profile.eject model
+
+        Note model ->
+            Note.eject model
+
+        Revise model ->
+            Revise.eject model
 
 
 inject : Model -> Session -> ( Model, Cmd Msg )
@@ -95,15 +111,25 @@ inject page session =
                 |> NotFound.inject model
                 |> extractWith NotFound GotNotFoundMsg
 
-        Questions model ->
+        Question model ->
             session
-                |> Questions.inject model
-                |> extractWith Questions GotQuestionsMsg
+                |> Question.inject model
+                |> extractWith Question GotQuestionMsg
 
         Profile model ->
             session
                 |> Profile.inject model
                 |> extractWith Profile GotProfileMsg
+
+        Note model ->
+            session
+                |> Note.inject model
+                |> extractWith Note GotNoteMsg
+
+        Revise model ->
+            session
+                |> Revise.inject model
+                |> extractWith Revise GotReviseMsg
 
 
 reroute : Route -> Model -> ( Model, Cmd Msg )

@@ -104,28 +104,35 @@ type alias Id =
 
 
 type Endpoint
-    = GetQuestionList
-    | GetQuestion Id
-    | GetQuestionRandom
+    = GetQuestion Id
+    | GetQuestionListRandom
+    | GetNoteList
+    | GetNote Id
     | PostRegister
+    | PostLike
+    | PostFlag
     | PostLogin
     | PostResponse
     | PostComment
     | PostContact
     | PostQuestion
+    | PostNote
 
 
 endpointToUrl : Endpoint -> List String
 endpointToUrl endpoint =
     case endpoint of
-        GetQuestionList ->
-            [ "question" ]
+        GetQuestion questionId ->
+            [ "questions", String.fromInt questionId ]
 
-        GetQuestion id ->
-            [ "question", String.fromInt id ]
+        GetQuestionListRandom ->
+            [ "questions", "random" ]
 
-        GetQuestionRandom ->
-            [ "question", "random" ]
+        PostFlag ->
+            [ "questions", "flags" ]
+
+        PostLike ->
+            [ "questions", "likes" ]
 
         PostRegister ->
             [ "users" ]
@@ -134,13 +141,22 @@ endpointToUrl endpoint =
             [ "users", "authenticate" ]
 
         PostResponse ->
-            [ "question", "response" ]
+            [ "questions", "responses" ]
 
         PostComment ->
-            [ "question", "comment" ]
+            [ "notes", "comments" ]
 
         PostQuestion ->
-            [ "question" ]
+            [ "questions" ]
 
         PostContact ->
             [ "mail" ]
+
+        PostNote ->
+            [ "notes" ]
+
+        GetNoteList ->
+            [ "notes" ]
+
+        GetNote noteId ->
+            [ "notes", String.fromInt noteId ]
