@@ -6,7 +6,7 @@ module Types.Specialty exposing
     , fromInt
     , list
     , option
-    , toCssColor
+    , toColor
     , toInt
     , toString
     )
@@ -365,14 +365,13 @@ count =
     List.length list
 
 
-toCssColor : Specialty -> String
-toCssColor specialty =
+toColor : Specialty -> Color.Color
+toColor specialty =
     Color.hsla
         (toFloat (modBy count (toInt specialty * 3)) / (toFloat count - 1))
-        0.3
-        0.6
+        0.4
+        0.7
         1
-        |> Color.toCssString
 
 
 option : Specialty -> Html msg

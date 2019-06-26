@@ -207,9 +207,28 @@ viewGrid webData =
 
 viewGridItem : Note.ListData -> Html Msg
 viewGridItem note =
+    let
+        baseColor =
+            Specialty.toColor note.specialty
+
+        hsla =
+            Color.toHsla baseColor
+
+        darker =
+            { hsla | lightness = 0.3 }
+
+        darkerColor =
+            Color.hsl darker.hue darker.saturation darker.lightness
+    in
     a
         [ class "note"
         , href ("#/notes/" ++ String.fromInt note.id)
-        , style "background" (Specialty.toCssColor note.specialty)
+        , Html.Attributes.attribute "data-tooltip" note.title
         ]
-        [ div [ class "detail" ] [ text note.title ] ]
+        [ div
+            [ class "detail"
+            , style "background" (Color.toCssString baseColor)
+            , style "color" (Color.toCssString darkerColor)
+            ]
+            [ text note.title ]
+        ]
