@@ -1,14 +1,17 @@
 module Types.Specialty exposing
     ( Specialty(..)
+    , count
     , decoder
     , encode
     , fromInt
     , list
     , option
+    , toCssColor
     , toInt
     , toString
     )
 
+import Color
 import Html exposing (Html)
 import Html.Attributes as Attributes
 import Json.Decode as Decode exposing (Decoder, Value)
@@ -355,6 +358,21 @@ list =
     , Law
     , Ethics
     ]
+
+
+count : Int
+count =
+    List.length list
+
+
+toCssColor : Specialty -> String
+toCssColor specialty =
+    Color.hsla
+        (toFloat (modBy count (toInt specialty * 3)) / (toFloat count - 1))
+        0.3
+        0.6
+        1
+        |> Color.toCssString
 
 
 option : Specialty -> Html msg

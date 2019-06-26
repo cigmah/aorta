@@ -40,17 +40,20 @@ view model =
 viewPage : Model -> (subMsg -> Msg) -> Document subMsg -> Document Msg
 viewPage model toMsg page =
     { title = page.title
-    , body = List.map (Html.map toMsg) page.body |> wrapBody model
+    , body =
+        List.map (Html.map toMsg) page.body
+            |> wrapBody model
     }
 
 
 viewNavLink : { name : String, active : Bool, route : Route, icon : String } -> Html Msg
 viewNavLink data =
-    li []
-        [ a [ Route.toHref data.route ]
-            [ i [ class "material-icons" ] [ text data.icon ]
-            , label [] [ text data.name ]
-            ]
+    a
+        [ Route.toHref data.route
+        , classList [ ( "active", data.active ) ]
+        ]
+        [ i [ class "material-icons" ] [ text data.icon ]
+        , label [] [ text data.name ]
         ]
 
 
@@ -71,13 +74,34 @@ viewMessage session =
             section [ class "hidden" ] []
 
 
+isRouteEqual : Route -> Model -> Bool
+isRouteEqual route model =
+    case ( route, model ) of
+        ( Route.Home, Home _ ) ->
+            True
+
+        ( Route.Profile, Profile _ ) ->
+            True
+
+        _ ->
+            False
+
+
 wrapBody : Model -> List (Html Msg) -> List (Html Msg)
 wrapBody model body =
     [ nav []
-        [ ul []
-            [ viewNavLink { name = "Matrix", active = False, route = Route.Home, icon = "table" }
-            , viewNavLink { name = "Profile", active = False, route = Route.Profile, icon = "person" }
-            ]
+        [ viewNavLink
+            { name = "Matrix"
+            , active = isRouteEqual Route.Home model
+            , route = Route.Home
+            , icon = "notes"
+            }
+        , viewNavLink
+            { name = "Profile"
+            , active = isRouteEqual Route.Profile model
+            , route = Route.Profile
+            , icon = "person"
+            }
         ]
     , viewMessage (eject model)
     ]

@@ -1,6 +1,7 @@
 module Page.Home exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
 import Browser exposing (Document)
+import Color
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -9,6 +10,7 @@ import Types.Credentials as Credentials exposing (Auth(..))
 import Types.Note as Note
 import Types.Request as Request
 import Types.Session as Session exposing (Session)
+import Types.Specialty as Specialty exposing (Specialty)
 import Types.YearLevel as YearLevel exposing (YearLevel)
 import Url.Builder as Builder
 
@@ -159,7 +161,7 @@ viewBody model =
 
 viewHeader : Model -> Html Msg
 viewHeader model =
-    header []
+    header [ class "tabs" ]
         (List.map
             (viewHeaderItem model.yearLevel)
             [ YearLevel.Year1, YearLevel.Year2a, YearLevel.Year3b, YearLevel.Year4c ]
@@ -169,7 +171,9 @@ viewHeader model =
 viewHeaderItem : YearLevel -> YearLevel -> Html Msg
 viewHeaderItem active yearLevel =
     div
-        [ classList [ ( "active", active == yearLevel ) ]
+        [ classList
+            [ ( "active", active == yearLevel ) ]
+        , class "tab"
         , onClick (ChangedYearLevel yearLevel)
         ]
         [ text (YearLevel.toString yearLevel) ]
@@ -197,14 +201,15 @@ viewGrid webData =
                         [ text "Oh no! There aren't any notes for this year level yet..." ]
 
                 nonEmptyData ->
-                    div [ class "grid" ]
+                    div [ id "grid" ]
                         (List.map viewGridItem nonEmptyData)
 
 
 viewGridItem : Note.ListData -> Html Msg
 viewGridItem note =
     a
-        [ id "note"
+        [ class "note"
         , href ("#/notes/" ++ String.fromInt note.id)
+        , style "background" (Specialty.toCssColor note.specialty)
         ]
-        [ text note.title ]
+        [ div [ class "detail" ] [ text note.title ] ]
