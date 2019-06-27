@@ -4,8 +4,12 @@ import Browser exposing (Document)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Json.Decode as Decode
+import Json.Encode as Encode
 import List.Extra exposing (getAt, setAt)
 import Markdown
+import Random
+import Random.List exposing (choose)
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Choice as Choice
 import Types.Comment as Comment
@@ -48,12 +52,16 @@ type alias ModalQuestionData =
     { questionId : Int
     , webData : WebData Question.ReadData
     , state : QuestionState
+    , comment : String
+    , commentResponse : WebData Comment.ReadData
+    , likeResponse : WebData ()
+    , flagResponse : WebData ()
     }
 
 
 type QuestionState
     = Unanswered
-    | Answered Int (WebData ())
+    | Answered Choice.ReadData (WebData ())
 
 
 
@@ -64,11 +72,14 @@ type Msg
     = NoOp
     | GotNote (WebData Note.Data)
     | OpenedAddQuestionModal
+    | OpenedStudyModal
+    | GotRandomQuestionId ( Maybe Question.ListData, List Question.ListData )
     | ClickedCloseModal
     | ChangedComment String
     | ClickedSubmitComment
     | GotSubmitCommentResponse (WebData Comment.ReadData)
     | AddQuestionMsg AddQuestionSubMsg
+    | StudyMsg StudySubMsg
 
 
 type AddQuestionSubMsg
@@ -79,6 +90,19 @@ type AddQuestionSubMsg
     | AddedChoice
     | PostedQuestion
     | GotAddQuestionResponse (WebData Question.ReadData)
+
+
+type StudySubMsg
+    = GotQuestion (WebData Question.ReadData)
+    | ClickedChoice Choice.ReadData
+    | GotResponseResponse (WebData ())
+    | ClickedLike
+    | GotLikeResponse (WebData ())
+    | ClickedFlag
+    | GotFlagResponse (WebData ())
+    | ChangedQuestionComment String
+    | ClickedSubmitQuestionComment
+    | GotSubmitQuestionCommentResponse (WebData Comment.ReadData)
 
 
 
@@ -102,6 +126,18 @@ initAddQuestion : AddQuestionData
 initAddQuestion =
     { question = Question.new
     , response = NotAsked
+    }
+
+
+initStudy : Int -> ModalQuestionData
+initStudy questionId =
+    { questionId = questionId
+    , webData = Loading
+    , state = Unanswered
+    , comment = ""
+    , commentResponse = NotAsked
+    , likeResponse = NotAsked
+    , flagResponse = NotAsked
     }
 
 
@@ -152,8 +188,57 @@ update msg model =
         ( OpenedAddQuestionModal, _ ) ->
             ( { model | modal = ModalAddQuestion initAddQuestion }, Cmd.none )
 
+        ( OpenedStudyModal, Success noteData ) ->
+            case ( model.session.auth, noteData.dueIds, noteData.knownIds ) of
+                ( User _, Just [], Just known ) ->
+                    -- If there are no due questions, select randomly from all cards
+                    ( model, Random.generate GotRandomQuestionId (choose noteData.allIds) )
+
+                ( User _, Just due, _ ) ->
+                    -- Or do the due questions first
+                    ( model, Random.generate GotRandomQuestionId (choose due) )
+
+                _ ->
+                    ( model, Random.generate GotRandomQuestionId (choose noteData.allIds) )
+
+        ( GotRandomQuestionId ( maybeQuestionListData, left ), Success noteData ) ->
+            case maybeQuestionListData of
+                Just ({ id } as selected) ->
+                    -- Modify the question sets
+                    let
+                        newAllIds =
+                            List.Extra.remove selected noteData.allIds
+
+                        newDue =
+                            case ( model.session.auth, noteData.dueIds ) of
+                                ( User _, Just due ) ->
+                                    Just (List.Extra.remove selected due)
+
+                                _ ->
+                                    Nothing
+                    in
+                    ( { model
+                        | modal = ModalQuestion (initStudy id)
+                        , webDataNote = Success { noteData | allIds = newAllIds, dueIds = newDue }
+                      }
+                    , Request.get (getQuestion model.session id) |> Cmd.map StudyMsg
+                    )
+
+                Nothing ->
+                    -- Reload
+                    let
+                        newSession =
+                            Session.addMessage
+                                model.session
+                                "There aren't any questions attached to this note yet. You can add some if you are logged in!"
+                    in
+                    ( { model | session = newSession, modal = ModalNone }
+                    , Request.get (getNote model.session model.noteId)
+                    )
+
         ( ClickedCloseModal, _ ) ->
-            ( { model | modal = ModalNone }, Cmd.none )
+            -- Reload
+            ( { model | modal = ModalNone, webDataNote = Loading }, Request.get (getNote model.session model.noteId) )
 
         ( ChangedComment string, Success noteData ) ->
             ( { model | comment = string }, Cmd.none )
@@ -187,6 +272,14 @@ update msg model =
             case model.modal of
                 ModalAddQuestion modalData ->
                     updateAddQuestion subMsg modalData noteData model
+
+                _ ->
+                    ignore
+
+        ( StudyMsg subMsg, Success noteData ) ->
+            case model.modal of
+                ModalQuestion modalData ->
+                    updateStudy subMsg modalData noteData model
 
                 _ ->
                     ignore
@@ -285,6 +378,117 @@ updateAddQuestion subMsg modalData noteData model =
                     ( { model | modal = ModalAddQuestion { modalData | response = webData } }, Cmd.none )
 
 
+updateStudy : StudySubMsg -> ModalQuestionData -> Note.Data -> Model -> ( Model, Cmd Msg )
+updateStudy msg questionData noteData model =
+    let
+        ignore =
+            ( model, Cmd.none )
+
+        wrap newQuestionData =
+            { model | modal = ModalQuestion newQuestionData }
+    in
+    case msg of
+        GotQuestion webData ->
+            ( { model | modal = ModalQuestion { questionData | webData = webData } }, Cmd.none )
+
+        ClickedChoice choice ->
+            case model.session.auth of
+                Guest ->
+                    ( wrap { questionData | state = Answered choice NotAsked }
+                    , Cmd.none
+                    )
+
+                User _ ->
+                    case questionData.state of
+                        Unanswered ->
+                            ( wrap { questionData | state = Answered choice Loading }
+                            , Request.post (postResponse model.session questionData.questionId choice.id) |> Cmd.map StudyMsg
+                            )
+
+                        Answered _ _ ->
+                            ignore
+
+        GotResponseResponse webData ->
+            case questionData.state of
+                Unanswered ->
+                    ignore
+
+                Answered choice _ ->
+                    ( wrap { questionData | state = Answered choice webData }
+                    , Cmd.none
+                    )
+
+        ClickedLike ->
+            case questionData.likeResponse of
+                Loading ->
+                    ignore
+
+                _ ->
+                    ( wrap { questionData | likeResponse = Loading }
+                    , Request.post (postLike model.session questionData.questionId)
+                        |> Cmd.map StudyMsg
+                    )
+
+        GotLikeResponse webData ->
+            ( wrap { questionData | likeResponse = webData }
+            , Cmd.none
+            )
+
+        ClickedFlag ->
+            case questionData.flagResponse of
+                Loading ->
+                    ignore
+
+                _ ->
+                    ( wrap { questionData | flagResponse = Loading }
+                    , Request.post (postFlag model.session questionData.questionId)
+                        |> Cmd.map StudyMsg
+                    )
+
+        GotFlagResponse webData ->
+            ( wrap { questionData | flagResponse = webData }
+            , Cmd.none
+            )
+
+        ChangedQuestionComment string ->
+            ( wrap { questionData | comment = string }, Cmd.none )
+
+        ClickedSubmitQuestionComment ->
+            case questionData.commentResponse of
+                Loading ->
+                    ignore
+
+                _ ->
+                    ( wrap { questionData | commentResponse = Loading }
+                    , Request.post (postQuestionComment model.session questionData.questionId questionData.comment)
+                        |> Cmd.map StudyMsg
+                    )
+
+        GotSubmitQuestionCommentResponse webData ->
+            case webData of
+                Success commentReturn ->
+                    case questionData.webData of
+                        Success questionWebData ->
+                            ( wrap
+                                { questionData
+                                    | commentResponse = webData
+                                    , comment = ""
+                                    , webData =
+                                        Success
+                                            { questionWebData
+                                                | comments = questionWebData.comments ++ [ commentReturn ]
+                                            }
+                                }
+                            , Cmd.none
+                            )
+
+                        _ ->
+                            ignore
+
+                _ ->
+                    ( wrap { questionData | commentResponse = webData }, Cmd.none )
+
+
 
 -- Requests
 
@@ -295,6 +499,16 @@ getNote session noteId =
     , endpoint = Request.GetNote noteId
     , callback = GotNote
     , returnDecoder = Note.decoder
+    , queryList = []
+    }
+
+
+getQuestion : Session -> Int -> Request.GetRequest Question.ReadData StudySubMsg
+getQuestion session questionId =
+    { auth = session.auth
+    , endpoint = Request.GetQuestion questionId
+    , callback = GotQuestion
+    , returnDecoder = Question.decoder
     , queryList = []
     }
 
@@ -322,6 +536,62 @@ postComment session int comment =
             { noteId = int
             , content = comment
             }
+    }
+
+
+postResponse : Session -> Int -> Int -> Request.PostRequest () StudySubMsg
+postResponse session questionId choiceId =
+    { auth = session.auth
+    , endpoint = Request.PostResponse
+    , callback = GotResponseResponse
+    , returnDecoder = Decode.succeed ()
+    , queryList = []
+    , body =
+        Encode.object
+            [ ( "question", Encode.int questionId )
+            , ( "choice", Encode.int choiceId )
+            ]
+    }
+
+
+postLike : Session -> Int -> Request.PostRequest () StudySubMsg
+postLike session questionId =
+    { auth = session.auth
+    , endpoint = Request.PostFlag
+    , callback = GotLikeResponse
+    , returnDecoder = Decode.succeed ()
+    , queryList = []
+    , body =
+        Encode.object
+            [ ( "question", Encode.int questionId ) ]
+    }
+
+
+postFlag : Session -> Int -> Request.PostRequest () StudySubMsg
+postFlag session questionId =
+    { auth = session.auth
+    , endpoint = Request.PostFlag
+    , callback = GotFlagResponse
+    , returnDecoder = Decode.succeed ()
+    , queryList = []
+    , body =
+        Encode.object
+            [ ( "question", Encode.int questionId ) ]
+    }
+
+
+postQuestionComment : Session -> Int -> String -> Request.PostRequest Comment.ReadData StudySubMsg
+postQuestionComment session questionId comment =
+    { auth = session.auth
+    , endpoint = Request.PostQuestionComment
+    , callback = GotSubmitQuestionCommentResponse
+    , returnDecoder = Comment.decoder
+    , queryList = []
+    , body =
+        Encode.object
+            [ ( "question", Encode.int questionId )
+            , ( "content", Encode.string comment )
+            ]
     }
 
 
@@ -467,7 +737,7 @@ viewControls dataNoteWebData =
         Success data ->
             article [ id "controls" ]
                 [ button [ onClick OpenedAddQuestionModal ] [ text "Add EMQ" ]
-                , button [] [ text "Study" ]
+                , button [ onClick OpenedStudyModal ] [ text "Study" ]
                 ]
 
 
@@ -481,7 +751,7 @@ viewModal modal =
             viewModalAddQuestion addQuestionData
 
         ModalQuestion modalQuestionData ->
-            section [] []
+            viewModalStudy modalQuestionData
 
 
 viewModalAddQuestion : AddQuestionData -> Html Msg
@@ -576,4 +846,135 @@ viewCreateChoice int creationDataChoice =
                     , class "incorrect"
                     ]
                     []
+                ]
+
+
+viewModalStudy : ModalQuestionData -> Html Msg
+viewModalStudy modalData =
+    case modalData.webData of
+        Loading ->
+            section [ id "modal" ] [ div [ class "loading" ] [] ]
+
+        NotAsked ->
+            section [ id "modal" ] [ text "Not asked" ]
+
+        Failure e ->
+            section [ id "modal" ] [ text "Failure" ]
+
+        Success question ->
+            section [ id "modal", class "question-modal" ]
+                [ viewQuestion modalData question
+                , viewQuestionComments modalData question
+                ]
+
+
+viewQuestion : ModalQuestionData -> Question.ReadData -> Html Msg
+viewQuestion modalData data =
+    let
+        ( isCorrect, isIncorrect ) =
+            case modalData.state of
+                Unanswered ->
+                    ( False, False )
+
+                Answered choice _ ->
+                    if choice.isCorrect then
+                        ( True, False )
+
+                    else
+                        ( False, True )
+
+        numLikesInfo =
+            case data.numLikes of
+                Just int ->
+                    span [] [ text (String.fromInt int) ]
+
+                Nothing ->
+                    span [] []
+    in
+    article []
+        [ header
+            [ classList
+                [ ( "correct", isCorrect )
+                , ( "incorrect", isIncorrect )
+                ]
+            ]
+            [ h1
+                []
+                [ text ("Question #" ++ String.fromInt data.id) ]
+            , button [ onClick ClickedCloseModal ]
+                [ i [ class "material-icons" ] [ text "close" ] ]
+            ]
+        , section []
+            [ div [ id "stem" ]
+                (Markdown.toHtml Nothing data.stem)
+            , div [ id "choices" ]
+                (List.map (viewChoiceRead modalData.state) data.choices)
+                |> Html.map StudyMsg
+            ]
+        , footer
+            [ classList
+                [ ( "hide-under", modalData.state == Unanswered )
+                , ( "correct", isCorrect )
+                , ( "incorrect", isIncorrect )
+                ]
+            ]
+            [ button
+                [ onClick (StudyMsg ClickedFlag) ]
+                [ span [ class "material-icons" ] [ text "flag" ] ]
+            , button
+                [ onClick (StudyMsg ClickedLike) ]
+                [ span [ class "material-icons" ] [ text "thumb_up" ]
+                , numLikesInfo
+                ]
+            , button
+                [ onClick OpenedStudyModal ]
+                [ text "Next Question" ]
+            ]
+        ]
+
+
+viewChoiceRead : QuestionState -> Choice.ReadData -> Html StudySubMsg
+viewChoiceRead state choice =
+    case state of
+        Unanswered ->
+            button
+                [ class "choice"
+                , onClick (ClickedChoice choice)
+                ]
+                [ span [] [ text choice.content ] ]
+
+        Answered chosen webData ->
+            div
+                [ class "choice"
+                , classList
+                    [ ( "incorrect", not choice.isCorrect && (chosen.id == choice.id) )
+                    , ( "correct", choice.isCorrect )
+                    ]
+                ]
+                [ span [] [ text choice.content ]
+                , span [ class "chosen-by" ] [ text (String.fromInt choice.numChosen ++ " other users.") ]
+                ]
+
+
+viewQuestionComments : ModalQuestionData -> Question.ReadData -> Html Msg
+viewQuestionComments modalData question =
+    case modalData.state of
+        Unanswered ->
+            article [] []
+
+        Answered readDataChoice webData ->
+            article [ id "content" ]
+                [ section []
+                    [ div [ id "comments" ]
+                        (List.map viewComment question.comments)
+                    ]
+                , footer []
+                    [ textarea
+                        [ placeholder "Comment here."
+                        , value modalData.comment
+                        , onInput (StudyMsg << ChangedQuestionComment)
+                        ]
+                        []
+                    , button [ onClick (StudyMsg ClickedSubmitQuestionComment) ] [ text "Submit" ]
+                    ]
                 ]

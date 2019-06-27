@@ -24,6 +24,7 @@ type alias ReadData =
     , content : String
     , explanation : String
     , isCorrect : Bool
+    , numChosen : Int
     }
 
 
@@ -54,8 +55,9 @@ encode data =
 
 decoder : Decoder ReadData
 decoder =
-    Decode.map4 ReadData
+    Decode.map5 ReadData
         (Decode.field "id" Decode.int)
         (Decode.field "content" Decode.string)
         (Decode.field "explanation" Decode.string)
         (Decode.field "is_correct" Decode.bool)
+        (Decode.field "num_chosen" Decode.int)

@@ -70,6 +70,10 @@ img, svg, video, canvas, audio, iframe, embed, object {
   display: none !important;
 }
 
+.hide-under {
+  opacity: 0;
+}
+
 .center {
   display: flex;
   justify-content: center;
@@ -79,6 +83,16 @@ img, svg, video, canvas, audio, iframe, embed, object {
 
 .fadeinout {
   animation: fadeinout 1s ease-in-out infinite;
+}
+
+article > header.correct, footer.correct {
+  background: mediumseagreen;
+  color: white;
+}
+
+article > header.incorrect, footer.incorrect {
+  background: indianred;
+  color: white;
 }
 
 
@@ -118,6 +132,7 @@ article {
     padding-bottom: 0.25em;
     border-bottom: 1px solid #dadcdc;
     margin-bottom: 1em;
+    transition: all 0.4s;
   }
 
   > section {
@@ -130,6 +145,7 @@ article {
   > footer {
     display: flex;
     justify-content: flex-end;
+    transition: all 0.4s;
   }
 }
 
@@ -241,13 +257,6 @@ body {
 
       &.active {
         box-shadow: none;
-        cursor: auto;
-
-        &:hover {
-          background: inherit;
-          color: slategrey;
-          box-shadow: inherit;
-        }
       }
 
       &:hover {
@@ -436,6 +445,7 @@ body {
         overflow: auto;
         transition: all 0.3s;
 
+
         div.field {
           display: grid;
           margin-top: 1em;
@@ -507,6 +517,68 @@ body {
         padding: 1em;
       }
     }
+
+
+  }
+
+  section#modal.question-modal {
+    grid-template-columns: 1fr 1fr;
+
+    > article {
+      max-width: 600px;
+      height: 80vh;
+      z-index: 50;
+
+      > section {
+
+        > div#stem {
+          margin-bottom: 2em;
+          margin-left: 1em;
+          margin-right: 1em;
+        }
+
+        > div#choices {
+          display: flex;
+          flex-direction: column;
+          transition: all 0.2s;
+
+          > button.choice {
+            text-align: left;
+            transition: inherit;
+
+            &:hover {
+              background: #dadcdc;
+            }
+          }
+
+          > div.choice {
+            @extend button;
+            display: flex;
+            justify-content: space-between;
+            cursor: auto;
+            transition: inherit;
+
+            &:hover {
+              background: inherit;
+              box-shadow: 0 1px 3px lightgrey;
+            }
+
+            &.correct {
+              background: mediumseagreen;
+              color: white;
+            }
+
+            &.incorrect {
+              background: indianred;
+              color: white;
+            }
+          }
+
+        }
+
+      }
+    }
+
 
   }
 

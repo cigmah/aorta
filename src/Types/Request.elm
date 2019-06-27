@@ -123,6 +123,7 @@ type Endpoint
     | PostComment
     | PostContact
     | PostQuestion
+    | PostQuestionComment
     | PostNote
 
 
@@ -155,6 +156,9 @@ endpointToUrl endpoint =
 
         PostQuestion ->
             [ "questions" ]
+
+        PostQuestionComment ->
+            [ "questions", "comments" ]
 
         PostContact ->
             [ "mail" ]
