@@ -10,6 +10,7 @@ import RemoteData exposing (RemoteData(..), WebData)
 import Types.Choice as Choice
 import Types.Comment as Comment
 import Types.Credentials as Credentials exposing (Auth(..))
+import Types.Datetime as Datetime
 import Types.Domain as Domain exposing (Domain)
 import Types.Note as Note
 import Types.Question as Question
@@ -63,6 +64,10 @@ type Msg
     = NoOp
     | GotNote (WebData Note.Data)
     | OpenedAddQuestionModal
+    | ClickedCloseModal
+    | ChangedComment String
+    | ClickedSubmitComment
+    | GotSubmitCommentResponse (WebData Comment.ReadData)
     | AddQuestionMsg AddQuestionSubMsg
 
 
@@ -146,6 +151,37 @@ update msg model =
 
         ( OpenedAddQuestionModal, _ ) ->
             ( { model | modal = ModalAddQuestion initAddQuestion }, Cmd.none )
+
+        ( ClickedCloseModal, _ ) ->
+            ( { model | modal = ModalNone }, Cmd.none )
+
+        ( ChangedComment string, Success noteData ) ->
+            ( { model | comment = string }, Cmd.none )
+
+        ( ClickedSubmitComment, Success noteData ) ->
+            case model.webDataComment of
+                Loading ->
+                    ignore
+
+                _ ->
+                    ( { model | webDataComment = Loading }
+                    , Request.post (postComment model.session model.noteId model.comment)
+                    )
+
+        ( GotSubmitCommentResponse webData, Success noteData ) ->
+            case webData of
+                Success comment ->
+                    -- Easy route for now.
+                    ( { model
+                        | webDataComment = webData
+                        , comment = ""
+                        , webDataNote = Success { noteData | comments = noteData.comments ++ [ comment ] }
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( { model | webDataComment = webData }, Cmd.none )
 
         ( AddQuestionMsg subMsg, Success noteData ) ->
             case model.modal of
@@ -232,7 +268,21 @@ updateAddQuestion subMsg modalData noteData model =
                     )
 
         GotAddQuestionResponse webData ->
-            ( { model | modal = ModalAddQuestion { modalData | response = webData } }, Cmd.none )
+            case webData of
+                Success _ ->
+                    let
+                        newSession =
+                            Session.addMessage model.session "Thank you! Your EMQ has been added to this topic."
+                    in
+                    ( { model
+                        | modal = ModalAddQuestion { modalData | response = webData }
+                        , session = newSession
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( { model | modal = ModalAddQuestion { modalData | response = webData } }, Cmd.none )
 
 
 
@@ -251,19 +301,27 @@ getNote session noteId =
 
 postQuestion : Session -> Int -> Question.CreationData -> Request.PostRequest Question.ReadData Msg
 postQuestion session noteId question =
-    let
-        encoded =
-            Question.encode noteId question
-
-        _ =
-            Debug.log "encoded" encoded
-    in
     { auth = session.auth
     , endpoint = Request.PostQuestion
     , callback = AddQuestionMsg << GotAddQuestionResponse
     , returnDecoder = Question.decoder
     , queryList = []
-    , body = encoded
+    , body = Question.encode noteId question
+    }
+
+
+postComment : Session -> Int -> String -> Request.PostRequest Comment.ReadData Msg
+postComment session int comment =
+    { auth = session.auth
+    , endpoint = Request.PostComment
+    , callback = GotSubmitCommentResponse
+    , returnDecoder = Comment.decoder
+    , queryList = []
+    , body =
+        Comment.encode
+            { noteId = int
+            , content = comment
+            }
     }
 
 
@@ -287,7 +345,7 @@ viewBody model =
         , section []
             [ div [ id "dashboard" ]
                 [ viewStats model.webDataNote
-                , viewContent model.webDataNote
+                , viewContent model model.webDataNote
                 , viewControls model.webDataNote
                 ]
             ]
@@ -299,55 +357,96 @@ viewBody model =
 viewHeader : WebData Note.Data -> List (Html Msg)
 viewHeader dataNoteWebData =
     let
-        wrap string =
+        wrap string loading =
             [ a [ href "/" ] [ text "Back" ]
-            , div [ class "title" ] [ text string ]
+            , div [ class "title", classList [ ( "fadeinout", loading ) ] ] [ text string ]
             ]
     in
     case dataNoteWebData of
         Loading ->
-            wrap "Loading"
+            wrap "Loading" True
 
         NotAsked ->
-            wrap "Not Asked"
+            wrap "Not Asked" False
 
         Failure e ->
-            wrap "Failure"
+            wrap "Failure" False
 
         Success data ->
-            wrap data.title
+            wrap data.title False
 
 
-viewContent : WebData Note.Data -> Html Msg
-viewContent dataNoteWebData =
+viewContent : Model -> WebData Note.Data -> Html Msg
+viewContent model dataNoteWebData =
     case dataNoteWebData of
         Loading ->
-            article [] [ text "Loading" ]
+            article [ id "content", class "center" ] [ div [ class "loading" ] [] ]
 
         NotAsked ->
-            article [] [ text "Not asked" ]
+            article [ id "content", class "center" ] [ text "Not asked" ]
 
         Failure e ->
-            article [] [ text "Failure" ]
+            article [ id "content", class "center" ] [ text "Failure" ]
 
         Success data ->
             article [ id "content" ]
-                [ section [] (Markdown.toHtml Nothing data.content)
-                , footer [] []
+                [ section []
+                    [ div [ id "note" ]
+                        (viewNote data.content)
+                    , div [ id "comments" ]
+                        (List.map viewComment data.comments)
+                    ]
+                , footer []
+                    [ textarea
+                        [ placeholder "Contribute"
+                        , value model.comment
+                        , required True
+                        , onInput ChangedComment
+                        ]
+                        []
+                    , button
+                        [ onClick ClickedSubmitComment ]
+                        [ text "Submit" ]
+                    ]
                 ]
+
+
+viewComment : Comment.ReadData -> Html Msg
+viewComment data =
+    div [ class "comment" ]
+        [ label []
+            [ text
+                (String.join
+                    " "
+                    [ data.author.username, "on", Datetime.posixToString data.created_at ]
+                )
+            ]
+        , div [ class "markdown" ]
+            (Markdown.toHtml Nothing data.content)
+        ]
+
+
+viewNote : String -> List (Html Msg)
+viewNote content =
+    case content of
+        "" ->
+            [ text "We haven't added any official AORTA notes to this item yet - sorry about that! We'll be on it soon. In the meantime, you can submit public contributions below." ]
+
+        value ->
+            Markdown.toHtml Nothing content
 
 
 viewStats : WebData Note.Data -> Html Msg
 viewStats dataNoteWebData =
     case dataNoteWebData of
         Loading ->
-            article [] [ text "Loading" ]
+            article [ id "stats" ] [ div [ class "loading" ] [] ]
 
         NotAsked ->
-            article [] [ text "Not asked" ]
+            article [ id "stats" ] [ text "Not asked" ]
 
         Failure e ->
-            article [] [ text "Failure" ]
+            article [ id "stats" ] [ text "Failure" ]
 
         Success data ->
             article [ id "stats" ] []
@@ -357,13 +456,13 @@ viewControls : WebData Note.Data -> Html Msg
 viewControls dataNoteWebData =
     case dataNoteWebData of
         Loading ->
-            article [] [ text "Loading" ]
+            article [ id "controls" ] [ div [ class "loading" ] [] ]
 
         NotAsked ->
-            article [] [ text "Not asked" ]
+            article [ id "controls" ] [ text "Not asked" ]
 
         Failure e ->
-            article [] [ text "Failure" ]
+            article [ id "controls" ] [ text "Failure" ]
 
         Success data ->
             article [ id "controls" ]
@@ -380,36 +479,51 @@ viewModal modal =
 
         ModalAddQuestion addQuestionData ->
             viewModalAddQuestion addQuestionData
-                |> Html.map AddQuestionMsg
 
         ModalQuestion modalQuestionData ->
             section [] []
 
 
-viewModalAddQuestion : AddQuestionData -> Html AddQuestionSubMsg
+viewModalAddQuestion : AddQuestionData -> Html Msg
 viewModalAddQuestion addQuestionData =
     section [ id "modal" ]
         [ article []
-            [ header [] [ text "Add EMQ" ]
+            [ header []
+                [ h1 [] [ text "Add EMQ" ]
+                , button [ onClick ClickedCloseModal ]
+                    [ i [ class "material-icons" ] [ text "close" ] ]
+                ]
             , section []
-                [ textarea
-                    [ value addQuestionData.question.stem
-                    , placeholder "Question stem"
-                    , onInput ChangedStem
+                [ div [ class "field" ]
+                    [ label [ for "stem" ] [ text "Question Stem" ]
+                    , textarea
+                        [ value addQuestionData.question.stem
+                        , placeholder "Question stem"
+                        , onInput (AddQuestionMsg << ChangedStem)
+                        , id "stem"
+                        , required True
+                        ]
+                        []
                     ]
-                    []
-                , select
-                    [ onInput ChangedDomain
-                    , value (addQuestionData.question.domain |> Domain.toInt |> String.fromInt)
+                , div [ class "field" ]
+                    [ label [ for "domain" ] [ text "Domain" ]
+                    , select
+                        [ onInput (AddQuestionMsg << ChangedDomain)
+                        , value (addQuestionData.question.domain |> Domain.toInt |> String.fromInt)
+                        , id "domain"
+                        ]
+                        (List.map Domain.option Domain.list)
                     ]
-                    (List.map Domain.option Domain.list)
                 , div []
                     (List.indexedMap
                         viewCreateChoice
                         addQuestionData.question.choices
                     )
-                , button [ onClick AddedChoice ] [ text "Add Choice" ]
-                , button [ onClick PostedQuestion ] [ text "Add Question" ]
+                    |> Html.map AddQuestionMsg
+                ]
+            , footer []
+                [ button [ onClick (AddQuestionMsg AddedChoice) ] [ text "Add Choice" ]
+                , button [ onClick (AddQuestionMsg PostedQuestion) ] [ text "Add Question" ]
                 ]
             ]
         ]
@@ -417,35 +531,49 @@ viewModalAddQuestion addQuestionData =
 
 viewCreateChoice : Int -> Choice.CreationData -> Html AddQuestionSubMsg
 viewCreateChoice int creationDataChoice =
+    let
+        choiceId =
+            "choice-" ++ String.fromInt int
+    in
     case int of
         0 ->
-            div []
-                [ input
+            div [ class "field choice" ]
+                [ label [ for choiceId, class "correct" ] [ text "Answer" ]
+                , input
                     [ value creationDataChoice.content
                     , placeholder "Correct choice"
                     , onInput (ChangedChoiceContent int)
+                    , id choiceId
+                    , class "correct"
+                    , required True
                     ]
                     []
-                , input
+                , textarea
                     [ value creationDataChoice.explanation
                     , placeholder "This is correct because..."
                     , onInput (ChangedChoiceExplanation int)
+                    , class "correct"
                     ]
                     []
                 ]
 
         val ->
-            div []
-                [ input
+            div [ class "field choice" ]
+                [ label [ for choiceId, class "incorrect" ] [ text "Distractor" ]
+                , input
                     [ value creationDataChoice.content
                     , placeholder "Incorrect choice"
                     , onInput (ChangedChoiceContent int)
+                    , id choiceId
+                    , class "incorrect"
+                    , required True
                     ]
                     []
-                , input
+                , textarea
                     [ value creationDataChoice.explanation
                     , placeholder "This is incorrect because..."
                     , onInput (ChangedChoiceExplanation int)
+                    , class "incorrect"
                     ]
                     []
                 ]

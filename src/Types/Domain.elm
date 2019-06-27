@@ -89,7 +89,7 @@ toString domain =
             "Diagnosis"
 
         Management ->
-            "Manaagement"
+            "Management"
 
 
 list : List Domain

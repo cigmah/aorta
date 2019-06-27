@@ -20,17 +20,12 @@ h1, h2, h3, h4, h5, h6 {
 img, svg, video, canvas, audio, iframe, embed, object {
   display: block;
   vertical-align: middle;
+  margin: auto;
 }
 
 *, *::before, *::after {
   border-width: 0;
   border-style: solid;
-}
-
-/* Utilities */
-
-.hidden {
-  display: none !important;
 }
 
 /* Animations */
@@ -40,11 +35,65 @@ img, svg, video, canvas, audio, iframe, embed, object {
   to {opacity: 1;}
 }
 
+@keyframes fadeinout {
+  0% {
+    opacity: 0.25;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.25;
+  }
+}
+
+@keyframes loading {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.5
+  }
+  50% {
+    transform: scale(2) rotate(360deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.5;
+  }
+}
+
+/* Utilities */
+
+.hidden {
+  display: none !important;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.fadeinout {
+  animation: fadeinout 1s ease-in-out infinite;
+}
+
+
 /* Main */
 
 html {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   line-height: 1.6;
+}
+
+div.loading {
+  width: 1em;
+  height: 1em;
+  background: slategrey;
+  animation: loading 3s ease-in-out infinite;
 }
 
 .message {
@@ -59,6 +108,8 @@ html {
 
 article {
   margin: 1em;
+  display: flex;
+  flex-direction: column;
 
   > header {
     font-weight: bold;
@@ -70,6 +121,7 @@ article {
   }
 
   > section {
+    flex-grow: 1;
     p {
       margin-top: 1em;
     }
@@ -78,6 +130,47 @@ article {
   > footer {
     display: flex;
     justify-content: flex-end;
+  }
+}
+
+article#content {
+
+  > section {
+    padding: 1em;
+    box-sizing: border-box;
+    animation: fadein 0.3s;
+
+    > div#comments {
+      display: flex;
+      flex-direction: column;
+
+      div.comment {
+        display: flex;
+
+        label {
+          width: 15%;
+          font-size: 0.8em;
+          margin-top: 1rem;
+        }
+
+        div {
+          flex-grow: 1;
+          padding-left: 1em;
+
+          img {
+            max-width: 50%;
+            max-height: 20vh;
+          }
+
+        }
+
+      }
+    }
+
+  }
+  > footer {
+    padding: 0.5em;
+    border-top: 1px solid lightgrey;
   }
 }
 
@@ -316,7 +409,7 @@ body {
 
     > form > article, > article {
       width: 100%;
-      max-width: 600px;
+      max-width: 720px;
       background: white;
       box-shadow: 0 1px 3px lightgrey;
 
@@ -339,6 +432,75 @@ body {
 
       > section {
         padding: 1em;
+        max-height: 70vh;
+        overflow: auto;
+        transition: all 0.3s;
+
+        div.field {
+          display: grid;
+          margin-top: 1em;
+          margin-bottom: 1em;
+          grid-template-columns: min-content;
+          grid-gap: 0.25em;
+
+
+          > label {
+            margin: none;
+            min-width: 6em;
+            grid-row: 1;
+            display: flex;
+            height: 100%;
+            border-radius: 2px;
+            padding-left: 0.5em;
+            padding-right: 0.5em;
+            box-sizing: border-box;
+            text-align: left;
+          }
+
+          > input, textarea, select {
+            grid-row: 1;
+          }
+
+          textarea#stem {
+            height: 10em;
+          }
+
+        }
+
+        div.field.choice {
+          display: grid;
+          grid-gap: 0.25em;
+          grid-template-columns: min-content;
+
+          > label {
+            grid-row: 1;
+            grid-column: 1;
+
+            &.correct {
+              color: mediumseagreen;
+            }
+
+
+            &.incorrect {
+              color: indianred;
+            }
+
+          }
+
+          > input {
+            grid-row: 1;
+            grid-column: 2;
+            max-width: 100%
+          }
+
+          > textarea {
+            grid-row: 2;
+            grid-column: 2;
+            max-width: 100%;
+          }
+
+        }
+
       }
 
       > footer {
@@ -391,7 +553,7 @@ body {
         height: 90%;
         width: 100%;
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 3fr;
         grid-template-rows: 1fr 1fr;
         grid-gap: 1em;
 
@@ -401,10 +563,16 @@ body {
         }
 
         article#stats {
-
+          width: 100%;
+          height: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
         }
 
         article#controls {
+          width: 100%;
+          height: 100%;
           display: flex;
           justify-content: center;
           align-items: center;
@@ -414,6 +582,12 @@ body {
           grid-column: 2;
           grid-row-start: 1;
           grid-row-end: 3;
+          max-height: 100%;
+
+          > section {
+            overflow: auto;
+          }
+
         }
 
       }

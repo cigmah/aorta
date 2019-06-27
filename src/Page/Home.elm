@@ -188,7 +188,7 @@ viewGrid webData =
 
         Loading ->
             div []
-                [ text "Loading" ]
+                [ div [ class "loading" ] [] ]
 
         Failure e ->
             div []
