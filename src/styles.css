@@ -1,3 +1,26 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.note:hover:after, .note:hover::after {
+  @apply p-4 text-lg font-bold;
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: inherit;
+  color: inherit;
+  padding-bottom: 3em;
+}
+
+.note:hover {
+  border: 1px solid black;
+}
+.card:hover {
+  transform: scale(1.1);
+}
+
+div.tag {
+  @apply px-1 border border-white text-white mx-1 my-1 rounded-full text-xs;
+}

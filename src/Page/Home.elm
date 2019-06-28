@@ -11,6 +11,7 @@ import Types.Note as Note
 import Types.Request as Request
 import Types.Session as Session exposing (Session)
 import Types.Specialty as Specialty exposing (Specialty)
+import Types.Styles exposing (tailwind)
 import Types.YearLevel as YearLevel exposing (YearLevel)
 import Url.Builder as Builder
 
@@ -149,19 +150,79 @@ view model =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    [ main_ []
-        [ article []
-            [ viewHeader model
-            , section []
-                [ viewGrid model.webDataNoteList ]
+    [ main_
+        [ tailwind
+            [ "bg-gray-100"
+            , "min-h-screen"
             ]
+        ]
+        [ section
+            [ tailwind
+                [ "md:h-screen"
+                , "md:bg-gray-300"
+                , "w-full"
+                , "flex"
+                , "flex-col"
+                , "justify-center"
+                , "items-center"
+                , "md:p-4"
+                ]
+            ]
+            [ article
+                [ tailwind
+                    [ "md:container"
+                    , "md:shadow-xl"
+                    , "bg-white"
+                    , "md:rounded-b-lg"
+                    , "overflow-hidden"
+                    , "md:m-16"
+                    , "md:h-full"
+                    , "w-full"
+                    , "md:w-2/3"
+                    ]
+                ]
+                [ viewHeader model
+                , section
+                    [ tailwind
+                        [ "md:flex"
+                        , "items-start"
+                        , "md:h-full"
+                        , "overflow-auto"
+                        , "relative"
+                        , "hidden"
+                        ]
+                    ]
+                    [ viewGrid model.webDataNoteList ]
+                ]
+            ]
+        , section
+            [ tailwind
+                [ "container"
+                , "mx-auto"
+                , "pb-32"
+                , "flex"
+                , "flex-wrap"
+                , "justify-center"
+                , "pt-4"
+                , "px-4"
+                , "md:pt-8"
+                , "md:p-8"
+                ]
+            ]
+            (viewCards model.webDataNoteList)
         ]
     ]
 
 
 viewHeader : Model -> Html Msg
 viewHeader model =
-    header [ class "tabs" ]
+    header
+        [ tailwind
+            [ "flex"
+            , "sticky"
+            , "md:relative"
+            ]
+        ]
         (List.map
             (viewHeaderItem model.yearLevel)
             [ YearLevel.Year1, YearLevel.Year2a, YearLevel.Year3b, YearLevel.Year4c ]
@@ -171,9 +232,19 @@ viewHeader model =
 viewHeaderItem : YearLevel -> YearLevel -> Html Msg
 viewHeaderItem active yearLevel =
     div
-        [ classList
-            [ ( "active", active == yearLevel ) ]
-        , class "tab"
+        [ tailwind
+            [ "text-center"
+            , "flex-grow"
+            , "py-2"
+            , "px-4"
+            , "hover:bg-white"
+            , "hover:text-gray-600"
+            , "cursor-pointer"
+            ]
+        , classList
+            [ ( "bg-white text-gray-600", active == yearLevel )
+            , ( "bg-gray-600 text-white", not (active == yearLevel) )
+            ]
         , onClick (ChangedYearLevel yearLevel)
         ]
         [ text (YearLevel.toString yearLevel) ]
@@ -201,7 +272,13 @@ viewGrid webData =
                         [ text "Oh no! There aren't any notes for this year level yet..." ]
 
                 nonEmptyData ->
-                    div [ id "grid" ]
+                    div
+                        [ tailwind
+                            [ "flex"
+                            , "flex-wrap"
+                            , "m-8"
+                            ]
+                        ]
                         (List.map viewGridItem nonEmptyData)
 
 
@@ -211,24 +288,94 @@ viewGridItem note =
         baseColor =
             Specialty.toColor note.specialty
 
-        hsla =
-            Color.toHsla baseColor
-
-        darker =
-            { hsla | lightness = 0.3 }
-
         darkerColor =
-            Color.hsl darker.hue darker.saturation darker.lightness
+            Specialty.toDark note.specialty
+
+        ( initial, _ ) =
+            note.title
+                |> String.uncons
+                |> Maybe.withDefault ( ' ', "" )
     in
     a
         [ class "note"
+        , tailwind
+            [ "w-8"
+            , "h-8"
+            , "m-px"
+            , "rounded"
+            , "flex"
+            , "justify-center"
+            , "items-center"
+            ]
         , href ("#/notes/" ++ String.fromInt note.id)
         , Html.Attributes.attribute "data-tooltip" note.title
+        , Html.Attributes.style "background" (note.specialty |> Specialty.toColor |> Color.toCssString)
+        , Html.Attributes.style "color" (darkerColor |> Color.toCssString)
         ]
-        [ div
-            [ class "detail"
-            , style "background" (Color.toCssString baseColor)
-            , style "color" (Color.toCssString darkerColor)
+        [ text (String.fromChar initial) ]
+
+
+viewCards : WebData (List Note.ListData) -> List (Html Msg)
+viewCards webData =
+    case webData of
+        Loading ->
+            []
+
+        NotAsked ->
+            []
+
+        Failure e ->
+            []
+
+        Success data ->
+            List.map viewCard data
+
+
+viewCard : Note.ListData -> Html Msg
+viewCard note =
+    a
+        [ href ("#/notes/" ++ String.fromInt note.id)
+        , tailwind [ "m-2" ]
+        ]
+        [ article
+            [ class "card"
+            , tailwind
+                [ "text-white"
+                , "md:h-40"
+                , "w-full"
+                , "sm:w-64"
+                , "md:w-40"
+                , "rounded-lg"
+                , "shadow-md"
+                , "flex"
+                , "flex-col"
+                , "cursor-pointer"
+                , "hover:shadow-xl"
+                , "overflow-hidden"
+                ]
+            , Html.Attributes.style "background" (note.specialty |> Specialty.toMedium |> Color.toCssString)
             ]
-            [ text note.title ]
+            [ section
+                [ tailwind
+                    [ "font-sm"
+                    , "p-2"
+                    , "flex-grow"
+                    , "font-bold"
+                    ]
+                ]
+                [ text note.title ]
+            , footer
+                [ tailwind
+                    [ "font-normal"
+                    , "flex"
+                    , "p-1"
+                    , "flex-wrap"
+                    ]
+                ]
+                [ div [ class "tag" ] [ text (Specialty.toString note.specialty) ]
+                , div [ class "tag" ] [ text (YearLevel.toString note.yearLevel) ]
+                , div [ class "tag" ] [ text (String.fromInt note.numComments ++ " comments") ]
+                , div [ class "tag" ] [ text (String.fromInt note.numQuestions ++ " questions") ]
+                ]
+            ]
         ]

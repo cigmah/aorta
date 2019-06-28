@@ -1,4 +1,4 @@
-module Page.Question exposing
+module Views.Question exposing
     ( ModalQuestionData
     , QuestionMsgs
     , QuestionState(..)

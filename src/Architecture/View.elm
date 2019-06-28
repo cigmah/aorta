@@ -16,6 +16,7 @@ import Page.Profile as Profile
 import Page.Revise as Revise
 import Secret exposing (baseUrl)
 import Types.Session as Session exposing (Session)
+import Types.Styles exposing (tailwind)
 
 
 view : Model -> Document Msg
@@ -51,14 +52,35 @@ viewPage model toMsg page =
     }
 
 
-viewNavLink : { name : String, active : Bool, route : Route, icon : String } -> Html Msg
+viewNavLink : { name : String, active : Bool, route : Route, icon : String, right : Bool } -> Html Msg
 viewNavLink data =
     a
         [ Route.toHref data.route
-        , classList [ ( "active", data.active ) ]
+        , tailwind
+            [ "flex"
+            , "flex-col"
+            , "p-2"
+            , "flex-grow"
+            , "items-center"
+            , "md:flex-none"
+            , "md:flex-row"
+            , "justify-center"
+            , "cursor-pointer"
+            , "hover:bg-white"
+            , "hover:text-blue-800"
+            ]
+        , classList
+            [ ( "active", data.active )
+            , ( "md:ml-auto", data.right )
+            ]
         ]
-        [ i [ class "material-icons" ] [ text data.icon ]
-        , label [] [ text data.name ]
+        [ i
+            [ class "material-icons"
+            , tailwind
+                [ "px-2" ]
+            ]
+            [ text data.icon ]
+        , label [ tailwind [ "cursor-pointer" ] ] [ text data.name ]
         ]
 
 
@@ -101,24 +123,65 @@ isRouteEqual route model =
 wrapBody : Model -> List (Html Msg) -> List (Html Msg)
 wrapBody model body =
     [ nav
-        [ classList [ ( "hidden", isRouteEqual (Route.Note 0) model ) ] ]
-        [ viewNavLink
+        [ tailwind
+            [ "w-full"
+            , "bg-blue-800"
+            , "text-white"
+            , "fixed"
+            , "flex"
+            , "bottom-0"
+            , "md:top-0"
+            , "md:bottom-auto"
+            , "text-xs"
+            , "md:text-sm"
+            , "items-center"
+            , "z-50"
+            ]
+        , classList [ ( "hidden", isRouteEqual (Route.Note 0) model ) ]
+        ]
+        [ img
+            [ src "./icon.svg"
+            , tailwind
+                [ "h-6"
+                , "w-6"
+                , "ml-4"
+                , "hidden"
+                , "md:block"
+                ]
+            ]
+            []
+        , div
+            [ tailwind
+                [ "text-white"
+                , "font-bold"
+                , "hidden"
+                , "md:block"
+                , "ml-4"
+                , "mr-6"
+                , "text-lg"
+                ]
+            ]
+            [ text "AORTA" ]
+        , viewNavLink
             { name = "Matrix"
             , active = isRouteEqual Route.Home model
             , route = Route.Home
             , icon = "notes"
+            , right = False
             }
         , viewNavLink
             { name = "Revise"
             , active = isRouteEqual Route.Revise model
             , route = Route.Revise
             , icon = "check"
+            , right = False
             }
         , viewNavLink
             { name = "Profile"
             , active = isRouteEqual Route.Profile model
             , route = Route.Profile
             , icon = "person"
+            , right = True
             }
         ]
     , viewMessage (eject model)

@@ -7,7 +7,9 @@ module Types.Specialty exposing
     , list
     , option
     , toColor
+    , toDark
     , toInt
+    , toMedium
     , toString
     )
 
@@ -370,7 +372,25 @@ toColor specialty =
     Color.hsla
         (toFloat (modBy count (toInt specialty * 3)) / (toFloat count - 1))
         0.4
-        0.7
+        0.6
+        1
+
+
+toMedium : Specialty -> Color.Color
+toMedium specialty =
+    Color.hsla
+        (toFloat (modBy count (toInt specialty * 3)) / (toFloat count - 1))
+        0.4
+        0.5
+        1
+
+
+toDark : Specialty -> Color.Color
+toDark specialty =
+    Color.hsla
+        (toFloat (modBy count (toInt specialty * 3)) / (toFloat count - 1))
+        0.4
+        0.2
         1
 
 

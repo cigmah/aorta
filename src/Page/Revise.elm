@@ -6,7 +6,6 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Page.Question exposing (..)
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Choice as Choice
 import Types.Comment as Comment
@@ -18,6 +17,7 @@ import Types.Session as Session exposing (Session)
 import Types.Specialty as Specialty exposing (Specialty)
 import Types.YearLevel as YearLevel exposing (YearLevel)
 import Url.Builder as Builder
+import Views.Question exposing (..)
 
 
 

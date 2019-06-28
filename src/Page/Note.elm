@@ -8,7 +8,6 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import List.Extra exposing (getAt, setAt)
 import Markdown
-import Page.Question exposing (..)
 import Random
 import Random.List exposing (choose)
 import RemoteData exposing (RemoteData(..), WebData)
@@ -21,6 +20,7 @@ import Types.Note as Note
 import Types.Question as Question
 import Types.Request as Request
 import Types.Session as Session exposing (Session)
+import Views.Question exposing (..)
 
 
 
