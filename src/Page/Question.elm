@@ -49,7 +49,7 @@ type alias QuestionMsgs msg =
 
 viewQuestionSection : QuestionMsgs msg -> ModalQuestionData -> Question.ReadData -> Html msg
 viewQuestionSection msgs modalData question =
-    section [ id "modal", class "question-modal" ]
+    section [ id "question-modal" ]
         [ viewQuestion msgs modalData question
         , viewQuestionComments msgs modalData question
         ]
