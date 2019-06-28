@@ -374,10 +374,12 @@ toColor specialty =
         1
 
 
-option : Specialty -> Html msg
-option specialty =
+option : Specialty -> Specialty -> Html msg
+option selected specialty =
     Html.option
-        [ Attributes.value (specialty |> toInt |> String.fromInt) ]
+        [ Attributes.value (specialty |> toInt |> String.fromInt)
+        , Attributes.selected (selected == specialty)
+        ]
         [ Html.text (specialty |> toString) ]
 
 

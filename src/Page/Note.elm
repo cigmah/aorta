@@ -8,6 +8,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import List.Extra exposing (getAt, setAt)
 import Markdown
+import Page.Question exposing (..)
 import Random
 import Random.List exposing (choose)
 import RemoteData exposing (RemoteData(..), WebData)
@@ -46,22 +47,6 @@ type alias AddQuestionData =
     { question : Question.CreationData
     , response : WebData Question.ReadData
     }
-
-
-type alias ModalQuestionData =
-    { questionId : Int
-    , webData : WebData Question.ReadData
-    , state : QuestionState
-    , comment : String
-    , commentResponse : WebData Comment.ReadData
-    , likeResponse : WebData ()
-    , flagResponse : WebData ()
-    }
-
-
-type QuestionState
-    = Unanswered
-    | Answered Choice.ReadData (WebData ())
 
 
 
@@ -681,21 +666,6 @@ viewContent model dataNoteWebData =
                 ]
 
 
-viewComment : Comment.ReadData -> Html Msg
-viewComment data =
-    div [ class "comment" ]
-        [ label []
-            [ text
-                (String.join
-                    " "
-                    [ data.author.username, "on", Datetime.posixToString data.created_at ]
-                )
-            ]
-        , div [ class "markdown" ]
-            (Markdown.toHtml Nothing data.content)
-        ]
-
-
 viewNote : String -> List (Html Msg)
 viewNote content =
     case content of
@@ -782,7 +752,7 @@ viewModalAddQuestion addQuestionData =
                         , value (addQuestionData.question.domain |> Domain.toInt |> String.fromInt)
                         , id "domain"
                         ]
-                        (List.map Domain.option Domain.list)
+                        (List.map (Domain.option addQuestionData.question.domain) Domain.list)
                     ]
                 , div []
                     (List.indexedMap
@@ -849,6 +819,18 @@ viewCreateChoice int creationDataChoice =
                 ]
 
 
+questionMsgs : QuestionMsgs Msg
+questionMsgs =
+    { clickedLike = StudyMsg ClickedLike
+    , clickedFlag = StudyMsg ClickedFlag
+    , nextQuestion = OpenedStudyModal
+    , clickedChoice = StudyMsg << ClickedChoice
+    , changedComment = StudyMsg << ChangedQuestionComment
+    , submitComment = StudyMsg ClickedSubmitQuestionComment
+    , clickedClose = ClickedCloseModal
+    }
+
+
 viewModalStudy : ModalQuestionData -> Html Msg
 viewModalStudy modalData =
     case modalData.webData of
@@ -862,119 +844,4 @@ viewModalStudy modalData =
             section [ id "modal" ] [ text "Failure" ]
 
         Success question ->
-            section [ id "modal", class "question-modal" ]
-                [ viewQuestion modalData question
-                , viewQuestionComments modalData question
-                ]
-
-
-viewQuestion : ModalQuestionData -> Question.ReadData -> Html Msg
-viewQuestion modalData data =
-    let
-        ( isCorrect, isIncorrect ) =
-            case modalData.state of
-                Unanswered ->
-                    ( False, False )
-
-                Answered choice _ ->
-                    if choice.isCorrect then
-                        ( True, False )
-
-                    else
-                        ( False, True )
-
-        numLikesInfo =
-            case data.numLikes of
-                Just int ->
-                    span [] [ text (String.fromInt int) ]
-
-                Nothing ->
-                    span [] []
-    in
-    article []
-        [ header
-            [ classList
-                [ ( "correct", isCorrect )
-                , ( "incorrect", isIncorrect )
-                ]
-            ]
-            [ h1
-                []
-                [ text ("Question #" ++ String.fromInt data.id) ]
-            , button [ onClick ClickedCloseModal ]
-                [ i [ class "material-icons" ] [ text "close" ] ]
-            ]
-        , section []
-            [ div [ id "stem" ]
-                (Markdown.toHtml Nothing data.stem)
-            , div [ id "choices" ]
-                (List.map (viewChoiceRead modalData.state) data.choices)
-                |> Html.map StudyMsg
-            ]
-        , footer
-            [ classList
-                [ ( "hide-under", modalData.state == Unanswered )
-                , ( "correct", isCorrect )
-                , ( "incorrect", isIncorrect )
-                ]
-            ]
-            [ button
-                [ onClick (StudyMsg ClickedFlag) ]
-                [ span [ class "material-icons" ] [ text "flag" ] ]
-            , button
-                [ onClick (StudyMsg ClickedLike) ]
-                [ span [ class "material-icons" ] [ text "thumb_up" ]
-                , numLikesInfo
-                ]
-            , button
-                [ onClick OpenedStudyModal ]
-                [ text "Next Question" ]
-            ]
-        ]
-
-
-viewChoiceRead : QuestionState -> Choice.ReadData -> Html StudySubMsg
-viewChoiceRead state choice =
-    case state of
-        Unanswered ->
-            button
-                [ class "choice"
-                , onClick (ClickedChoice choice)
-                ]
-                [ span [] [ text choice.content ] ]
-
-        Answered chosen webData ->
-            div
-                [ class "choice"
-                , classList
-                    [ ( "incorrect", not choice.isCorrect && (chosen.id == choice.id) )
-                    , ( "correct", choice.isCorrect )
-                    ]
-                ]
-                [ span [] [ text choice.content ]
-                , span [ class "chosen-by" ] [ text (String.fromInt choice.numChosen ++ " other users.") ]
-                ]
-
-
-viewQuestionComments : ModalQuestionData -> Question.ReadData -> Html Msg
-viewQuestionComments modalData question =
-    case modalData.state of
-        Unanswered ->
-            article [] []
-
-        Answered readDataChoice webData ->
-            article [ id "content" ]
-                [ section []
-                    [ div [ id "comments" ]
-                        (List.map viewComment question.comments)
-                    ]
-                , footer []
-                    [ textarea
-                        [ placeholder "Comment here."
-                        , value modalData.comment
-                        , onInput (StudyMsg << ChangedQuestionComment)
-                        ]
-                        []
-                    , button [ onClick (StudyMsg ClickedSubmitQuestionComment) ] [ text "Submit" ]
-                    ]
-                ]
+            viewQuestionSection questionMsgs modalData question

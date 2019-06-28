@@ -103,10 +103,12 @@ list =
     ]
 
 
-option : YearLevel -> Html msg
-option yearLevel =
+option : YearLevel -> YearLevel -> Html msg
+option selected yearLevel =
     Html.option
-        [ Attributes.value (yearLevel |> toInt |> String.fromInt) ]
+        [ Attributes.value (yearLevel |> toInt |> String.fromInt)
+        , Attributes.selected (selected == yearLevel)
+        ]
         [ Html.text (yearLevel |> toString) ]
 
 

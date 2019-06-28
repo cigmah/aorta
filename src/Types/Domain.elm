@@ -103,10 +103,12 @@ list =
     ]
 
 
-option : Domain -> Html msg
-option domain =
+option : Domain -> Domain -> Html msg
+option selected domain =
     Html.option
-        [ Attributes.value (domain |> toInt |> String.fromInt) ]
+        [ Attributes.value (domain |> toInt |> String.fromInt)
+        , Attributes.selected (selected == domain)
+        ]
         [ Html.text (domain |> toString) ]
 
 

@@ -100,14 +100,14 @@ update msg ({ session } as model) =
                 newSession =
                     { session | reviseYearLevel = string |> unwrap |> YearLevel.fromInt }
             in
-            ( { model | session = newSession }, Cmd.none )
+            ( { model | session = newSession }, Session.save newSession )
 
         ChangedSpecialty string ->
             let
                 newSession =
                     { session | reviseSpecialty = string |> unwrap |> Specialty.fromInt }
             in
-            ( { model | session = newSession }, Cmd.none )
+            ( { model | session = newSession }, Session.save newSession )
 
         ClickedStart ->
             case model.response of
@@ -149,6 +149,21 @@ view model =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
+    let
+        yearLevelSelect =
+            select
+                [ onInput <| ChangedYearLevel
+                , value (model.session.reviseYearLevel |> YearLevel.toInt |> String.fromInt)
+                ]
+                (List.map (YearLevel.option model.session.reviseYearLevel) YearLevel.list)
+
+        specialtySelect =
+            select
+                [ onInput <| ChangedSpecialty
+                , value (model.session.reviseSpecialty |> Specialty.toInt |> String.fromInt)
+                ]
+                (List.map (Specialty.option model.session.reviseSpecialty) Specialty.list)
+    in
     [ main_ []
         [ section []
             [ Html.form []
@@ -157,15 +172,11 @@ viewBody model =
                     , section []
                         [ div [ class "field" ]
                             [ label [] [ text "Year Level" ]
-                            , select
-                                [ onInput <| ChangedYearLevel ]
-                                (List.map YearLevel.option YearLevel.list)
+                            , yearLevelSelect
                             ]
                         , div [ class "field" ]
                             [ label [] [ text "Specialty" ]
-                            , select
-                                [ onInput <| ChangedSpecialty ]
-                                (List.map Specialty.option Specialty.list)
+                            , specialtySelect
                             ]
                         ]
                     , footer [] [ button [] [ text "Submit" ] ]
