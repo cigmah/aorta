@@ -15,6 +15,7 @@ import Page.Note as Note
 import Page.Profile as Profile
 import Page.Revise as Revise
 import Secret exposing (baseUrl)
+import Types.Credentials exposing (Auth(..))
 import Types.Session as Session exposing (Session)
 import Types.Styles exposing (tailwind)
 
@@ -122,6 +123,18 @@ isRouteEqual route model =
 
 wrapBody : Model -> List (Html Msg) -> List (Html Msg)
 wrapBody model body =
+    let
+        session =
+            eject model
+
+        profileText =
+            case session.auth of
+                User user ->
+                    user.username
+
+                Guest ->
+                    "Log In"
+    in
     [ nav
         [ tailwind
             [ "w-full"
@@ -177,7 +190,7 @@ wrapBody model body =
             , right = False
             }
         , viewNavLink
-            { name = "Profile"
+            { name = profileText
             , active = isRouteEqual Route.Profile model
             , route = Route.Profile
             , icon = "person"
