@@ -300,8 +300,8 @@ getRandomQuestion model =
     , callback = GotQuestion
     , returnDecoder = Question.decoder
     , queryList =
-        [ Builder.int "year_level" (YearLevel.toInt model.session.reviseYearLevel)
-        , Builder.int "specialty" (Specialty.toInt model.session.reviseSpecialty)
+        [ Builder.int "note__year_level" (YearLevel.toInt model.session.reviseYearLevel)
+        , Builder.int "note__specialty" (Specialty.toInt model.session.reviseSpecialty)
         ]
     }
 

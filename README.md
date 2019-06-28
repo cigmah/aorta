@@ -36,12 +36,12 @@ It's a lot, yes. This should be scriptable, so we may make a script for it somet
 
 ## Styles
 
-This project uses SASS for styling.
+This project uses Tailwind CSS for styling.
 
-To build the styles from `src/main.scss`, run:
+To build the styles from `src/styles.css`, run:
 
 ```sh
-npm run watch-css
+npx tailwind build src/styles.css -o src/output.css
 ```
 
 from this directory.
