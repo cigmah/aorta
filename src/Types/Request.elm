@@ -115,6 +115,7 @@ type Endpoint
     | GetQuestionListRandom
     | GetNoteList
     | GetNote Id
+    | GetRandomQuestion
     | PostRegister
     | PostLike
     | PostFlag
@@ -134,6 +135,9 @@ endpointToUrl endpoint =
             [ "questions", String.fromInt questionId ]
 
         GetQuestionListRandom ->
+            [ "questions", "random" ]
+
+        GetRandomQuestion ->
             [ "questions", "random" ]
 
         PostFlag ->

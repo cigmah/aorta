@@ -12,6 +12,7 @@ import Browser.Navigation exposing (Key)
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
 import Types.Credentials as Credentials exposing (..)
+import Types.Specialty as Specialty exposing (Specialty)
 import Types.YearLevel as YearLevel exposing (YearLevel)
 
 
@@ -20,15 +21,19 @@ type alias Session =
     , auth : Auth
     , key : Key
     , yearLevel : YearLevel
+    , reviseYearLevel : YearLevel
+    , reviseSpecialty : Specialty
     }
 
 
-fillKey : Auth -> YearLevel -> Key -> Session
-fillKey auth yearLevel key =
+fillKey : Auth -> YearLevel -> YearLevel -> Specialty -> Key -> Session
+fillKey auth yearLevel reviseYearLevel reviseSpecialty key =
     { message = Nothing
     , auth = auth
     , key = key
     , yearLevel = yearLevel
+    , reviseYearLevel = reviseYearLevel
+    , reviseSpecialty = reviseSpecialty
     }
 
 
@@ -38,6 +43,8 @@ default key =
     , auth = Guest
     , key = key
     , yearLevel = YearLevel.Year1
+    , reviseYearLevel = YearLevel.Year1
+    , reviseSpecialty = Specialty.Anatomy
     }
 
 
@@ -66,14 +73,18 @@ encode session =
     Encode.object
         [ ( "auth", Credentials.encode session.auth )
         , ( "year_level", YearLevel.encode session.yearLevel )
+        , ( "revise_year_level", YearLevel.encode session.reviseYearLevel )
+        , ( "revise_specialty", Specialty.encode session.reviseSpecialty )
         ]
 
 
 decoder : Decoder (Key -> Session)
 decoder =
-    Decode.map2 fillKey
+    Decode.map4 fillKey
         (Decode.field "auth" Credentials.decoder)
         (Decode.field "year_level" YearLevel.decoder)
+        (Decode.field "revise_year_level" YearLevel.decoder)
+        (Decode.field "revise_specialty" Specialty.decoder)
 
 
 

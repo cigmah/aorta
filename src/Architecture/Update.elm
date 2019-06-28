@@ -10,6 +10,7 @@ import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
+import Page.Revise as Revise
 import Types.Session as Session exposing (Session)
 import Url
 
@@ -62,6 +63,10 @@ update msg model =
             Note.update subMsg subModel
                 |> extractWith Note GotNoteMsg
 
+        ( GotReviseMsg subMsg, Revise subModel ) ->
+            Revise.update subMsg subModel
+                |> extractWith Revise GotReviseMsg
+
         _ ->
             ( model, Cmd.none )
 
@@ -80,6 +85,9 @@ eject page =
 
         Note model ->
             Note.eject model
+
+        Revise model ->
+            Revise.eject model
 
 
 inject : Model -> Session -> ( Model, Cmd Msg )
@@ -104,6 +112,11 @@ inject page session =
             session
                 |> Note.inject model
                 |> extractWith Note GotNoteMsg
+
+        Revise model ->
+            session
+                |> Revise.inject model
+                |> extractWith Revise GotReviseMsg
 
 
 reroute : Route -> Model -> ( Model, Cmd Msg )

@@ -18,6 +18,7 @@ type Route
     = Home
     | NotFound
     | Profile
+    | Revise
     | Note Int
 
 
@@ -28,6 +29,7 @@ parser =
     oneOf
         [ map Profile <| s "profile"
         , map Note <| s "notes" </> int
+        , map Revise <| s "revise"
         , map Home top
         ]
 
@@ -59,6 +61,9 @@ toString route =
 
                 Note noteId ->
                     "note/" ++ String.fromInt noteId
+
+                Revise ->
+                    "revise/"
     in
     "#/" ++ path
 

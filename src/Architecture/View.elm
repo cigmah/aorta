@@ -13,6 +13,7 @@ import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
+import Page.Revise as Revise
 import Secret exposing (baseUrl)
 import Types.Session as Session exposing (Session)
 
@@ -35,6 +36,10 @@ view model =
         Note subModel ->
             Note.view subModel
                 |> viewPage model GotNoteMsg
+
+        Revise subModel ->
+            Revise.view subModel
+                |> viewPage model GotReviseMsg
 
 
 viewPage : Model -> (subMsg -> Msg) -> Document subMsg -> Document Msg
@@ -86,6 +91,9 @@ isRouteEqual route model =
         ( Route.Note _, Note _ ) ->
             True
 
+        ( Route.Revise, Revise _ ) ->
+            True
+
         _ ->
             False
 
@@ -99,6 +107,12 @@ wrapBody model body =
             , active = isRouteEqual Route.Home model
             , route = Route.Home
             , icon = "notes"
+            }
+        , viewNavLink
+            { name = "Revise"
+            , active = isRouteEqual Route.Revise model
+            , route = Route.Revise
+            , icon = "check"
             }
         , viewNavLink
             { name = "Profile"

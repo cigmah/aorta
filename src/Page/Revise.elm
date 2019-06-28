@@ -8,6 +8,7 @@ import Json.Decode as Decode
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Credentials as Credentials exposing (Auth(..))
 import Types.Domain as Domain exposing (Domain)
+import Types.Question as Question
 import Types.Request as Request
 import Types.Session as Session exposing (Session)
 import Types.Specialty as Specialty exposing (Specialty)
@@ -20,11 +21,7 @@ import Types.YearLevel as YearLevel exposing (YearLevel)
 
 type alias Model =
     { session : Session
-    , yearLevel : Maybe YearLevel
-    , domain : Maybe Domain
-    , specialty : Maybe Specialty
-    , quantity : Int
-    , response : WebData (List Int)
+    , response : WebData Question.ReadData
     }
 
 
@@ -36,10 +33,8 @@ type Msg
     = NoOp
     | ChangedYearLevel String
     | ChangedSpecialty String
-    | ChangedDomain String
-    | ChangedQuantity String
-    | ClickedStartTest
-    | GotTest (WebData (List Int))
+    | ClickedStart
+    | GotQuestion (WebData Question.ReadData)
 
 
 
@@ -49,10 +44,6 @@ type Msg
 init : Session -> ( Model, Cmd Msg )
 init session =
     ( { session = session
-      , yearLevel = Nothing
-      , domain = Nothing
-      , specialty = Nothing
-      , quantity = 10
       , response = NotAsked
       }
     , Cmd.none
@@ -91,7 +82,7 @@ subscriptions model =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg ({ session } as model) =
     let
         ignore =
             ( model, Cmd.none )
@@ -105,27 +96,29 @@ update msg model =
             ignore
 
         ChangedYearLevel string ->
-            ( { model | yearLevel = string |> unwrap |> Just << YearLevel.fromInt }, Cmd.none )
+            let
+                newSession =
+                    { session | reviseYearLevel = string |> unwrap |> YearLevel.fromInt }
+            in
+            ( { model | session = newSession }, Cmd.none )
 
         ChangedSpecialty string ->
-            ( { model | specialty = string |> unwrap |> Just << Specialty.fromInt }, Cmd.none )
+            let
+                newSession =
+                    { session | reviseSpecialty = string |> unwrap |> Specialty.fromInt }
+            in
+            ( { model | session = newSession }, Cmd.none )
 
-        ChangedDomain string ->
-            ( { model | domain = string |> unwrap |> Just << Domain.fromInt }, Cmd.none )
-
-        ChangedQuantity string ->
-            ( { model | quantity = string |> unwrap }, Cmd.none )
-
-        ClickedStartTest ->
+        ClickedStart ->
             case model.response of
                 Loading ->
                     ignore
 
                 -- TODO incorporate filters
                 _ ->
-                    ( { model | response = Loading }, Request.get (getTest model) )
+                    ( { model | response = Loading }, Request.get (getRandomQuestion model) )
 
-        GotTest webData ->
+        GotQuestion webData ->
             ( { model | response = webData }, Cmd.none )
 
 
@@ -133,12 +126,13 @@ update msg model =
 -- Requests
 
 
-getTest : Model -> Request.GetRequest (List Int) Msg
-getTest model =
-    { endpoint = Request.GetQuestionListRandom
+getRandomQuestion : Model -> Request.GetRequest Question.ReadData Msg
+getRandomQuestion model =
+    { endpoint = Request.GetRandomQuestion
     , auth = model.session.auth
-    , callback = GotTest
-    , returnDecoder = Decode.list Decode.int
+    , callback = GotQuestion
+    , returnDecoder = Question.decoder
+    , queryList = []
     }
 
 
@@ -148,7 +142,7 @@ getTest model =
 
 view : Model -> Document Msg
 view model =
-    { title = ""
+    { title = "AORTA - Revise"
     , body = viewBody model
     }
 
@@ -172,16 +166,6 @@ viewBody model =
                             , select
                                 [ onInput <| ChangedSpecialty ]
                                 (List.map Specialty.option Specialty.list)
-                            ]
-                        , div [ class "field" ]
-                            [ label [] [ text "Domain" ]
-                            , select
-                                [ onInput <| ChangedDomain ]
-                                (List.map Domain.option Domain.list)
-                            ]
-                        , div [ class "field" ]
-                            [ label [] [ text "Quantity" ]
-                            , input [ type_ "number", value (String.fromInt model.quantity), onInput ChangedQuantity ] []
                             ]
                         ]
                     , footer [] [ button [] [ text "Submit" ] ]

@@ -9,6 +9,7 @@ import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
+import Page.Revise as Revise
 import Types.Credentials exposing (Auth(..))
 import Types.Session as Session exposing (Session)
 import Url exposing (Url)
@@ -58,3 +59,7 @@ fromRoute route session =
         Route.Note noteId ->
             Note.init session noteId
                 |> extractWith Note GotNoteMsg
+
+        Route.Revise ->
+            Revise.init session
+                |> extractWith Revise GotReviseMsg
