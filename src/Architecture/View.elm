@@ -77,10 +77,10 @@ viewNavLink data =
         [ i
             [ class "material-icons"
             , tailwind
-                [ "px-2" ]
+                [ "md:pr-2" ]
             ]
             [ text data.icon ]
-        , label [ tailwind [ "cursor-pointer" ] ] [ text data.name ]
+        , label [ tailwind [ "cursor-pointer", "md:pr-2" ] ] [ text data.name ]
         ]
 
 

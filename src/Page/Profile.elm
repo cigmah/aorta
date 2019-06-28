@@ -11,6 +11,7 @@ import Types.Login as Login
 import Types.Register as Register
 import Types.Request as Request
 import Types.Session as Session exposing (Session)
+import Types.Styles exposing (tailwind)
 import Version exposing (version)
 
 
@@ -352,13 +353,38 @@ view model =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    [ main_ [ id "profile" ]
-        [ section []
-            [ section []
+    [ main_
+        [ id "profile"
+        , tailwind
+            [ "bg-gray-200"
+            , "min-h-screen"
+            , "pb-16"
+            , "md:pt-16"
+            , "pb-0"
+            ]
+        ]
+        [ section
+            [ tailwind
+                [ "container"
+                , "mx-auto"
+                , "flex"
+                , "flex-col-reverse"
+                , "md:flex-row"
+                ]
+            ]
+            [ section
+                [ tailwind
+                    [ "flex"
+                    , "flex-col"
+                    ]
+                ]
                 [ cardIntro
                 , cardVersion
                 ]
-            , section []
+            , section
+                [ tailwind
+                    [ "flex", "flex-col" ]
+                ]
                 [ cardUser model
                 , cardContact model |> Html.map ContactMsg
                 ]
@@ -375,7 +401,8 @@ viewBody model =
 
 cardIntro : Html Msg
 cardIntro =
-    article []
+    article
+        []
         [ header [] [ h1 [] [ text "About" ] ]
         , section []
             [ p []

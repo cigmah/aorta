@@ -24,3 +24,31 @@
 div.tag {
   @apply px-1 border border-white text-white mx-1 my-1 rounded-full text-xs;
 }
+
+main#profile article {
+  @apply m-2 bg-white shadow rounded overflow-hidden;
+}
+
+main#profile article > section {
+  @apply pt-2 px-4 pb-4;
+}
+
+main#profile article footer {
+  @apply flex justify-end px-2 pb-2;
+}
+
+main#profile article header {
+  @apply text-lg py-2 px-4 font-bold;
+}
+
+button {
+  @apply border px-2 py-1 rounded;
+}
+
+.field {
+  @apply my-2;
+}
+
+input, textarea {
+  @apply w-full bg-gray-300 py-1 px-2 rounded;
+}
