@@ -79,7 +79,7 @@ viewQuestion msgs modalData data =
                 Nothing ->
                     span [] []
     in
-    article []
+    article [ id "question" ]
         [ header
             [ classList
                 [ ( "correct-bg", isCorrect )
@@ -151,7 +151,7 @@ viewChoiceRead msgs state choice =
                     [ "my-1"
                     , "flex"
                     , "justify-start"
-                    , "hover:bg-blue-800"
+                    , "hover:bg-blue-500"
                     , "hover:text-white"
                     , "p-2"
                     ]
@@ -242,11 +242,32 @@ viewComment data =
         ]
 
 
+viewCommentChatStyle : Comment.ReadData -> Html msg
+viewCommentChatStyle data =
+    div
+        [ tailwind
+            [ "mb-2"
+            , "p-2"
+            , "bg-gray-200"
+            , "w-full"
+            , "text-gray-800"
+            , "rounded-lg"
+            , "text-sm"
+            ]
+        ]
+        [ label
+            [ tailwind [ "font-bold", "text-gray-600", "text-xs" ] ]
+            [ text (data.author.username ++ " @ " ++ Datetime.posixToString data.created_at) ]
+        , div [ class "markdown", tailwind [ "w-full" ] ]
+            (Markdown.toHtml Nothing data.content)
+        ]
+
+
 viewQuestionComments : QuestionMsgs msg -> ModalQuestionData -> Question.ReadData -> Html msg
 viewQuestionComments msgs modalData question =
     case modalData.state of
         Unanswered ->
-            article [] []
+            article [ id "comments" ] []
 
         Answered readDataChoice webData ->
             let
@@ -258,10 +279,10 @@ viewQuestionComments msgs modalData question =
                         False ->
                             "incorrect-bg"
             in
-            article []
+            article [ id "comments" ]
                 [ section []
                     [ div [ id "comments" ]
-                        (List.map viewComment question.comments)
+                        (List.map viewCommentChatStyle question.comments)
                     ]
                 , footer
                     [ tailwind

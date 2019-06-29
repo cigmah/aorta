@@ -54,10 +54,10 @@ toString route =
                     ""
 
                 NotFound ->
-                    "404"
+                    "404/"
 
                 Profile ->
-                    "profile"
+                    "profile/"
 
                 Note noteId ->
                     "note/" ++ String.fromInt noteId
@@ -70,6 +70,6 @@ toString route =
 
 toHref : Route -> Attribute msg
 toHref route =
-    "./"
+    "/"
         ++ toString route
         |> href

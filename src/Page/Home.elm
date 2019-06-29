@@ -166,7 +166,7 @@ viewBody model =
         [ section
             [ tailwind
                 [ "md:h-screen"
-                , "md:bg-gray-300"
+                , "md:bg-blue-400"
                 , "w-full"
                 , "flex"
                 , "flex-col"
@@ -206,7 +206,7 @@ viewBody model =
             [ tailwind
                 [ "container"
                 , "mx-auto"
-                , "my-4"
+                , "md:mt-8"
                 , "flex"
                 , "justify-center"
                 , "p-3"
@@ -216,7 +216,7 @@ viewBody model =
                 [ value model.filter
                 , onInput ChangedFilter
                 , placeholder "Search matrix item titles here."
-                , tailwind [ "md:w-1/2" ]
+                , tailwind [ "md:w-1/2", "text-lg", "p-4" ]
                 ]
                 []
             ]
@@ -230,7 +230,6 @@ viewBody model =
                 , "flex-col"
                 , "sm:flex-row"
                 , "sm:flex-wrap"
-                , "md:pt-8"
                 , "sm:justify-center"
                 , "md:p-8"
                 , "min-h-screen"
@@ -265,12 +264,12 @@ viewHeaderItem active yearLevel =
             , "py-2"
             , "px-4"
             , "hover:bg-white"
-            , "hover:text-gray-600"
+            , "hover:text-blue-600"
             , "cursor-pointer"
             ]
         , classList
-            [ ( "bg-white text-gray-600", active == yearLevel )
-            , ( "bg-gray-600 text-white", not (active == yearLevel) )
+            [ ( "bg-white text-blue-600", active == yearLevel )
+            , ( "bg-blue-500 text-white", not (active == yearLevel) )
             ]
         , onClick (ChangedYearLevel yearLevel)
         ]
@@ -282,7 +281,7 @@ viewGrid webData =
     case webData of
         NotAsked ->
             div [ tailwind [ "flex", "justify-center", "items-center", "flex-grow", "h-full" ] ]
-                [ text "Not asked" ]
+                [ text "This is an error that shouldn't happen. If you see it, let us know!" ]
 
         Loading ->
             div
@@ -291,7 +290,7 @@ viewGrid webData =
 
         Failure e ->
             div [ tailwind [ "flex", "justify-center", "items-center", "flex-grow", "h-full" ] ]
-                [ text "Failure" ]
+                [ text "Hm, it seems like there was an issue. Try refreshing - if it persists, let us know!" ]
 
         Success listData ->
             case listData of
@@ -328,8 +327,10 @@ viewGridItem note =
     a
         [ class "note"
         , tailwind
-            [ "w-8"
-            , "h-8"
+            [ "md:w-8"
+            , "md:h-8"
+            , "lg:w-10"
+            , "lg:h-10"
             , "m-px"
             , "rounded"
             , "flex"

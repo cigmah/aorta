@@ -11,14 +11,14 @@ html {
 /* Notes */
 
 .note:hover:after, .note:hover::after {
-  @apply p-4 text-lg font-bold;
+  @apply p-4 text-lg;
   content: attr(data-tooltip);
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
   background: inherit;
-  color: inherit;
+  color: white;
   padding-bottom: 3em;
 }
 
@@ -69,7 +69,12 @@ button:hover {
 }
 
 input, textarea, select {
-  @apply w-full bg-gray-300 py-1 px-2 rounded;
+  @apply w-full bg-gray-300 py-1 px-2 rounded border-2 border-gray-300;
+}
+
+input:focus, textarea:focus {
+  @apply bg-white border-blue-400;
+  outline-color: #90cd4;
 }
 
 form {
@@ -104,7 +109,7 @@ form {
     height: 85vh;
   }
 }
-
+/*
 .correct-bg {
   background: #48BB78 !important;
 }
@@ -112,6 +117,7 @@ form {
 .incorrect-bg {
   background: #F56565 !important;
 }
+*/
 
 /* Loading */
 
@@ -128,7 +134,7 @@ form {
 }
 
 div.loading {
-  @apply bg-blue-900 mx-auto;
+  @apply bg-blue-500 mx-auto;
   height: 2em;
   width: 2em;
   border-radius: 5px;
@@ -204,12 +210,12 @@ div.loading {
 /* Modal */
 
 .modal {
+  @apply bg-gray-100;
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(250, 255, 255, 0.95);
   z-index: 100;
 }
 
@@ -218,7 +224,7 @@ div.loading {
 }
 
 .modal  article {
-  @apply bg-white shadow overflow-hidden;
+  @apply bg-white shadow-lg overflow-hidden;
   width: 100%;
   height: 100%;
   display: flex;
@@ -226,7 +232,7 @@ div.loading {
 }
 
 .modal article > header {
-  @apply bg-blue-800 text-white px-4 py-2;
+  @apply bg-gray-200 text-gray-700 px-4 py-2;
   display: flex;
   justify-content: space-between;
 }
@@ -237,8 +243,12 @@ div.loading {
   overflow: auto;
 }
 
+.question-modal article#comments {
+  display: none;
+}
+
 .modal  article > footer {
-  @apply px-4 py-2 bg-blue-900 text-white flex justify-end;
+  @apply px-4 py-2 bg-gray-200 text-gray-700 flex justify-end;
 }
 
 
@@ -260,9 +270,14 @@ div.loading {
     max-height: 800px;
   }
 
-  .question-modal article{
+  .question-modal article#question {
     @apply mx-2;
-    width: 45%;
+    width: 50%;
   }
 
+  .question-modal article#comments {
+    @apply mx-2;
+    display: flex;
+    width: 25%;
+  }
 }

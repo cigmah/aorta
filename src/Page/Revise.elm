@@ -398,6 +398,7 @@ viewBody model =
             , "justify-center"
             , "items-center"
             , "w-full"
+            , "bg-blue-400"
             , "overflow-auto"
             ]
         ]
@@ -406,7 +407,7 @@ viewBody model =
             [ article
                 [ tailwind
                     [ "bg-white"
-                    , "shadow"
+                    , "shadow-lg"
                     , "rounded"
                     , "flex"
                     , "flex-col"
@@ -416,8 +417,6 @@ viewBody model =
                 [ header
                     [ tailwind
                         [ "p-2"
-                        , "bg-blue-800"
-                        , "text-white"
                         ]
                     ]
                     [ text "Revise Random Questions" ]
@@ -440,8 +439,6 @@ viewBody model =
                     [ tailwind
                         [ "px-2"
                         , "py-1"
-                        , "bg-blue-800"
-                        , "text-white"
                         , "flex"
                         , "justify-end"
                         ]
