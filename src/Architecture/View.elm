@@ -167,8 +167,9 @@ wrapBody model body =
             , "items-center"
             , "z-50"
             ]
-        , classList
-            [ ( "hidden", isRouteEqual (Route.Note 0) model ) ]
+
+        --        , classList
+        --            [ ( "hidden", isRouteEqual (Route.Note 0) model ) ]
         ]
         [ img
             [ src "./icon.svg"
