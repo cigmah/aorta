@@ -281,21 +281,22 @@ viewGrid : WebData (List Note.ListData) -> Html Msg
 viewGrid webData =
     case webData of
         NotAsked ->
-            div []
+            div [ tailwind [ "flex", "justify-center", "items-center", "flex-grow", "h-full" ] ]
                 [ text "Not asked" ]
 
         Loading ->
-            div []
+            div
+                [ tailwind [ "flex", "justify-center", "items-center", "flex-grow", "h-full" ] ]
                 [ div [ class "loading" ] [] ]
 
         Failure e ->
-            div []
+            div [ tailwind [ "flex", "justify-center", "items-center", "flex-grow", "h-full" ] ]
                 [ text "Failure" ]
 
         Success listData ->
             case listData of
                 [] ->
-                    div []
+                    div [ tailwind [ "flex", "justify-center", "items-center", "flex-grow", "h-full" ] ]
                         [ text "Oh no! There aren't any notes for this year level yet..." ]
 
                 nonEmptyData ->
@@ -304,6 +305,7 @@ viewGrid webData =
                             [ "flex"
                             , "flex-wrap"
                             , "m-8"
+                            , "fadein"
                             ]
                         ]
                         (List.map viewGridItem nonEmptyData)
@@ -346,7 +348,7 @@ viewCards : String -> WebData (List Note.ListData) -> List (Html Msg)
 viewCards filter webData =
     case webData of
         Loading ->
-            []
+            [ div [ class "loading" ] [] ]
 
         NotAsked ->
             []
@@ -381,6 +383,7 @@ viewCard note =
                 , "cursor-pointer"
                 , "hover:shadow-xl"
                 , "overflow-hidden"
+                , "fadein"
                 ]
             , Html.Attributes.style "background" (note.specialty |> Specialty.toMedium |> Color.toCssString)
             ]
