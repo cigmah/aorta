@@ -15,6 +15,7 @@ import Types.Question as Question
 import Types.Request as Request
 import Types.Session as Session exposing (Session)
 import Types.Specialty as Specialty exposing (Specialty)
+import Types.Styles exposing (tailwind)
 import Types.YearLevel as YearLevel exposing (YearLevel)
 import Url.Builder as Builder
 import Views.Question exposing (..)
@@ -390,11 +391,42 @@ viewBody model =
                 ]
                 (List.map (Specialty.option model.session.reviseSpecialty) Specialty.list)
     in
-    [ main_ []
-        [ section []
-            [ article []
-                [ header [] [ text "Revise Random Questions" ]
-                , section []
+    [ main_
+        [ tailwind
+            [ "min-h-screen"
+            , "flex"
+            , "justify-center"
+            , "items-center"
+            , "w-full"
+            , "overflow-auto"
+            ]
+        ]
+        [ section
+            [ tailwind [ "container", "flex", "justify-center", "items-center" ] ]
+            [ article
+                [ tailwind
+                    [ "bg-white"
+                    , "shadow"
+                    , "rounded"
+                    , "flex"
+                    , "flex-col"
+                    , "h-full"
+                    ]
+                ]
+                [ header
+                    [ tailwind
+                        [ "p-2"
+                        , "bg-blue-800"
+                        , "text-white"
+                        ]
+                    ]
+                    [ text "Revise Random Questions" ]
+                , section
+                    [ tailwind
+                        [ "p-4"
+                        , "flex-grow"
+                        ]
+                    ]
                     [ div [ class "field" ]
                         [ label [] [ text "Year Level" ]
                         , yearLevelSelect
@@ -404,7 +436,17 @@ viewBody model =
                         , specialtySelect
                         ]
                     ]
-                , footer [] [ button [ onClick ClickedStart ] [ text "Start" ] ]
+                , footer
+                    [ tailwind
+                        [ "px-2"
+                        , "py-1"
+                        , "bg-blue-800"
+                        , "text-white"
+                        , "flex"
+                        , "justify-end"
+                        ]
+                    ]
+                    [ button [ onClick ClickedStart ] [ text "Start" ] ]
                 ]
             ]
         ]

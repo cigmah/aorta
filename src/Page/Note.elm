@@ -845,7 +845,8 @@ viewControls dataNoteWebData =
                     [ "p-2"
                     , "transition"
                     , "flex"
-                    , "justify-center"
+                    , "justify-between"
+                    , "items-center"
                     , "text-white"
                     ]
                 , style "background" footerColor
@@ -864,20 +865,24 @@ viewControls dataNoteWebData =
 
         Success data ->
             wrap
-                [ button
-                    [ onClick OpenedAddQuestionModal
-                    , tailwind
-                        [ "mx-2"
+                [ div [ tailwind [ "ml-2" ] ]
+                    [ text <| String.fromInt (List.length data.allIds) ++ " attached EMQs." ]
+                , div []
+                    [ button
+                        [ onClick OpenedAddQuestionModal
+                        , tailwind
+                            [ "mx-2"
+                            ]
                         ]
-                    ]
-                    [ text "Add EMQ" ]
-                , button
-                    [ onClick OpenedStudyModal
-                    , tailwind
-                        [ "mx-2"
+                        [ text "Add EMQ" ]
+                    , button
+                        [ onClick OpenedStudyModal
+                        , tailwind
+                            [ "mx-2"
+                            ]
                         ]
+                        [ text "Study" ]
                     ]
-                    [ text "Study" ]
                 ]
 
 
@@ -896,44 +901,54 @@ viewModal modal =
 
 viewModalAddQuestion : AddQuestionData -> Html Msg
 viewModalAddQuestion addQuestionData =
-    section [ id "modal" ]
-        [ article []
-            [ header []
-                [ h1 [] [ text "Add EMQ" ]
-                , button [ onClick ClickedCloseModal ]
-                    [ i [ class "material-icons" ] [ text "close" ] ]
-                ]
-            , section []
-                [ div [ class "field" ]
-                    [ label [ for "stem" ] [ text "Question Stem" ]
-                    , textarea
-                        [ value addQuestionData.question.stem
-                        , placeholder "Question stem"
-                        , onInput (AddQuestionMsg << ChangedStem)
-                        , id "stem"
-                        , required True
-                        ]
-                        []
+    section [ class "modal" ]
+        [ Html.form [ onSubmit (AddQuestionMsg PostedQuestion) ]
+            [ article []
+                [ header
+                    [ tailwind
+                        [ "flex", "items-center" ]
                     ]
-                , div [ class "field" ]
-                    [ label [ for "domain" ] [ text "Domain" ]
-                    , select
-                        [ onInput (AddQuestionMsg << ChangedDomain)
-                        , value (addQuestionData.question.domain |> Domain.toInt |> String.fromInt)
-                        , id "domain"
-                        ]
-                        (List.map (Domain.option addQuestionData.question.domain) Domain.list)
+                    [ h1 []
+                        [ text "Add EMQ" ]
+                    , button [ onClick ClickedCloseModal ]
+                        [ i [ class "material-icons" ] [ text "close" ] ]
                     ]
-                , div []
-                    (List.indexedMap
-                        viewCreateChoice
-                        addQuestionData.question.choices
-                    )
-                    |> Html.map AddQuestionMsg
-                ]
-            , footer []
-                [ button [ onClick (AddQuestionMsg AddedChoice) ] [ text "Add Choice" ]
-                , button [ onClick (AddQuestionMsg PostedQuestion) ] [ text "Add Question" ]
+                , section []
+                    [ div [ class "field" ]
+                        [ label [ for "stem" ] [ text "Question Stem" ]
+                        , textarea
+                            [ value addQuestionData.question.stem
+                            , placeholder "Question stem"
+                            , onInput (AddQuestionMsg << ChangedStem)
+                            , id "stem"
+                            , required True
+                            ]
+                            []
+                        ]
+                    , div [ class "field" ]
+                        [ label [ for "domain" ] [ text "Domain" ]
+                        , select
+                            [ onInput (AddQuestionMsg << ChangedDomain)
+                            , value (addQuestionData.question.domain |> Domain.toInt |> String.fromInt)
+                            , id "domain"
+                            ]
+                            (List.map (Domain.option addQuestionData.question.domain) Domain.list)
+                        ]
+                    , div []
+                        (List.indexedMap
+                            viewCreateChoice
+                            addQuestionData.question.choices
+                        )
+                        |> Html.map AddQuestionMsg
+                    , div []
+                        [ button
+                            [ onClick (AddQuestionMsg AddedChoice), type_ "button" ]
+                            [ text "Add Distractor" ]
+                        ]
+                    ]
+                , footer []
+                    [ button [ type_ "submit" ] [ text "Add Question" ]
+                    ]
                 ]
             ]
         ]
@@ -948,7 +963,10 @@ viewCreateChoice int creationDataChoice =
     case int of
         0 ->
             div [ class "field choice" ]
-                [ label [ for choiceId, class "correct" ] [ text "Answer" ]
+                [ label
+                    [ for choiceId
+                    ]
+                    [ text "Answer" ]
                 , input
                     [ value creationDataChoice.content
                     , placeholder "Correct choice"
@@ -956,20 +974,23 @@ viewCreateChoice int creationDataChoice =
                     , id choiceId
                     , class "correct"
                     , required True
+                    , tailwind [ "mb-1" ]
                     ]
                     []
                 , textarea
                     [ value creationDataChoice.explanation
                     , placeholder "This is correct because..."
                     , onInput (ChangedChoiceExplanation int)
-                    , class "correct"
                     ]
                     []
                 ]
 
         val ->
             div [ class "field choice" ]
-                [ label [ for choiceId, class "incorrect" ] [ text "Distractor" ]
+                [ label
+                    [ for choiceId
+                    ]
+                    [ text "Distractor" ]
                 , input
                     [ value creationDataChoice.content
                     , placeholder "Incorrect choice"
@@ -977,6 +998,7 @@ viewCreateChoice int creationDataChoice =
                     , id choiceId
                     , class "incorrect"
                     , required True
+                    , tailwind [ "mb-1" ]
                     ]
                     []
                 , textarea
@@ -1005,13 +1027,13 @@ viewModalStudy : ModalQuestionData -> Html Msg
 viewModalStudy modalData =
     case modalData.webData of
         Loading ->
-            section [ id "modal" ] [ div [ class "loading" ] [] ]
+            section [ class "modal" ] [ div [ class "loading" ] [] ]
 
         NotAsked ->
-            section [ id "modal" ] [ text "Not asked" ]
+            section [ class "modal" ] [ text "Not asked" ]
 
         Failure e ->
-            section [ id "modal" ] [ text "Failure" ]
+            section [ class "modal" ] [ text "Failure" ]
 
         Success question ->
             viewQuestionSection questionMsgs modalData question

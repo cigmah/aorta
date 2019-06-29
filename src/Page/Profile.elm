@@ -665,7 +665,7 @@ modalRegister model =
                     div [] []
     in
     section
-        [ id "modal"
+        [ class "modal"
         , classList [ ( "hidden", hideRegister model ) ]
         ]
         [ Html.form [ onSubmit (RegisterMsg RegisterClickedSubmit) ]
@@ -789,7 +789,7 @@ modalLogin model =
                     div [] []
     in
     section
-        [ id "modal"
+        [ class "modal"
         , classList [ ( "hidden", hideLogin model ) ]
         ]
         [ Html.form [ onSubmit (LoginMsg LoginClickedSubmit) ]

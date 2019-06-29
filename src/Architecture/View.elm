@@ -87,7 +87,19 @@ viewNavLink data =
 
 viewSingleMessage : String -> Html Msg
 viewSingleMessage string =
-    article [ class "message" ]
+    article
+        [ class "message"
+        , tailwind
+            [ "bg-white"
+            , "text-gray-800"
+            , "p-4"
+            , "fadein"
+            , "shadow-lg"
+            , "md:rounded"
+            , "md:mb-4"
+            , "cursor-pointer"
+            ]
+        ]
         (Markdown.toHtml Nothing string)
 
 
@@ -95,7 +107,12 @@ viewMessage : Session -> Html Msg
 viewMessage session =
     case session.message of
         Just stringList ->
-            section [ class "message-list", onClick ClearMessages ]
+            section
+                [ class "message-list"
+                , onClick ClearMessages
+                , tailwind
+                    [ "fixed", "right-0", "top-0", "md:p-2", "md:w-1/4", "z-10" ]
+                ]
                 (List.map viewSingleMessage stringList)
 
         Nothing ->
@@ -150,7 +167,8 @@ wrapBody model body =
             , "items-center"
             , "z-50"
             ]
-        , classList [ ( "hidden", isRouteEqual (Route.Note 0) model ) ]
+        , classList
+            [ ( "hidden", isRouteEqual (Route.Note 0) model ) ]
         ]
         [ img
             [ src "./icon.svg"

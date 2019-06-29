@@ -68,8 +68,18 @@ button:hover {
   @apply my-2;
 }
 
-input, textarea {
+input, textarea, select {
   @apply w-full bg-gray-300 py-1 px-2 rounded;
+}
+
+form {
+  all: inherit;
+  display: inherit;
+  position: inherit;
+  width: inherit;
+  height: inherit;
+  flex-grow: inherit;
+  background: rgba(0,0,0,0);
 }
 
 /* Transitions */
@@ -93,6 +103,14 @@ input, textarea {
   .h-85vh {
     height: 85vh;
   }
+}
+
+.correct-bg {
+  background: #48BB78 !important;
+}
+
+.incorrect-bg {
+  background: #F56565 !important;
 }
 
 /* Loading */
@@ -181,4 +199,70 @@ div.loading {
 .markdown li {
   margin-left: 2em;
   padding-left: 0.5em;
+}
+
+/* Modal */
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(250, 255, 255, 0.95);
+  z-index: 100;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal  article {
+  @apply bg-white shadow overflow-hidden;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal article > header {
+  @apply bg-blue-800 text-white px-4 py-2;
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal  article > section {
+  @apply p-4;
+  flex-grow: 1;
+  overflow: auto;
+}
+
+.modal  article > footer {
+  @apply px-4 py-2 bg-blue-900 text-white flex justify-end;
+}
+
+
+/* Responsive */
+
+@media (min-width: 768px) {
+
+  .modal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal article {
+    @apply rounded-lg;
+    width: 80%;
+    height: 80%;
+    max-width: 800px;
+    max-height: 800px;
+  }
+
+  .question-modal article{
+    @apply mx-2;
+    width: 45%;
+  }
+
 }

@@ -50,7 +50,7 @@ type alias QuestionMsgs msg =
 
 viewQuestionSection : QuestionMsgs msg -> ModalQuestionData -> Question.ReadData -> Html msg
 viewQuestionSection msgs modalData question =
-    section [ id "question-modal" ]
+    section [ class "modal question-modal" ]
         [ viewQuestion msgs modalData question
         , viewQuestionComments msgs modalData question
         ]
@@ -82,9 +82,11 @@ viewQuestion msgs modalData data =
     article []
         [ header
             [ classList
-                [ ( "correct", isCorrect )
-                , ( "incorrect", isIncorrect )
+                [ ( "correct-bg", isCorrect )
+                , ( "incorrect-bg", isIncorrect )
                 ]
+            , tailwind
+                [ "items-center", "flex", "transition" ]
             ]
             [ h1
                 []
@@ -93,28 +95,46 @@ viewQuestion msgs modalData data =
                 [ i [ class "material-icons" ] [ text "close" ] ]
             ]
         , section []
-            [ div [ id "stem" ]
+            [ div
+                [ tailwind
+                    [ "mb-4" ]
+                , class "markdown"
+                ]
                 (Markdown.toHtml Nothing data.stem)
-            , div [ id "choices" ]
+            , div
+                [ tailwind
+                    [ "flex", "flex-col" ]
+                ]
                 (List.map (viewChoiceRead msgs modalData.state) data.choices)
             ]
         , footer
             [ classList
-                [ ( "hide-under", modalData.state == Unanswered )
-                , ( "correct", isCorrect )
-                , ( "incorrect", isIncorrect )
+                [ ( "opacity-0", modalData.state == Unanswered )
+                , ( "correct-bg", isCorrect )
+                , ( "incorrect-bg", isIncorrect )
                 ]
+            , tailwind
+                [ "transition", "opacity-1" ]
             ]
             [ button
-                [ onClick msgs.clickedFlag ]
+                [ onClick msgs.clickedFlag
+                , tailwind [ "mx-1" ]
+                , type_ "button"
+                ]
                 [ span [ class "material-icons" ] [ text "flag" ] ]
             , button
-                [ onClick msgs.clickedLike ]
+                [ onClick msgs.clickedLike
+                , tailwind [ "mx-1" ]
+                , type_ "button"
+                ]
                 [ span [ class "material-icons" ] [ text "thumb_up" ]
                 , numLikesInfo
                 ]
             , button
-                [ onClick msgs.nextQuestion ]
+                [ onClick msgs.nextQuestion
+                , tailwind [ "mx-1" ]
+                , type_ "button"
+                ]
                 [ text "Next Question" ]
             ]
         ]
@@ -127,20 +147,72 @@ viewChoiceRead msgs state choice =
             button
                 [ class "choice"
                 , onClick (msgs.clickedChoice choice)
+                , tailwind
+                    [ "my-1"
+                    , "flex"
+                    , "justify-start"
+                    , "hover:bg-blue-800"
+                    , "hover:text-white"
+                    , "p-2"
+                    ]
                 ]
                 [ span [] [ text choice.content ] ]
 
         Answered chosen webData ->
-            div
-                [ class "choice"
+            let
+                opened =
+                    chosen.id == choice.id
+
+                openedString =
+                    if opened then
+                        "open"
+
+                    else
+                        "closed"
+
+                -- Dummy
+            in
+            details
+                [ tailwind [ "my-1", "rounded-b" ]
                 , classList
-                    [ ( "incorrect", not choice.isCorrect && (chosen.id == choice.id) )
-                    , ( "correct", choice.isCorrect )
+                    [ ( "bg-green-200", choice.isCorrect )
+                    , ( "bg-red-200", not choice.isCorrect && opened )
+                    , ( "bg-gray-200", not choice.isCorrect && not opened )
                     ]
+                , Html.Attributes.attribute openedString ""
                 ]
-                [ span [] [ text choice.content ]
-                , span [ class "chosen-by" ] [ text (String.fromInt choice.numChosen ++ " other users.") ]
+                [ summary
+                    [ class "choice"
+                    , classList
+                        [ ( "bg-red-500 text-white", not choice.isCorrect && opened )
+                        , ( "bg-green-500 text-white", choice.isCorrect )
+                        , ( "bg-gray-300 text-gray-800", not choice.isCorrect && not opened )
+                        ]
+                    , tailwind
+                        [ "flex"
+                        , "p-2"
+                        , "rounded"
+                        , "items-center"
+                        ]
+                    ]
+                    [ span [] [ text choice.content ]
+                    , span [ tailwind [ "ml-auto" ] ] [ text (String.fromInt choice.numChosen ++ " other users.") ]
+                    ]
+                , div
+                    [ class "markdown"
+                    , tailwind [ "px-2", "py-1" ]
+                    ]
+                    (Markdown.toHtml Nothing choice.explanation)
                 ]
+
+
+choiceCorrectToString : Bool -> String
+choiceCorrectToString correct =
+    if correct then
+        "correct"
+
+    else
+        "incorrect"
 
 
 viewComment : Comment.ReadData -> Html msg
@@ -177,18 +249,32 @@ viewQuestionComments msgs modalData question =
             article [] []
 
         Answered readDataChoice webData ->
-            article [ id "content" ]
+            let
+                backgroundColor =
+                    case readDataChoice.isCorrect of
+                        True ->
+                            "correct-bg"
+
+                        False ->
+                            "incorrect-bg"
+            in
+            article []
                 [ section []
                     [ div [ id "comments" ]
                         (List.map viewComment question.comments)
                     ]
-                , footer []
+                , footer
+                    [ tailwind
+                        [ backgroundColor ]
+                    ]
                     [ textarea
                         [ placeholder "Comment here."
                         , value modalData.comment
                         , onInput msgs.changedComment
+                        , tailwind [ "text-black" ]
+                        , required True
                         ]
                         []
-                    , button [ onClick msgs.submitComment ] [ text "Submit" ]
+                    , button [ onClick msgs.submitComment, tailwind [ "ml-1" ] ] [ text "Submit" ]
                     ]
                 ]
