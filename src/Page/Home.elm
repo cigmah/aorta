@@ -395,8 +395,7 @@ viewCard note =
                 [ text note.title ]
             , footer
                 [ tailwind
-                    [ "font-normal"
-                    , "flex"
+                    [ "flex"
                     , "p-1"
                     , "flex-wrap"
                     ]

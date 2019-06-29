@@ -18,6 +18,7 @@ import Types.Choice as Choice
 import Types.Comment as Comment
 import Types.Datetime as Datetime
 import Types.Question as Question
+import Types.Styles exposing (tailwind)
 
 
 type alias ModalQuestionData =
@@ -144,15 +145,27 @@ viewChoiceRead msgs state choice =
 
 viewComment : Comment.ReadData -> Html msg
 viewComment data =
-    div [ class "comment" ]
-        [ label []
+    div
+        [ tailwind
+            [ "mb-2", "pb-2", "text-sm" ]
+        ]
+        [ label
+            [ tailwind
+                [ "text-xs"
+                , "text-gray-700"
+                ]
+            ]
             [ text
                 (String.join
                     " "
                     [ data.author.username, "on", Datetime.posixToString data.created_at ]
                 )
             ]
-        , div [ class "markdown" ]
+        , div
+            [ class "markdown"
+            , tailwind
+                [ "pl-3", "border-l", "border-dotted", "border-gray-600" ]
+            ]
             (Markdown.toHtml Nothing data.content)
         ]
 

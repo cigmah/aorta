@@ -6,6 +6,10 @@ html {
   @apply bg-gray-200;
 }
 
+
+
+/* Notes */
+
 .note:hover:after, .note:hover::after {
   @apply p-4 text-lg font-bold;
   content: attr(data-tooltip);
@@ -21,14 +25,19 @@ html {
 .note:hover {
   border: 1px solid black;
 }
+
 .card:hover {
   transform: scale(1.1);
 }
 
+/* Tags */
+
 div.tag {
-  @apply px-1 border border-white text-white mx-1 my-1 rounded-full text-xs;
+  @apply px-1 border border-white text-white mx-1 my-1 rounded-full;
+  font-size: 0.6em;
 }
 
+/* Main */
 main#profile article {
   @apply m-2 bg-white shadow rounded overflow-hidden;
 }
@@ -45,8 +54,14 @@ main#profile article header {
   @apply text-lg py-2 px-4 font-bold;
 }
 
+/* Inputs */
+
 button {
   @apply border px-2 py-1 rounded;
+}
+
+button:hover {
+  @apply bg-white text-blue-900;
 }
 
 .field {
@@ -57,6 +72,104 @@ input, textarea {
   @apply w-full bg-gray-300 py-1 px-2 rounded;
 }
 
+/* Transitions */
+
 .transition {
   transition: all 0.2s;
+}
+
+/* Utilities */
+
+@responsive {
+  .h-85vh {
+    height: 85vh;
+  }
+}
+
+/* Loading */
+
+@keyframes fadeinout {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+div.loading {
+  @apply bg-blue-900 mx-auto;
+  height: 2em;
+  width: 2em;
+  border-radius: 5px;
+  animation: fadeinout 1s ease-in-out infinite;
+}
+
+/* Images */
+
+.markdown img {
+  max-width: 75%;
+  max-height: 33vh;
+  margin: 1em auto;
+}
+
+/* Markdown */
+
+.markdown p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.markdown blockquote, pre {
+  @apply my-4;
+  padding-left: 1em;
+}
+
+.markdown blockquote {
+  margin-left: 0.5em;
+  border-left: 2px solid slategrey;
+}
+
+.markdown pre {
+  font-size: 0.9em;
+}
+
+.markdown h1 {
+  @apply border-b border-gray-200 pb-2 mb-2 mt-4;
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.markdown h2 {
+  @apply border-b border-gray-200 pb-2 mb-2 mt-4;
+  font-size: 1.25em;
+}
+
+.markdown h3 {
+  @apply border-b border-gray-200 pb-2 mb-2 mt-4;
+  font-size: 1.1em;
+}
+
+.markdown h4 {
+  @apply border-b border-gray-200 pb-2 mb-2 mt-4;
+  font-size: 1em;
+}
+
+
+.markdown ol {
+  @apply mt-2 mb-4;
+  list-style-type: decimal;
+}
+
+.markdown ul {
+  @apply mt-2 mb-4;
+  list-style-type: square;
+}
+
+.markdown li {
+  margin-left: 2em;
+  padding-left: 0.5em;
 }

@@ -23,6 +23,7 @@ import Types.Request as Request
 import Types.Session as Session exposing (Session)
 import Types.Specialty as Specialty exposing (Specialty)
 import Types.Styles exposing (tailwind)
+import Types.YearLevel as YearLevel exposing (YearLevel)
 import Views.Question exposing (..)
 
 
@@ -598,26 +599,28 @@ viewBody : Model -> List (Html Msg)
 viewBody model =
     [ main_
         [ tailwind
-            [ "min-h-screen"
+            [ "h-screen"
             , "bg-grey-200"
+            , "flex"
+            , "flex-col"
+            , "overflow-hidden"
             ]
         ]
         [ viewHeader model.webDataNote
         , section
             [ tailwind
-                [ "p-4" ]
-            ]
-            [ div
-                [ tailwind
-                    [ "container"
-                    , "mx-auto"
-                    ]
-                ]
-                [ viewStats model.webDataNote
-                , viewContent model model.webDataNote
-                , viewControls model.webDataNote
+                [ "flex-grow"
+                , "overflow-auto"
+                , "md:overflow-hidden"
+                , "md:flex"
+                , "md:justify-center"
+                , "md:items-center"
+                , "p-2"
                 ]
             ]
+            [ viewContent model model.webDataNote
+            ]
+        , viewControls model.webDataNote
         ]
     , viewModal model.modal
     ]
@@ -634,7 +637,7 @@ viewHeader dataNoteWebData =
                 _ ->
                     "slategray"
 
-        wrap string loading =
+        wrap title yearLevel specialty loading =
             header
                 [ tailwind
                     [ "flex"
@@ -642,54 +645,78 @@ viewHeader dataNoteWebData =
                     , "shadow"
                     , "text-white"
                     , "transition"
-                    , "sticky"
                     ]
                 , Html.Attributes.style "background" headerColor
                 ]
                 [ a
                     [ href "/"
                     , tailwind
-                        [ "m-2"
-                        , "py-1"
-                        , "px-2"
-                        , "mr-4"
-                        , "border"
+                        [ "mr-4"
+                        , "flex"
+                        , "items-center"
+                        , "p-2"
+                        , "px-4"
+                        , "hover:bg-white"
+                        , "hover:text-black"
                         ]
                     ]
-                    [ text "Back" ]
+                    [ i [ class "material-icons" ] [ text "arrow_back" ] ]
                 , div
                     [ tailwind
-                        [ "text-xl" ]
+                        [ "text-lg" ]
                     ]
-                    [ text string ]
+                    [ text title ]
+                , div
+                    [ tailwind
+                        [ "ml-auto"
+                        , "sm:flex"
+                        , "mr-2"
+                        , "hidden"
+                        ]
+                    ]
+                    [ div [ class "tag" ] [ text yearLevel ]
+                    , div [ class "tag" ] [ text specialty ]
+                    ]
                 ]
     in
     case dataNoteWebData of
         Loading ->
-            wrap "Loading" True
+            wrap
+                "Loading"
+                ""
+                ""
+                True
 
         NotAsked ->
-            wrap "Not Asked" False
+            wrap
+                "Not Asked"
+                ""
+                ""
+                False
 
         Failure e ->
-            wrap "Failure" False
+            wrap
+                "Failure"
+                ""
+                ""
+                False
 
         Success data ->
-            wrap data.title False
+            wrap
+                data.title
+                (YearLevel.toString data.yearLevel)
+                (Specialty.toString data.specialty)
+                False
 
 
 viewContent : Model -> WebData Note.Data -> Html Msg
 viewContent model dataNoteWebData =
     let
         wrap content =
-            article
+            div
                 [ class "markdown"
                 , tailwind
-                    [ "bg-white"
-                    , "shadow"
-                    , "rounded"
-                    , "p-4"
-                    , "mb-16"
+                    [ "container"
                     ]
                 ]
                 content
@@ -706,24 +733,71 @@ viewContent model dataNoteWebData =
 
         Success data ->
             wrap
-                [ section []
-                    [ div [ id "note" ]
-                        (viewNote data.content)
-                    , div [ id "comments" ]
-                        (List.map viewComment data.comments)
-                    ]
-                , footer
-                    []
-                    [ textarea
-                        [ placeholder "Contribute"
-                        , value model.comment
-                        , required True
-                        , onInput ChangedComment
+                [ section
+                    [ tailwind
+                        [ "flex"
+                        , "flex-col"
+                        , "md:flex-row"
+                        , "overflow-hidden"
+                        , "flex-grow"
                         ]
-                        []
-                    , button
-                        [ onClick ClickedSubmitComment ]
-                        [ text "Submit" ]
+                    ]
+                    [ article
+                        [ id "note"
+                        , tailwind
+                            [ "md:w-3/5"
+                            , "bg-white"
+                            , "shadow"
+                            , "rounded"
+                            , "m-1"
+                            , "md:m-2"
+                            , "p-4"
+                            , "md:h-85vh"
+                            , "md:overflow-auto"
+                            ]
+                        ]
+                        (viewNote data.content)
+                    , article
+                        [ tailwind
+                            [ "md:w-2/5"
+                            , "m-1"
+                            , "md:m-2"
+                            , "bg-white"
+                            , "shadow"
+                            , "rounded"
+                            , "p-4"
+                            , "md:h-85vh"
+                            , "md:flex"
+                            , "md:flex-col"
+                            ]
+                        ]
+                        [ div
+                            [ id "comments"
+                            , tailwind
+                                [ "md:flex-grow"
+                                , "md:overflow-auto"
+                                ]
+                            ]
+                            (List.map viewComment data.comments)
+                        , div
+                            [ tailwind [ "mt-2" ] ]
+                            [ footer
+                                [ tailwind [] ]
+                                [ textarea
+                                    [ placeholder "Contribute comments, mnemonics or extra notes here."
+                                    , value model.comment
+                                    , required True
+                                    , onInput ChangedComment
+                                    ]
+                                    []
+                                , button
+                                    [ onClick ClickedSubmitComment
+                                    , tailwind [ "float-right" ]
+                                    ]
+                                    [ text "Submit" ]
+                                ]
+                            ]
+                        ]
                     ]
                 ]
 
@@ -757,22 +831,30 @@ viewStats dataNoteWebData =
 viewControls : WebData Note.Data -> Html Msg
 viewControls dataNoteWebData =
     let
+        footerColor =
+            case dataNoteWebData of
+                Success data ->
+                    data.specialty |> Specialty.toMedium |> Color.toCssString
+
+                _ ->
+                    "slategray"
+
         wrap content =
-            article
+            footer
                 [ tailwind
-                    [ "fixed"
-                    , "bottom-0"
-                    , "left-0"
-                    , "w-full"
-                    , "p-4"
-                    , "bg-white"
+                    [ "p-2"
+                    , "transition"
+                    , "flex"
+                    , "justify-center"
+                    , "text-white"
                     ]
+                , style "background" footerColor
                 ]
                 content
     in
     case dataNoteWebData of
         Loading ->
-            wrap [ div [ class "loading" ] [] ]
+            wrap [ text "Loading" ]
 
         NotAsked ->
             wrap [ text "Not asked" ]
@@ -782,8 +864,20 @@ viewControls dataNoteWebData =
 
         Success data ->
             wrap
-                [ button [ onClick OpenedAddQuestionModal ] [ text "Add EMQ" ]
-                , button [ onClick OpenedStudyModal ] [ text "Study" ]
+                [ button
+                    [ onClick OpenedAddQuestionModal
+                    , tailwind
+                        [ "mx-2"
+                        ]
+                    ]
+                    [ text "Add EMQ" ]
+                , button
+                    [ onClick OpenedStudyModal
+                    , tailwind
+                        [ "mx-2"
+                        ]
+                    ]
+                    [ text "Study" ]
                 ]
 
 
