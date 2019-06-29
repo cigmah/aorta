@@ -23,9 +23,6 @@ init flags url key =
                 |> Decode.decodeValue Decode.string
                 |> Result.andThen (Decode.decodeString Session.decoder)
                 |> Result.map (\filler -> filler key)
-
-        _ =
-            Debug.log "debugging" debugging
     in
     -- TODO Add a message if decoding fails
     flags
