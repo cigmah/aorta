@@ -24,6 +24,7 @@ type alias Model =
     { session : Session
     , yearLevel : YearLevel
     , webDataNoteList : WebData (List Note.ListData)
+    , filter : String
     }
 
 
@@ -35,6 +36,7 @@ type Msg
     = NoOp
     | GotNoteList (WebData (List Note.ListData))
     | ChangedYearLevel YearLevel
+    | ChangedFilter String
 
 
 
@@ -48,6 +50,7 @@ init session =
             { session = session
             , yearLevel = session.yearLevel
             , webDataNoteList = Loading
+            , filter = ""
             }
     in
     ( initialModel
@@ -99,6 +102,9 @@ update msg model =
         GotNoteList webData ->
             ( { model | webDataNoteList = webData }, Cmd.none )
 
+        ChangedFilter string ->
+            ( { model | filter = string }, Cmd.none )
+
         ChangedYearLevel yearLevel ->
             if model.yearLevel /= yearLevel then
                 let
@@ -110,6 +116,7 @@ update msg model =
                             | yearLevel = yearLevel
                             , webDataNoteList = Loading
                             , session = newSession
+                            , filter = ""
                         }
                 in
                 ( newModel
@@ -199,17 +206,37 @@ viewBody model =
             [ tailwind
                 [ "container"
                 , "mx-auto"
-                , "pb-32"
+                , "my-4"
                 , "flex"
-                , "flex-wrap"
                 , "justify-center"
-                , "pt-4"
-                , "px-4"
-                , "md:pt-8"
-                , "md:p-8"
+                , "p-3"
                 ]
             ]
-            (viewCards model.webDataNoteList)
+            [ input
+                [ value model.filter
+                , onInput ChangedFilter
+                , placeholder "Search matrix item titles here."
+                , tailwind [ "md:w-1/2" ]
+                ]
+                []
+            ]
+        , section
+            [ tailwind
+                [ "container"
+                , "mx-auto"
+                , "pb-32"
+                , "px-3"
+                , "flex"
+                , "flex-col"
+                , "sm:flex-row"
+                , "sm:flex-wrap"
+                , "md:pt-8"
+                , "sm:justify-center"
+                , "md:p-8"
+                , "min-h-screen"
+                ]
+            ]
+            (viewCards model.filter model.webDataNoteList)
         ]
     ]
 
@@ -315,8 +342,8 @@ viewGridItem note =
         [ text (String.fromChar initial) ]
 
 
-viewCards : WebData (List Note.ListData) -> List (Html Msg)
-viewCards webData =
+viewCards : String -> WebData (List Note.ListData) -> List (Html Msg)
+viewCards filter webData =
     case webData of
         Loading ->
             []
@@ -328,14 +355,16 @@ viewCards webData =
             []
 
         Success data ->
-            List.map viewCard data
+            data
+                |> List.filter (\item -> String.contains (String.toLower filter) (String.toLower item.title))
+                |> List.map viewCard
 
 
 viewCard : Note.ListData -> Html Msg
 viewCard note =
     a
         [ href ("#/notes/" ++ String.fromInt note.id)
-        , tailwind [ "m-2" ]
+        , tailwind [ "my-1", "sm:m-2" ]
         ]
         [ article
             [ class "card"

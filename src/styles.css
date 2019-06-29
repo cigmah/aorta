@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  @apply bg-gray-200;
+}
+
 .note:hover:after, .note:hover::after {
   @apply p-4 text-lg font-bold;
   content: attr(data-tooltip);
@@ -51,4 +55,8 @@ button {
 
 input, textarea {
   @apply w-full bg-gray-300 py-1 px-2 rounded;
+}
+
+.transition {
+  transition: all 0.2s;
 }

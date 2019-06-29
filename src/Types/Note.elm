@@ -49,6 +49,8 @@ decoderList =
 
 type alias Data =
     { id : Int
+    , specialty : Specialty
+    , yearLevel : YearLevel
     , title : String
     , content : String
     , contributor : Maybe User
@@ -64,6 +66,8 @@ decoder : Decoder Data
 decoder =
     Decode.succeed Data
         |> required "id" Decode.int
+        |> required "specialty" Specialty.decoder
+        |> required "year_level" YearLevel.decoder
         |> required "title" Decode.string
         |> required "content" Decode.string
         |> required "contributor" (Decode.maybe User.decoder)

@@ -1,6 +1,7 @@
 module Page.Note exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
 import Browser exposing (Document)
+import Color
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -20,6 +21,8 @@ import Types.Note as Note
 import Types.Question as Question
 import Types.Request as Request
 import Types.Session as Session exposing (Session)
+import Types.Specialty as Specialty exposing (Specialty)
+import Types.Styles exposing (tailwind)
 import Views.Question exposing (..)
 
 
@@ -586,7 +589,7 @@ postQuestionComment session questionId comment =
 
 view : Model -> Document Msg
 view model =
-    { title = ""
+    { title = "AORTA - Note"
     , body = viewBody model
     }
 
@@ -594,11 +597,22 @@ view model =
 viewBody : Model -> List (Html Msg)
 viewBody model =
     [ main_
-        [ id "note" ]
-        [ header []
-            (viewHeader model.webDataNote)
-        , section []
-            [ div [ id "dashboard" ]
+        [ tailwind
+            [ "min-h-screen"
+            , "bg-grey-200"
+            ]
+        ]
+        [ viewHeader model.webDataNote
+        , section
+            [ tailwind
+                [ "p-4" ]
+            ]
+            [ div
+                [ tailwind
+                    [ "container"
+                    , "mx-auto"
+                    ]
+                ]
                 [ viewStats model.webDataNote
                 , viewContent model model.webDataNote
                 , viewControls model.webDataNote
@@ -609,13 +623,46 @@ viewBody model =
     ]
 
 
-viewHeader : WebData Note.Data -> List (Html Msg)
+viewHeader : WebData Note.Data -> Html Msg
 viewHeader dataNoteWebData =
     let
+        headerColor =
+            case dataNoteWebData of
+                Success data ->
+                    data.specialty |> Specialty.toMedium |> Color.toCssString
+
+                _ ->
+                    "slategray"
+
         wrap string loading =
-            [ a [ href "/" ] [ text "Back" ]
-            , div [ class "title", classList [ ( "fadeinout", loading ) ] ] [ text string ]
-            ]
+            header
+                [ tailwind
+                    [ "flex"
+                    , "items-center"
+                    , "shadow"
+                    , "text-white"
+                    , "transition"
+                    , "sticky"
+                    ]
+                , Html.Attributes.style "background" headerColor
+                ]
+                [ a
+                    [ href "/"
+                    , tailwind
+                        [ "m-2"
+                        , "py-1"
+                        , "px-2"
+                        , "mr-4"
+                        , "border"
+                        ]
+                    ]
+                    [ text "Back" ]
+                , div
+                    [ tailwind
+                        [ "text-xl" ]
+                    ]
+                    [ text string ]
+                ]
     in
     case dataNoteWebData of
         Loading ->
@@ -633,25 +680,40 @@ viewHeader dataNoteWebData =
 
 viewContent : Model -> WebData Note.Data -> Html Msg
 viewContent model dataNoteWebData =
+    let
+        wrap content =
+            article
+                [ class "markdown"
+                , tailwind
+                    [ "bg-white"
+                    , "shadow"
+                    , "rounded"
+                    , "p-4"
+                    , "mb-16"
+                    ]
+                ]
+                content
+    in
     case dataNoteWebData of
         Loading ->
-            article [ id "content", class "center" ] [ div [ class "loading" ] [] ]
+            wrap [ div [ class "loading" ] [] ]
 
         NotAsked ->
-            article [ id "content", class "center" ] [ text "Not asked" ]
+            wrap [ text "Not asked" ]
 
         Failure e ->
-            article [ id "content", class "center" ] [ text "Failure" ]
+            wrap [ text "Failure" ]
 
         Success data ->
-            article [ id "content" ]
+            wrap
                 [ section []
                     [ div [ id "note" ]
                         (viewNote data.content)
                     , div [ id "comments" ]
                         (List.map viewComment data.comments)
                     ]
-                , footer []
+                , footer
+                    []
                     [ textarea
                         [ placeholder "Contribute"
                         , value model.comment
@@ -694,18 +756,32 @@ viewStats dataNoteWebData =
 
 viewControls : WebData Note.Data -> Html Msg
 viewControls dataNoteWebData =
+    let
+        wrap content =
+            article
+                [ tailwind
+                    [ "fixed"
+                    , "bottom-0"
+                    , "left-0"
+                    , "w-full"
+                    , "p-4"
+                    , "bg-white"
+                    ]
+                ]
+                content
+    in
     case dataNoteWebData of
         Loading ->
-            article [ id "controls" ] [ div [ class "loading" ] [] ]
+            wrap [ div [ class "loading" ] [] ]
 
         NotAsked ->
-            article [ id "controls" ] [ text "Not asked" ]
+            wrap [ text "Not asked" ]
 
         Failure e ->
-            article [ id "controls" ] [ text "Failure" ]
+            wrap [ text "Failure" ]
 
         Success data ->
-            article [ id "controls" ]
+            wrap
                 [ button [ onClick OpenedAddQuestionModal ] [ text "Add EMQ" ]
                 , button [ onClick OpenedStudyModal ] [ text "Study" ]
                 ]
