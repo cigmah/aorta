@@ -1,6 +1,8 @@
 module Page.Note exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
+import Architecture.Route as Route
 import Browser exposing (Document)
+import Browser.Navigation as Navigation
 import Color
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -66,12 +68,12 @@ type Msg
     | GotNote (WebData Note.Data)
     | ClickedTab Tab
     | OpenedAddQuestionModal
-    | OpenedStudyModal
     | GotRandomQuestionId ( Maybe Question.ListData, List Question.ListData )
     | ClickedCloseModal
     | ChangedComment String
     | ClickedSubmitComment
     | GotSubmitCommentResponse (WebData Comment.ReadData)
+    | ClickedStudy
     | AddQuestionMsg AddQuestionSubMsg
 
 
@@ -142,7 +144,7 @@ subscriptions model =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg ({ session } as model) =
     let
         ignore =
             ( model, Cmd.none )
@@ -159,19 +161,6 @@ update msg model =
 
         ( OpenedAddQuestionModal, _ ) ->
             ( { model | modal = ModalAddQuestion initAddQuestion }, Cmd.none )
-
-        ( OpenedStudyModal, Success noteData ) ->
-            case ( model.session.auth, noteData.dueIds, noteData.knownIds ) of
-                ( User _, Just [], Just known ) ->
-                    -- If there are no due questions, select randomly from all cards
-                    ( model, Random.generate GotRandomQuestionId (choose noteData.allIds) )
-
-                ( User _, Just due, _ ) ->
-                    -- Or do the due questions first
-                    ( model, Random.generate GotRandomQuestionId (choose due) )
-
-                _ ->
-                    ( model, Random.generate GotRandomQuestionId (choose noteData.allIds) )
 
         ( GotRandomQuestionId ( maybeQuestionListData, left ), Success noteData ) ->
             case maybeQuestionListData of
@@ -234,6 +223,36 @@ update msg model =
 
                 _ ->
                     ( { model | webDataComment = webData }, Cmd.none )
+
+        ( ClickedStudy, Success noteData ) ->
+            let
+                routeToQuestion listDatum =
+                    Navigation.pushUrl
+                        session.key
+                        (Route.toString (Route.Question listDatum.id))
+
+                sessionWithTest future =
+                    { session
+                        | test =
+                            Just
+                                { completed = []
+                                , future = List.map .id future
+                                , back = Route.toString (Route.Note model.noteId)
+                                }
+                    }
+            in
+            case noteData.dueIds of
+                -- TODO randomise the choice in which EMQs appear? Maybe not so important for note-based revision though.
+                Just (head :: tail) ->
+                    ( { model | session = sessionWithTest tail }, routeToQuestion head )
+
+                _ ->
+                    case noteData.allIds of
+                        head :: tail ->
+                            ( { model | session = sessionWithTest tail }, routeToQuestion head )
+
+                        _ ->
+                            ( { model | session = Session.addMessage session "There are no EMQs yet!" }, Cmd.none )
 
         ( AddQuestionMsg subMsg, Success noteData ) ->
             case model.modal of
@@ -436,6 +455,49 @@ viewHeader dataNoteWebData =
                 _ ->
                     "slategray"
 
+        makeStudyButton studyButtonText =
+            button
+                [ onClick ClickedStudy
+                , tailwind
+                    [ "w-full"
+                    , "bg-white"
+                    , "text-blue-500"
+                    , "rounded"
+                    , "p-2"
+                    , "items-center"
+                    , "border"
+                    , "md:border-0"
+                    , "flex"
+                    , "md:my-1"
+                    , "md:shadow"
+                    , "hover:bg-blue-400"
+                    , "hover:text-white"
+                    , "fadein"
+                    ]
+                ]
+                [ i [ class "material-icons" ] [ text "check" ]
+                , span [ tailwind [ "ml-2" ] ] [ text studyButtonText ]
+                ]
+
+        studyButton =
+            case dataNoteWebData of
+                Success noteData ->
+                    case noteData.dueIds of
+                        Just (head :: tail) ->
+                            makeStudyButton "Review Due"
+
+                        _ ->
+                            case noteData.allIds of
+                                [] ->
+                                    div [] []
+
+                                list ->
+                                    makeStudyButton
+                                        ("Study " ++ String.fromInt (List.length list) ++ " EMQs")
+
+                _ ->
+                    div [] []
+
         wrap title yearLevel specialty allIds loading =
             section
                 [ tailwind
@@ -538,27 +600,7 @@ viewHeader dataNoteWebData =
                         [ i [ class "material-icons" ] [ text "add" ]
                         , span [ tailwind [ "ml-2" ] ] [ text "Add EMQ" ]
                         ]
-                    , button
-                        [ onClick OpenedStudyModal
-                        , tailwind
-                            [ "w-full"
-                            , "bg-white"
-                            , "text-blue-500"
-                            , "rounded"
-                            , "p-2"
-                            , "items-center"
-                            , "border"
-                            , "md:border-0"
-                            , "flex"
-                            , "md:my-1"
-                            , "md:shadow"
-                            , "hover:bg-blue-400"
-                            , "hover:text-white"
-                            ]
-                        ]
-                        [ i [ class "material-icons" ] [ text "check" ]
-                        , span [ tailwind [ "ml-2" ] ] [ text "Study" ]
-                        ]
+                    , studyButton
                     ]
                 ]
     in
@@ -639,7 +681,7 @@ viewContent model dataNoteWebData =
                                 [ div
                                     [ tailwind [ "w-full" ] ]
                                     [ textarea
-                                        [ placeholder "Contribute public comments, mnemonics or extra notes here."
+                                        [ placeholder "Contribute public comments, queries, requests, mnemonics or extra notes here."
                                         , value model.comment
                                         , required True
                                         , onInput ChangedComment

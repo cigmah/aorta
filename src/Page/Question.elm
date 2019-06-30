@@ -12,7 +12,9 @@ This page may be entered by:
 
 -}
 
+import Architecture.Route as Route
 import Browser exposing (Document)
+import Browser.Navigation as Navigation
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -81,6 +83,7 @@ initAnswer choice =
 
 type Msg
     = NoOp
+    | ClickedClose
     | GotQuestion (WebData Question.ReadData)
     | ClickedChoice Choice.ReadData
     | GotResponseResponse (WebData ())
@@ -91,6 +94,7 @@ type Msg
     | ChangedComment String
     | ClickedSubmitComment
     | GotSubmitCommentResponse (WebData Comment.ReadData)
+    | ClickedNextQuestion
 
 
 
@@ -209,10 +213,26 @@ postComment session questionId comment =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg ({ session } as model) =
     let
         ignore =
             ( model, Cmd.none )
+
+        exit =
+            case session.test of
+                Just test ->
+                    ( model
+                    , Navigation.pushUrl
+                        session.key
+                        test.back
+                    )
+
+                Nothing ->
+                    ( model
+                    , Navigation.pushUrl
+                        session.key
+                        (Route.toString Route.Home)
+                    )
     in
     case model.webQuestion of
         LoadingQuestion ->
@@ -228,11 +248,19 @@ update msg model =
                         _ ->
                             ( { model | webQuestion = FailureQuestion (Http.BadStatus 404) }, Cmd.none )
 
+                ClickedClose ->
+                    exit
+
                 _ ->
                     ignore
 
         FailureQuestion errorHttp ->
-            ignore
+            case msg of
+                ClickedClose ->
+                    exit
+
+                _ ->
+                    ignore
 
         SuccessQuestion question state ->
             case state of
@@ -260,6 +288,9 @@ update msg model =
                                     ( newModel { initial | responseResponse = Loading }
                                     , Request.post (postResponse model.session model.questionId choice.id)
                                     )
+
+                        ClickedClose ->
+                            exit
 
                         _ ->
                             ignore
@@ -337,6 +368,43 @@ update msg model =
                                 _ ->
                                     ( wrap { data | commentResponse = webData }, Cmd.none )
 
+                        ClickedClose ->
+                            exit
+
+                        ClickedNextQuestion ->
+                            case session.test of
+                                Just test ->
+                                    let
+                                        newTest =
+                                            { test
+                                                | completed =
+                                                    test.completed
+                                                        ++ [ { id = model.questionId
+                                                             , wasCorrect = data.choice.isCorrect
+                                                             }
+                                                           ]
+                                            }
+                                    in
+                                    case test.future of
+                                        [] ->
+                                            ( { model | session = { session | test = Just newTest } }
+                                            , Navigation.pushUrl
+                                                session.key
+                                                (Route.toString Route.Finish)
+                                            )
+
+                                        head :: tail ->
+                                            ( { model
+                                                | session = { session | test = Just { newTest | future = tail } }
+                                              }
+                                            , Navigation.pushUrl session.key (Route.toString (Route.Question head))
+                                            )
+
+                                Nothing ->
+                                    ( model
+                                    , Navigation.pushUrl session.key (Route.toString Route.Home)
+                                    )
+
                         _ ->
                             ignore
 
@@ -367,7 +435,7 @@ viewBody model =
 
         SuccessQuestion question state ->
             [ section [ class "modal question-modal" ]
-                [ viewQuestion state question
+                [ viewQuestion model state question
                 , viewQuestionComments state question
                 ]
             ]
@@ -377,8 +445,8 @@ viewBody model =
 -- View Helpers
 
 
-viewQuestion : State -> Question.ReadData -> Html Msg
-viewQuestion state question =
+viewQuestion : Model -> State -> Question.ReadData -> Html Msg
+viewQuestion model state question =
     let
         ( isCorrect, isIncorrect ) =
             case state of
@@ -391,6 +459,19 @@ viewQuestion state question =
 
                     else
                         ( False, True )
+
+        footerButtonText =
+            case model.session.test of
+                Just test ->
+                    case test.future of
+                        [] ->
+                            "Review Results"
+
+                        head :: tail ->
+                            "Next Question"
+
+                Nothing ->
+                    "Go Home"
 
         numLikesInfo =
             case question.numLikes of
@@ -412,7 +493,7 @@ viewQuestion state question =
             [ h1
                 []
                 [ text ("Question #" ++ String.fromInt question.id) ]
-            , button [ onClick NoOp ]
+            , button [ onClick ClickedClose ]
                 [ i [ class "material-icons" ] [ text "close" ] ]
             ]
         , section []
@@ -452,11 +533,11 @@ viewQuestion state question =
                 , numLikesInfo
                 ]
             , button
-                [ onClick NoOp
+                [ onClick ClickedNextQuestion
                 , tailwind [ "mx-1" ]
                 , type_ "button"
                 ]
-                [ text "Next Question" ]
+                [ text footerButtonText ]
             ]
         ]
 
