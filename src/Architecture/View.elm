@@ -2,6 +2,7 @@ module Architecture.View exposing (view)
 
 import Architecture.Model exposing (..)
 import Architecture.Msg exposing (..)
+import Architecture.Parser as Parser
 import Architecture.Route as Route exposing (Route)
 import Architecture.Update exposing (eject)
 import Browser exposing (Document)
@@ -214,21 +215,21 @@ wrapBody model body =
             [ text "AORTA" ]
         , viewNavLink
             { name = "Matrix"
-            , active = Route.isEqual Route.Home model
+            , active = Parser.isEqual Route.Home model
             , route = Route.Home
             , icon = "notes"
             , right = False
             }
         , viewNavLink
             { name = "Revise"
-            , active = Route.isEqual Route.Revise model
+            , active = Parser.isEqual Route.Revise model
             , route = Route.Revise
             , icon = "check"
             , right = False
             }
         , viewNavLink
             { name = profileText
-            , active = Route.isEqual Route.Profile model
+            , active = Parser.isEqual Route.Profile model
             , route = Route.Profile
             , icon = "person"
             , right = True

@@ -1,5 +1,6 @@
 module Page.Home exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
+import Architecture.Route as Route
 import Browser exposing (Document)
 import Color
 import Html exposing (..)
@@ -337,7 +338,7 @@ viewGridItem note =
             , "justify-center"
             , "items-center"
             ]
-        , href ("#/notes/" ++ String.fromInt note.id)
+        , Route.toHref (Route.Note note.id)
         , Html.Attributes.attribute "data-tooltip" note.title
         , Html.Attributes.style "background" (note.specialty |> Specialty.toColor |> Color.toCssString)
         , Html.Attributes.style "color" (darkerColor |> Color.toCssString)

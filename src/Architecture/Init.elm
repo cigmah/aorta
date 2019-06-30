@@ -2,6 +2,7 @@ module Architecture.Init exposing (extractWith, fromRoute, init)
 
 import Architecture.Model exposing (..)
 import Architecture.Msg exposing (..)
+import Architecture.Parser as Parser
 import Architecture.Route as Route exposing (Route)
 import Browser.Navigation as Navigation exposing (Key)
 import Json.Decode as Decode exposing (Value)
@@ -24,7 +25,7 @@ init flags url key =
         |> Result.andThen (Decode.decodeString Session.decoder)
         |> Result.map (\filler -> filler key)
         |> Result.withDefault (Session.default key)
-        |> fromRoute (Route.fromUrl url)
+        |> fromRoute (Parser.fromUrl url)
 
 
 extractWith : (subModel -> Model) -> (subMsg -> Msg) -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )

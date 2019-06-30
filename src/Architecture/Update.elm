@@ -3,6 +3,7 @@ module Architecture.Update exposing (eject, update)
 import Architecture.Init as Init exposing (extractWith)
 import Architecture.Model exposing (..)
 import Architecture.Msg exposing (..)
+import Architecture.Parser as Parser
 import Architecture.Route as Route exposing (Route)
 import Browser
 import Browser.Navigation as Navigation
@@ -42,7 +43,7 @@ update msg model =
 
         ( UrlChanged url, _ ) ->
             eject model
-                |> Init.fromRoute (Route.fromUrl url)
+                |> Init.fromRoute (Parser.fromUrl url)
 
         ( ClearMessages, _ ) ->
             eject model

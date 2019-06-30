@@ -13,6 +13,7 @@ import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
 import Types.Credentials as Credentials exposing (..)
 import Types.Specialty as Specialty exposing (Specialty)
+import Types.Test as Test exposing (Test)
 import Types.YearLevel as YearLevel exposing (YearLevel)
 
 
@@ -23,6 +24,7 @@ type alias Session =
     , yearLevel : YearLevel
     , reviseYearLevel : YearLevel
     , reviseSpecialty : Specialty
+    , test : Maybe Test
     }
 
 
@@ -34,6 +36,7 @@ fillKey auth yearLevel reviseYearLevel reviseSpecialty key =
     , yearLevel = yearLevel
     , reviseYearLevel = reviseYearLevel
     , reviseSpecialty = reviseSpecialty
+    , test = Nothing
     }
 
 
@@ -45,6 +48,7 @@ default key =
     , yearLevel = YearLevel.Year1
     , reviseYearLevel = YearLevel.Year1
     , reviseSpecialty = Specialty.Anatomy
+    , test = Nothing
     }
 
 

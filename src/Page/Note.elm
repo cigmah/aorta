@@ -45,7 +45,6 @@ type alias Model =
 type Modal
     = ModalNone
     | ModalAddQuestion AddQuestionData
-    | ModalQuestion ModalQuestionData
 
 
 type Tab
@@ -75,7 +74,6 @@ type Msg
     | ClickedSubmitComment
     | GotSubmitCommentResponse (WebData Comment.ReadData)
     | AddQuestionMsg AddQuestionSubMsg
-    | StudyMsg StudySubMsg
 
 
 type AddQuestionSubMsg
@@ -86,19 +84,6 @@ type AddQuestionSubMsg
     | AddedChoice
     | PostedQuestion
     | GotAddQuestionResponse (WebData Question.ReadData)
-
-
-type StudySubMsg
-    = GotQuestion (WebData Question.ReadData)
-    | ClickedChoice Choice.ReadData
-    | GotResponseResponse (WebData ())
-    | ClickedLike
-    | GotLikeResponse (WebData ())
-    | ClickedFlag
-    | GotFlagResponse (WebData ())
-    | ChangedQuestionComment String
-    | ClickedSubmitQuestionComment
-    | GotSubmitQuestionCommentResponse (WebData Comment.ReadData)
 
 
 
@@ -217,12 +202,7 @@ update msg model =
                                 _ ->
                                     Nothing
                     in
-                    ( { model
-                        | modal = ModalQuestion (initStudy id)
-                        , webDataNote = Success { noteData | allIds = newAllIds, dueIds = newDue }
-                      }
-                    , Request.get (getQuestion model.session id) |> Cmd.map StudyMsg
-                    )
+                    ignore
 
                 Nothing ->
                     -- Reload
@@ -272,14 +252,6 @@ update msg model =
             case model.modal of
                 ModalAddQuestion modalData ->
                     updateAddQuestion subMsg modalData noteData model
-
-                _ ->
-                    ignore
-
-        ( StudyMsg subMsg, Success noteData ) ->
-            case model.modal of
-                ModalQuestion modalData ->
-                    updateStudy subMsg modalData noteData model
 
                 _ ->
                     ignore
@@ -378,117 +350,6 @@ updateAddQuestion subMsg modalData noteData model =
                     ( { model | modal = ModalAddQuestion { modalData | response = webData } }, Cmd.none )
 
 
-updateStudy : StudySubMsg -> ModalQuestionData -> Note.Data -> Model -> ( Model, Cmd Msg )
-updateStudy msg questionData noteData model =
-    let
-        ignore =
-            ( model, Cmd.none )
-
-        wrap newQuestionData =
-            { model | modal = ModalQuestion newQuestionData }
-    in
-    case msg of
-        GotQuestion webData ->
-            ( { model | modal = ModalQuestion { questionData | webData = webData } }, Cmd.none )
-
-        ClickedChoice choice ->
-            case model.session.auth of
-                Guest ->
-                    ( wrap { questionData | state = Answered choice NotAsked }
-                    , Cmd.none
-                    )
-
-                User _ ->
-                    case questionData.state of
-                        Unanswered ->
-                            ( wrap { questionData | state = Answered choice Loading }
-                            , Request.post (postResponse model.session questionData.questionId choice.id) |> Cmd.map StudyMsg
-                            )
-
-                        Answered _ _ ->
-                            ignore
-
-        GotResponseResponse webData ->
-            case questionData.state of
-                Unanswered ->
-                    ignore
-
-                Answered choice _ ->
-                    ( wrap { questionData | state = Answered choice webData }
-                    , Cmd.none
-                    )
-
-        ClickedLike ->
-            case questionData.likeResponse of
-                Loading ->
-                    ignore
-
-                _ ->
-                    ( wrap { questionData | likeResponse = Loading }
-                    , Request.post (postLike model.session questionData.questionId)
-                        |> Cmd.map StudyMsg
-                    )
-
-        GotLikeResponse webData ->
-            ( wrap { questionData | likeResponse = webData }
-            , Cmd.none
-            )
-
-        ClickedFlag ->
-            case questionData.flagResponse of
-                Loading ->
-                    ignore
-
-                _ ->
-                    ( wrap { questionData | flagResponse = Loading }
-                    , Request.post (postFlag model.session questionData.questionId)
-                        |> Cmd.map StudyMsg
-                    )
-
-        GotFlagResponse webData ->
-            ( wrap { questionData | flagResponse = webData }
-            , Cmd.none
-            )
-
-        ChangedQuestionComment string ->
-            ( wrap { questionData | comment = string }, Cmd.none )
-
-        ClickedSubmitQuestionComment ->
-            case questionData.commentResponse of
-                Loading ->
-                    ignore
-
-                _ ->
-                    ( wrap { questionData | commentResponse = Loading }
-                    , Request.post (postQuestionComment model.session questionData.questionId questionData.comment)
-                        |> Cmd.map StudyMsg
-                    )
-
-        GotSubmitQuestionCommentResponse webData ->
-            case webData of
-                Success commentReturn ->
-                    case questionData.webData of
-                        Success questionWebData ->
-                            ( wrap
-                                { questionData
-                                    | commentResponse = webData
-                                    , comment = ""
-                                    , webData =
-                                        Success
-                                            { questionWebData
-                                                | comments = questionWebData.comments ++ [ commentReturn ]
-                                            }
-                                }
-                            , Cmd.none
-                            )
-
-                        _ ->
-                            ignore
-
-                _ ->
-                    ( wrap { questionData | commentResponse = webData }, Cmd.none )
-
-
 
 -- Requests
 
@@ -499,16 +360,6 @@ getNote session noteId =
     , endpoint = Request.GetNote noteId
     , callback = GotNote
     , returnDecoder = Note.decoder
-    , queryList = []
-    }
-
-
-getQuestion : Session -> Int -> Request.GetRequest Question.ReadData StudySubMsg
-getQuestion session questionId =
-    { auth = session.auth
-    , endpoint = Request.GetQuestion questionId
-    , callback = GotQuestion
-    , returnDecoder = Question.decoder
     , queryList = []
     }
 
@@ -536,62 +387,6 @@ postComment session int comment =
             { noteId = int
             , content = comment
             }
-    }
-
-
-postResponse : Session -> Int -> Int -> Request.PostRequest () StudySubMsg
-postResponse session questionId choiceId =
-    { auth = session.auth
-    , endpoint = Request.PostResponse
-    , callback = GotResponseResponse
-    , returnDecoder = Decode.succeed ()
-    , queryList = []
-    , body =
-        Encode.object
-            [ ( "question", Encode.int questionId )
-            , ( "choice", Encode.int choiceId )
-            ]
-    }
-
-
-postLike : Session -> Int -> Request.PostRequest () StudySubMsg
-postLike session questionId =
-    { auth = session.auth
-    , endpoint = Request.PostFlag
-    , callback = GotLikeResponse
-    , returnDecoder = Decode.succeed ()
-    , queryList = []
-    , body =
-        Encode.object
-            [ ( "question", Encode.int questionId ) ]
-    }
-
-
-postFlag : Session -> Int -> Request.PostRequest () StudySubMsg
-postFlag session questionId =
-    { auth = session.auth
-    , endpoint = Request.PostFlag
-    , callback = GotFlagResponse
-    , returnDecoder = Decode.succeed ()
-    , queryList = []
-    , body =
-        Encode.object
-            [ ( "question", Encode.int questionId ) ]
-    }
-
-
-postQuestionComment : Session -> Int -> String -> Request.PostRequest Comment.ReadData StudySubMsg
-postQuestionComment session questionId comment =
-    { auth = session.auth
-    , endpoint = Request.PostQuestionComment
-    , callback = GotSubmitQuestionCommentResponse
-    , returnDecoder = Comment.decoder
-    , queryList = []
-    , body =
-        Encode.object
-            [ ( "question", Encode.int questionId )
-            , ( "content", Encode.string comment )
-            ]
     }
 
 
@@ -671,6 +466,7 @@ viewHeader dataNoteWebData =
                         , "h-56"
                         , "rounded-lg"
                         , "p-4"
+                        , "transition"
                         ]
                     ]
                     [ div
@@ -870,9 +666,6 @@ viewModal modal =
         ModalAddQuestion addQuestionData ->
             viewModalAddQuestion addQuestionData
 
-        ModalQuestion modalQuestionData ->
-            viewModalStudy modalQuestionData
-
 
 viewModalAddQuestion : AddQuestionData -> Html Msg
 viewModalAddQuestion addQuestionData =
@@ -984,31 +777,3 @@ viewCreateChoice int creationDataChoice =
                     ]
                     []
                 ]
-
-
-questionMsgs : QuestionMsgs Msg
-questionMsgs =
-    { clickedLike = StudyMsg ClickedLike
-    , clickedFlag = StudyMsg ClickedFlag
-    , nextQuestion = OpenedStudyModal
-    , clickedChoice = StudyMsg << ClickedChoice
-    , changedComment = StudyMsg << ChangedQuestionComment
-    , submitComment = StudyMsg ClickedSubmitQuestionComment
-    , clickedClose = ClickedCloseModal
-    }
-
-
-viewModalStudy : ModalQuestionData -> Html Msg
-viewModalStudy modalData =
-    case modalData.webData of
-        Loading ->
-            section [ class "modal" ] [ div [ class "loading" ] [] ]
-
-        NotAsked ->
-            section [ class "modal" ] [ text "Not asked" ]
-
-        Failure e ->
-            section [ class "modal" ] [ text "Failure" ]
-
-        Success question ->
-            viewQuestionSection questionMsgs modalData question
