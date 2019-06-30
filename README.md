@@ -45,3 +45,41 @@ npx tailwind build src/styles.css -o src/output.css
 ```
 
 from this directory.
+
+## Deployment
+
+Switch to the `gh-pages` branch:
+
+```sh
+git checkout gh-pages
+```
+
+Then merge the changes in develop:
+
+```sh
+git merge develop
+```
+
+Then build:
+
+```sh
+elm-app build
+```
+
+Then commit:
+
+```sh
+git commit -m [MESSAGE]
+```
+
+Then push the build subtree:
+
+```sh
+git subtree push --prefix build origin gh-pages
+```
+
+Then finally, switch back to develop:
+
+```sh
+git checkout develop
+```

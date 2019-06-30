@@ -71,7 +71,7 @@ viewNavLink data =
             , "hover:text-blue-800"
             ]
         , classList
-            [ ( "active", data.active )
+            [ ( "bg-blue-600", data.active )
             , ( "md:ml-auto", data.right )
             ]
         ]
@@ -155,20 +155,21 @@ wrapBody model body =
     [ nav
         [ tailwind
             [ "w-full"
-            , "bg-blue-800"
+            , "bg-blue-500"
             , "text-white"
             , "flex"
             , "fixed"
             , "bottom-0"
             , "md:top-0"
             , "md:bottom-auto"
-            , "text-xs"
-            , "md:text-sm"
+            , "text-sm"
+            , "md:text-base"
             , "items-center"
             , "z-50"
             ]
-        , classList
-            [ ( "hidden", isRouteEqual (Route.Note 0) model ) ]
+
+        --        , classList
+        --            [ ( "hidden", isRouteEqual (Route.Note 0) model ) ]
         ]
         [ img
             [ src "./icon.svg"
