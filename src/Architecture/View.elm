@@ -16,10 +16,13 @@ import Page.Note as Note
 import Page.Profile as Profile
 import Page.Question as Question
 import Page.Revise as Revise
-import Secret exposing (baseUrl)
 import Types.Credentials exposing (Auth(..))
 import Types.Session as Session exposing (Session)
 import Types.Styles exposing (tailwind)
+
+
+
+-- Major View Router
 
 
 view : Model -> Document Msg
@@ -54,15 +57,20 @@ view model =
                 |> viewPage model GotFinishMsg
 
 
+{-| Wrap each page's individual view function |
+-}
 viewPage : Model -> (subMsg -> Msg) -> Document subMsg -> Document Msg
 viewPage model toMsg page =
     { title = page.title
     , body =
-        List.map (Html.map toMsg) page.body
+        page.body
+            |> List.map (Html.map toMsg)
             |> wrapBody model
     }
 
 
+{-| View ech navigation link |
+-}
 viewNavLink : { name : String, active : Bool, route : Route, icon : String, right : Bool } -> Html Msg
 viewNavLink data =
     a
@@ -91,10 +99,18 @@ viewNavLink data =
                 [ "md:pr-2" ]
             ]
             [ text data.icon ]
-        , label [ tailwind [ "cursor-pointer", "md:pr-2" ] ] [ text data.name ]
+        , label
+            [ tailwind
+                [ "cursor-pointer"
+                , "md:pr-2"
+                ]
+            ]
+            [ text data.name ]
         ]
 
 
+{-| View a single message |
+-}
 viewSingleMessage : String -> Html Msg
 viewSingleMessage string =
     article
@@ -113,6 +129,8 @@ viewSingleMessage string =
         (Markdown.toHtml Nothing string)
 
 
+{-| View the list of all messages in a session |
+-}
 viewMessage : Session -> Html Msg
 viewMessage session =
     case session.message of
@@ -129,25 +147,8 @@ viewMessage session =
             section [ class "hidden" ] []
 
 
-isRouteEqual : Route -> Model -> Bool
-isRouteEqual route model =
-    case ( route, model ) of
-        ( Route.Home, Home _ ) ->
-            True
-
-        ( Route.Profile, Profile _ ) ->
-            True
-
-        ( Route.Note _, Note _ ) ->
-            True
-
-        ( Route.Revise, Revise _ ) ->
-            True
-
-        _ ->
-            False
-
-
+{-| Wrap each page's individual body with a nav bar and messages |
+-}
 wrapBody : Model -> List (Html Msg) -> List (Html Msg)
 wrapBody model body =
     let
@@ -161,6 +162,14 @@ wrapBody model body =
 
                 Guest ->
                     "Log In"
+
+        hideNav =
+            case model of
+                Question _ ->
+                    True
+
+                _ ->
+                    False
     in
     [ nav
         [ tailwind
@@ -177,9 +186,8 @@ wrapBody model body =
             , "items-center"
             , "z-50"
             ]
-
-        --        , classList
-        --            [ ( "hidden", isRouteEqual (Route.Note 0) model ) ]
+        , classList
+            [ ( "hidden", hideNav ) ]
         ]
         [ img
             [ src "./icon.svg"
@@ -206,21 +214,21 @@ wrapBody model body =
             [ text "AORTA" ]
         , viewNavLink
             { name = "Matrix"
-            , active = isRouteEqual Route.Home model
+            , active = Route.isEqual Route.Home model
             , route = Route.Home
             , icon = "notes"
             , right = False
             }
         , viewNavLink
             { name = "Revise"
-            , active = isRouteEqual Route.Revise model
+            , active = Route.isEqual Route.Revise model
             , route = Route.Revise
             , icon = "check"
             , right = False
             }
         , viewNavLink
             { name = profileText
-            , active = isRouteEqual Route.Profile model
+            , active = Route.isEqual Route.Profile model
             , route = Route.Profile
             , icon = "person"
             , right = True

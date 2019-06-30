@@ -7,7 +7,6 @@ import Page.Note as Note
 import Page.Profile as Profile
 import Page.Question as Question
 import Page.Revise as Revise
-import Types.Session exposing (Session)
 
 
 type Model

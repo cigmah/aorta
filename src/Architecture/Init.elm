@@ -12,23 +12,12 @@ import Page.Note as Note
 import Page.Profile as Profile
 import Page.Question as Question
 import Page.Revise as Revise
-import Types.Credentials exposing (Auth(..))
 import Types.Session as Session exposing (Session)
 import Url exposing (Url)
 
 
 init : Value -> Url -> Key -> ( Model, Cmd Msg )
 init flags url key =
-    let
-        debugging =
-            flags
-                |> Decode.decodeValue Decode.string
-                |> Result.andThen (Decode.decodeString Session.decoder)
-                |> Result.map (\filler -> filler key)
-
-        _ =
-            Debug.log "debugging" debugging
-    in
     -- TODO Add a message if decoding fails
     flags
         |> Decode.decodeValue Decode.string
