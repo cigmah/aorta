@@ -9,10 +9,12 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Markdown
+import Page.Finish as Finish
 import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
+import Page.Question as Question
 import Page.Revise as Revise
 import Secret exposing (baseUrl)
 import Types.Credentials exposing (Auth(..))
@@ -42,6 +44,14 @@ view model =
         Revise subModel ->
             Revise.view subModel
                 |> viewPage model GotReviseMsg
+
+        Question subModel ->
+            Question.view subModel
+                |> viewPage model GotQuestionMsg
+
+        Finish subModel ->
+            Finish.view subModel
+                |> viewPage model GotFinishMsg
 
 
 viewPage : Model -> (subMsg -> Msg) -> Document subMsg -> Document Msg

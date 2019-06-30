@@ -5,10 +5,12 @@ import Architecture.Msg exposing (..)
 import Architecture.Route as Route exposing (Route)
 import Browser.Navigation as Navigation exposing (Key)
 import Json.Decode as Decode exposing (Value)
+import Page.Finish as Finish
 import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
+import Page.Question as Question
 import Page.Revise as Revise
 import Types.Credentials exposing (Auth(..))
 import Types.Session as Session exposing (Session)
@@ -63,3 +65,11 @@ fromRoute route session =
         Route.Revise ->
             Revise.init session
                 |> extractWith Revise GotReviseMsg
+
+        Route.Question questionId ->
+            Question.init session questionId
+                |> extractWith Question GotQuestionMsg
+
+        Route.Finish ->
+            Finish.init session
+                |> extractWith Finish GotFinishMsg

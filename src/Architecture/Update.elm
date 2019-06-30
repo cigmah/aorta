@@ -6,10 +6,12 @@ import Architecture.Msg exposing (..)
 import Architecture.Route as Route exposing (Route)
 import Browser
 import Browser.Navigation as Navigation
+import Page.Finish as Finish
 import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
+import Page.Question as Question
 import Page.Revise as Revise
 import Types.Session as Session exposing (Session)
 import Url
@@ -67,6 +69,14 @@ update msg model =
             Revise.update subMsg subModel
                 |> extractWith Revise GotReviseMsg
 
+        ( GotQuestionMsg subMsg, Question subModel ) ->
+            Question.update subMsg subModel
+                |> extractWith Question GotQuestionMsg
+
+        ( GotFinishMsg subMsg, Finish subModel ) ->
+            Finish.update subMsg subModel
+                |> extractWith Finish GotFinishMsg
+
         _ ->
             ( model, Cmd.none )
 
@@ -88,6 +98,12 @@ eject page =
 
         Revise model ->
             Revise.eject model
+
+        Question model ->
+            Question.eject model
+
+        Finish model ->
+            Finish.eject model
 
 
 inject : Model -> Session -> ( Model, Cmd Msg )
@@ -117,6 +133,16 @@ inject page session =
             session
                 |> Revise.inject model
                 |> extractWith Revise GotReviseMsg
+
+        Question model ->
+            session
+                |> Question.inject model
+                |> extractWith Question GotQuestionMsg
+
+        Finish model ->
+            session
+                |> Finish.inject model
+                |> extractWith Finish GotFinishMsg
 
 
 reroute : Route -> Model -> ( Model, Cmd Msg )

@@ -20,6 +20,8 @@ type Route
     | Profile
     | Revise
     | Note Int
+    | Question Int
+    | Finish
 
 
 {-| This parser is completely fragment-based to accommodate GitHub pages. |
@@ -64,6 +66,12 @@ toString route =
 
                 Revise ->
                     "revise/"
+
+                Question questionId ->
+                    "question/" ++ String.fromInt questionId
+
+                Finish ->
+                    "finish/"
     in
     "#/" ++ path
 
