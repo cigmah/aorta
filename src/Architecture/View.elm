@@ -140,7 +140,7 @@ viewMessage session =
                 [ class "message-list"
                 , onClick ClearMessages
                 , tailwind
-                    [ "fixed", "right-0", "top-0", "md:p-2", "md:w-1/4", "z-10" ]
+                    [ "fixed", "right-0", "top-0", "md:p-2", "md:w-1/4", "z-50" ]
                 ]
                 (List.map viewSingleMessage stringList)
 
@@ -185,7 +185,7 @@ wrapBody model body =
             , "text-sm"
             , "md:text-base"
             , "items-center"
-            , "z-50"
+            , "z-30"
             ]
         , classList
             [ ( "hidden", hideNav ) ]
@@ -235,6 +235,6 @@ wrapBody model body =
             , right = True
             }
         ]
-    , viewMessage (eject model)
     ]
         ++ body
+        ++ [ viewMessage (eject model) ]

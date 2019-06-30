@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 html {
-  @apply bg-gray-200;
+  @apply bg-gray-100;
 }
 
 
@@ -57,11 +57,7 @@ main#profile article header {
 /* Inputs */
 
 button {
-  @apply border px-2 py-1 rounded;
-}
-
-button:hover {
-  @apply bg-white text-blue-900;
+  @apply px-2 py-1 rounded;
 }
 
 .field {
@@ -69,7 +65,7 @@ button:hover {
 }
 
 input, textarea, select {
-  @apply w-full bg-gray-300 py-1 px-2 rounded border-2 border-gray-300;
+  @apply w-full bg-gray-200 py-1 px-2 rounded border-2 border-gray-200;
 }
 
 input:focus, textarea:focus {
@@ -216,7 +212,7 @@ div.loading {
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 100;
+  z-index: 40;
 }
 
 .modal.hidden {

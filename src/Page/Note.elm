@@ -24,7 +24,6 @@ import Types.Session as Session exposing (Session)
 import Types.Specialty as Specialty exposing (Specialty)
 import Types.Styles exposing (tailwind)
 import Types.YearLevel as YearLevel exposing (YearLevel)
-import Views.Question exposing (..)
 
 
 
@@ -108,18 +107,6 @@ initAddQuestion : AddQuestionData
 initAddQuestion =
     { question = Question.new
     , response = NotAsked
-    }
-
-
-initStudy : Int -> ModalQuestionData
-initStudy questionId =
-    { questionId = questionId
-    , webData = Loading
-    , state = Unanswered
-    , comment = ""
-    , commentResponse = NotAsked
-    , likeResponse = NotAsked
-    , flagResponse = NotAsked
     }
 
 
@@ -407,25 +394,27 @@ viewBody model =
         [ tailwind
             [ "h-screen"
             , "bg-grey-200"
-            , "container"
             , "mx-auto"
-            , "overflow-hidden"
-            , "p-4"
-            , "pt-10"
+            , "overflow-auto"
+            , "md:p-4"
+            , "md:pt-10"
             ]
         ]
         [ section
-            [ tailwind [ "flex" ] ]
+            [ tailwind
+                [ "md:flex"
+                , "container"
+                , "mx-auto"
+                ]
+            ]
             [ viewHeader model.webDataNote
             , section
                 [ tailwind
-                    [ "w-3/4"
-                    , "overflow-auto"
-                    , "md:overflow-hidden"
-                    , "md:flex"
+                    [ "md:flex"
                     , "md:justify-center"
-                    , "md:items-center"
-                    , "p-2"
+                    , "md:p-2"
+                    , "mt-2"
+                    , "w-full"
                     ]
                 ]
                 [ viewContent model model.webDataNote
@@ -454,19 +443,24 @@ viewHeader dataNoteWebData =
                     , "flex-col"
                     , "items-center"
                     , "transition"
-                    , "w-1/4"
-                    , "p-4"
-                    , "mt-4"
+                    , "md:w-1/4"
+                    , "md:p-4"
                     ]
                 ]
                 [ div
                     [ Html.Attributes.style "background" headerColor
                     , tailwind
-                        [ "w-56"
-                        , "h-56"
-                        , "rounded-lg"
-                        , "p-4"
+                        [ "w-full"
+                        , "md:w-40"
+                        , "md:h-40"
+                        , "lg:w-56"
+                        , "lg:h-56"
+                        , "md:rounded-lg"
+                        , "p-2"
+                        , "lg:p-4"
                         , "transition"
+                        , "mx-auto"
+                        , "md:mb-2"
                         ]
                     ]
                     [ div
@@ -480,6 +474,8 @@ viewHeader dataNoteWebData =
                             , "sm:flex"
                             , "mr-2"
                             , "hidden"
+                            , "text-sm"
+                            , "lg:text-base"
                             ]
                         ]
                         [ div [ class "tag" ] [ text yearLevel ]
@@ -489,34 +485,81 @@ viewHeader dataNoteWebData =
                 , a
                     [ href "/"
                     , tailwind
-                        [ "mr-4"
-                        , "flex"
+                        [ "flex"
                         , "items-center"
                         , "p-2"
-                        , "px-4"
-                        , "hover:bg-white"
-                        , "hover:text-black"
+                        , "text-blue-500"
+                        , "bg-white"
+                        , "shadow"
+                        , "w-full"
+                        , "rounded"
+                        , "md:my-1"
+                        , "hover:bg-blue-400"
+                        , "hover:text-white"
                         ]
                     ]
                     [ i [ class "material-icons" ] [ text "arrow_back" ]
                     , span [ tailwind [ "ml-2" ] ] [ text "Back" ]
                     ]
-                , div [ tailwind [ "ml-2" ] ]
+                , div
+                    [ tailwind
+                        [ "p-2"
+                        , "bg-gray-200"
+                        , "text-gray-600"
+                        , "w-full"
+                        , "md:my-1"
+                        , "text-center"
+                        , "font-bold"
+                        , "text-sm"
+                        , "rounded"
+                        ]
+                    ]
                     [ text <| String.fromInt (List.length allIds) ++ " attached EMQs." ]
-                , button
-                    [ onClick OpenedAddQuestionModal
-                    , tailwind
-                        [ "mx-2"
+                , div
+                    [ tailwind [ "flex", "md:block", "w-full" ] ]
+                    [ button
+                        [ onClick OpenedAddQuestionModal
+                        , tailwind
+                            [ "w-full"
+                            , "bg-white"
+                            , "text-blue-500"
+                            , "rounded"
+                            , "p-2"
+                            , "md:shadow"
+                            , "border"
+                            , "md:border-0"
+                            , "items-center"
+                            , "flex"
+                            , "md:my-1"
+                            , "hover:bg-blue-400"
+                            , "hover:text-white"
+                            ]
+                        ]
+                        [ i [ class "material-icons" ] [ text "add" ]
+                        , span [ tailwind [ "ml-2" ] ] [ text "Add EMQ" ]
+                        ]
+                    , button
+                        [ onClick OpenedStudyModal
+                        , tailwind
+                            [ "w-full"
+                            , "bg-white"
+                            , "text-blue-500"
+                            , "rounded"
+                            , "p-2"
+                            , "items-center"
+                            , "border"
+                            , "md:border-0"
+                            , "flex"
+                            , "md:my-1"
+                            , "md:shadow"
+                            , "hover:bg-blue-400"
+                            , "hover:text-white"
+                            ]
+                        ]
+                        [ i [ class "material-icons" ] [ text "check" ]
+                        , span [ tailwind [ "ml-2" ] ] [ text "Study" ]
                         ]
                     ]
-                    [ text "Add EMQ" ]
-                , button
-                    [ onClick OpenedStudyModal
-                    , tailwind
-                        [ "mx-2"
-                        ]
-                    ]
-                    [ text "Study" ]
                 ]
     in
     case dataNoteWebData of
@@ -560,14 +603,22 @@ viewContent model dataNoteWebData =
             div
                 [ class "markdown"
                 , tailwind
-                    [ "container"
+                    [ "w-full"
+                    , "flex-grow"
+                    , "bg-white"
+                    , "rounded"
+                    , "shadow-lg"
+                    , "pb-16"
+                    , "min-h-screen"
+                    , "md:min-h-0"
+                    , "md:pb-0"
                     ]
                 ]
                 content
     in
     case dataNoteWebData of
         Loading ->
-            wrap [ div [ class "loading" ] [] ]
+            wrap [ div [ tailwind [ "min-h-screen", "flex", "items-center" ] ] [ div [ class "loading" ] [] ] ]
 
         NotAsked ->
             wrap [ text "Not asked" ]
@@ -584,47 +635,91 @@ viewContent model dataNoteWebData =
 
                         Community ->
                             [ div
-                                [ id "comments"
-                                , tailwind
-                                    [ "md:flex-grow"
-                                    , "md:overflow-auto"
-                                    ]
-                                ]
-                                (List.map viewComment data.comments)
-                            , div
-                                [ tailwind [ "mt-2" ] ]
-                                [ footer
-                                    [ tailwind [] ]
+                                [ tailwind [ "mb-4", "w-full", "border-b", "border-gray-400", "pb-8" ] ]
+                                [ div
+                                    [ tailwind [ "w-full" ] ]
                                     [ textarea
-                                        [ placeholder "Contribute comments, mnemonics or extra notes here."
+                                        [ placeholder "Contribute public comments, mnemonics or extra notes here."
                                         , value model.comment
                                         , required True
                                         , onInput ChangedComment
+                                        , rows 5
                                         ]
                                         []
                                     , button
                                         [ onClick ClickedSubmitComment
-                                        , tailwind [ "float-right" ]
+                                        , tailwind
+                                            [ "hover:bg-blue-400"
+                                            , "hover:text-white"
+                                            , "bg-gray-200"
+                                            , "uppercase"
+                                            , "text-gray-600"
+                                            , "font-bold"
+                                            , "text-sm"
+                                            , "ml-auto"
+                                            , "block"
+                                            ]
                                         ]
                                         [ text "Submit" ]
                                     ]
                                 ]
+                            , div
+                                [ id "comments"
+                                , tailwind
+                                    []
+                                ]
+                                (List.map viewComment data.comments)
                             ]
             in
             wrap
-                [ button [ onClick (ClickedTab Official) ] [ text "Starter Notes" ]
-                , button [ onClick (ClickedTab Community) ] [ text "Contributions" ]
+                [ div
+                    [ tailwind
+                        [ "flex"
+                        ]
+                    ]
+                    [ button
+                        [ onClick (ClickedTab Official)
+                        , tailwind
+                            [ "flex-grow"
+                            , "rounded-none"
+                            , "border-0"
+                            , "text-xs"
+                            , "uppercase"
+                            , "font-bold"
+                            , "p-3"
+                            , "hover:bg-blue-400"
+                            , "hover:text-white"
+                            ]
+                        , classList
+                            [ ( "bg-gray-200 text-gray-600", model.tab == Community )
+                            , ( "text-blue-500", model.tab == Official )
+                            ]
+                        ]
+                        [ text "Notes" ]
+                    , button
+                        [ onClick (ClickedTab Community)
+                        , tailwind
+                            [ "flex-grow"
+                            , "rounded-none"
+                            , "border-0"
+                            , "text-xs"
+                            , "uppercase"
+                            , "font-bold"
+                            , "p-3"
+                            , "hover:bg-blue-400"
+                            , "hover:text-white"
+                            ]
+                        , classList
+                            [ ( "bg-gray-200 text-gray-600", model.tab == Official )
+                            , ( "text-blue-500", model.tab == Community )
+                            ]
+                        ]
+                        [ text "Contributions" ]
+                    ]
                 , article
                     [ id "note"
                     , tailwind
-                        [ "bg-white"
-                        , "shadow-lg"
-                        , "rounded"
-                        , "m-1"
-                        , "md:m-2"
-                        , "p-4"
-                        , "md:h-85vh"
-                        , "md:overflow-auto"
+                        [ "p-8"
                         ]
                     ]
                     dataContent
@@ -639,6 +734,42 @@ viewNote content =
 
         value ->
             Markdown.toHtml Nothing content
+
+
+viewComment : Comment.ReadData -> Html msg
+viewComment data =
+    div
+        [ tailwind
+            [ "p-2"
+            , "border-b"
+            , "border-gray-400"
+            , "my-1"
+            ]
+        ]
+        [ div
+            [ class "markdown"
+            , tailwind
+                []
+            ]
+            (Markdown.toHtml Nothing data.content)
+        , div
+            [ tailwind
+                [ "text-xs"
+                , "text-gray-600"
+                , "w-full"
+                , "text-right"
+                , "mb-2"
+                ]
+            ]
+            [ strong [] [ text data.author.username ]
+            , text " "
+            , text
+                (String.join
+                    " "
+                    [ "on", Datetime.posixToString data.created_at ]
+                )
+            ]
+        ]
 
 
 viewStats : WebData Note.Data -> Html Msg

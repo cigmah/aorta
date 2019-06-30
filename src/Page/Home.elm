@@ -367,7 +367,7 @@ viewCards filter webData =
 viewCard : Note.ListData -> Html Msg
 viewCard note =
     a
-        [ href ("#/notes/" ++ String.fromInt note.id)
+        [ Route.toHref (Route.Note note.id)
         , tailwind [ "my-1", "sm:m-2" ]
         ]
         [ article
