@@ -25,6 +25,7 @@ import Types.Request as Request
 import Types.Session as Session exposing (Session)
 import Types.Specialty as Specialty exposing (Specialty)
 import Types.Styles exposing (tailwind)
+import Types.Topic as Topic exposing (Topic)
 import Types.YearLevel as YearLevel exposing (YearLevel)
 
 
@@ -80,6 +81,7 @@ type Msg
 type AddQuestionSubMsg
     = ChangedStem String
     | ChangedDomain String
+    | ChangedYearLevel String
     | ChangedChoiceContent Int String
     | ChangedChoiceExplanation Int String
     | AddedChoice
@@ -292,6 +294,16 @@ updateAddQuestion subMsg modalData noteData model =
             in
             ( updateQuestion { question | domain = newDomain }, Cmd.none )
 
+        ChangedYearLevel string ->
+            let
+                newYearLevel =
+                    string
+                        |> String.toInt
+                        |> Maybe.withDefault 0
+                        |> YearLevel.fromInt
+            in
+            ( updateQuestion { question | yearLevel = newYearLevel }, Cmd.none )
+
         ChangedChoiceContent int string ->
             let
                 oldChoice =
@@ -450,7 +462,7 @@ viewHeader dataNoteWebData =
         headerColor =
             case dataNoteWebData of
                 Success data ->
-                    data.specialty |> Specialty.toMedium |> Color.toCssString
+                    "slategray"
 
                 _ ->
                     "slategray"
@@ -498,7 +510,38 @@ viewHeader dataNoteWebData =
                 _ ->
                     div [] []
 
-        wrap title yearLevel specialty allIds loading =
+        dueAndKnown =
+            case dataNoteWebData of
+                Success noteData ->
+                    case ( noteData.dueIds, noteData.knownIds ) of
+                        ( Just dueIds, Just knownIds ) ->
+                            div
+                                [ tailwind
+                                    [ "p-2"
+                                    , "bg-gray-200"
+                                    , "text-gray-600"
+                                    , "w-full"
+                                    , "md:my-1"
+                                    , "text-center"
+                                    , "font-bold"
+                                    , "text-sm"
+                                    , "rounded"
+                                    ]
+                                ]
+                                [ text <|
+                                    String.fromInt (List.length dueIds)
+                                        ++ " due EMQs, "
+                                        ++ String.fromInt (List.length knownIds)
+                                        ++ " known EMQs."
+                                ]
+
+                        _ ->
+                            div [] []
+
+                _ ->
+                    div [] []
+
+        wrap title specialty allIds loading =
             section
                 [ tailwind
                     [ "flex"
@@ -540,8 +583,7 @@ viewHeader dataNoteWebData =
                             , "lg:text-base"
                             ]
                         ]
-                        [ div [ class "tag" ] [ text yearLevel ]
-                        , div [ class "tag" ] [ text specialty ]
+                        [ div [ class "tag" ] [ text specialty ]
                         ]
                     ]
                 , a
@@ -577,6 +619,7 @@ viewHeader dataNoteWebData =
                         ]
                     ]
                     [ text <| String.fromInt (List.length allIds) ++ " attached EMQs." ]
+                , dueAndKnown
                 , div
                     [ tailwind [ "flex", "md:block", "w-full" ] ]
                     [ button
@@ -609,14 +652,12 @@ viewHeader dataNoteWebData =
             wrap
                 "Loading"
                 ""
-                ""
                 []
                 True
 
         NotAsked ->
             wrap
                 "Not Asked"
-                ""
                 ""
                 []
                 False
@@ -625,14 +666,12 @@ viewHeader dataNoteWebData =
             wrap
                 "Failure"
                 ""
-                ""
                 []
                 False
 
         Success data ->
             wrap
                 data.title
-                (YearLevel.toString data.yearLevel)
                 (Specialty.toString data.specialty)
                 data.allIds
                 False
@@ -814,22 +853,6 @@ viewComment data =
         ]
 
 
-viewStats : WebData Note.Data -> Html Msg
-viewStats dataNoteWebData =
-    case dataNoteWebData of
-        Loading ->
-            article [ id "stats" ] [ div [ class "loading" ] [] ]
-
-        NotAsked ->
-            article [ id "stats" ] [ text "Not asked" ]
-
-        Failure e ->
-            article [ id "stats" ] [ text "Failure" ]
-
-        Success data ->
-            article [ id "stats" ] []
-
-
 viewModal : Modal -> Html Msg
 viewModal modal =
     case modal of
@@ -843,53 +866,60 @@ viewModal modal =
 viewModalAddQuestion : AddQuestionData -> Html Msg
 viewModalAddQuestion addQuestionData =
     section [ class "modal" ]
-        [ Html.form [ onSubmit (AddQuestionMsg PostedQuestion) ]
-            [ article []
-                [ header
-                    [ tailwind
-                        [ "flex", "items-center" ]
-                    ]
-                    [ h1 []
-                        [ text "Add EMQ" ]
-                    , button [ onClick ClickedCloseModal ]
-                        [ i [ class "material-icons" ] [ text "close" ] ]
-                    ]
-                , section []
-                    [ div [ class "field" ]
-                        [ label [ for "stem" ] [ text "Question Stem" ]
-                        , textarea
-                            [ value addQuestionData.question.stem
-                            , placeholder "Question stem"
-                            , onInput (AddQuestionMsg << ChangedStem)
-                            , id "stem"
-                            , required True
-                            ]
-                            []
+        [ article []
+            [ header
+                [ tailwind
+                    [ "flex", "items-center" ]
+                ]
+                [ h1 []
+                    [ text "Add EMQ" ]
+                , button [ onClick ClickedCloseModal ]
+                    [ i [ class "material-icons" ] [ text "close" ] ]
+                ]
+            , section []
+                [ div [ class "field" ]
+                    [ label [ for "stem" ] [ text "Question Stem" ]
+                    , textarea
+                        [ value addQuestionData.question.stem
+                        , placeholder "Question stem"
+                        , onInput (AddQuestionMsg << ChangedStem)
+                        , id "stem"
+                        , required True
                         ]
-                    , div [ class "field" ]
-                        [ label [ for "domain" ] [ text "Domain" ]
-                        , select
-                            [ onInput (AddQuestionMsg << ChangedDomain)
-                            , value (addQuestionData.question.domain |> Domain.toInt |> String.fromInt)
-                            , id "domain"
-                            ]
-                            (List.map (Domain.option addQuestionData.question.domain) Domain.list)
-                        ]
-                    , div []
-                        (List.indexedMap
-                            viewCreateChoice
-                            addQuestionData.question.choices
-                        )
-                        |> Html.map AddQuestionMsg
-                    , div []
-                        [ button
-                            [ onClick (AddQuestionMsg AddedChoice), type_ "button" ]
-                            [ text "Add Distractor" ]
-                        ]
+                        []
                     ]
-                , footer []
-                    [ button [ type_ "submit" ] [ text "Add Question" ]
+                , div [ class "field" ]
+                    [ label [ for "domain" ] [ text "Domain" ]
+                    , select
+                        [ onInput (AddQuestionMsg << ChangedDomain)
+                        , value (addQuestionData.question.domain |> Domain.toInt |> String.fromInt)
+                        , id "domain"
+                        ]
+                        (List.map (Domain.option (Just addQuestionData.question.domain)) Domain.list)
                     ]
+                , div [ class "field" ]
+                    [ label [ for "year_level" ] [ text "Year Level" ]
+                    , select
+                        [ onInput (AddQuestionMsg << ChangedYearLevel)
+                        , value (addQuestionData.question.yearLevel |> YearLevel.toInt |> String.fromInt)
+                        , id "year_level"
+                        ]
+                        (List.map (YearLevel.option (Just addQuestionData.question.yearLevel)) YearLevel.list)
+                    ]
+                , div []
+                    (List.indexedMap
+                        viewCreateChoice
+                        addQuestionData.question.choices
+                    )
+                    |> Html.map AddQuestionMsg
+                , div []
+                    [ button
+                        [ onClick (AddQuestionMsg AddedChoice), type_ "button" ]
+                        [ text "Add Distractor" ]
+                    ]
+                ]
+            , footer []
+                [ button [ type_ "submit", onClick (AddQuestionMsg PostedQuestion) ] [ text "Add Question" ]
                 ]
             ]
         ]

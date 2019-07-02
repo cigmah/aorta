@@ -103,11 +103,20 @@ list =
     ]
 
 
-option : YearLevel -> YearLevel -> Html msg
-option selected yearLevel =
+option : Maybe YearLevel -> YearLevel -> Html msg
+option selectedMaybe yearLevel =
+    let
+        selected =
+            case selectedMaybe of
+                Just selectedValue ->
+                    selectedValue == yearLevel
+
+                Nothing ->
+                    False
+    in
     Html.option
         [ Attributes.value (yearLevel |> toInt |> String.fromInt)
-        , Attributes.selected (selected == yearLevel)
+        , Attributes.selected selected
         ]
         [ Html.text (yearLevel |> toString) ]
 

@@ -17,11 +17,13 @@ import Types.Choice as Choice
 import Types.Comment as Comment
 import Types.Domain as Domain exposing (Domain)
 import Types.User as User exposing (User)
+import Types.YearLevel as YearLevel exposing (YearLevel)
 
 
 type alias CreationData =
     { stem : String
     , domain : Domain
+    , yearLevel : YearLevel
     , choices : List Choice.CreationData
     }
 
@@ -30,6 +32,7 @@ type alias ReadData =
     { id : Int
     , stem : String
     , domain : Domain
+    , yearLevel : YearLevel
     , choices : List Choice.ReadData
     , contributor : User
     , comments : List Comment.ReadData
@@ -48,6 +51,7 @@ new : CreationData
 new =
     { stem = ""
     , domain = Domain.DomainNone
+    , yearLevel = YearLevel.YearNone
     , choices = [ Choice.newCorrect, Choice.newIncorrect ]
     }
 
@@ -62,6 +66,7 @@ encode noteId data =
         [ ( "note_id", Encode.int noteId )
         , ( "stem", Encode.string data.stem )
         , ( "domain", Domain.encode data.domain )
+        , ( "year_level", YearLevel.encode data.yearLevel )
         , ( "choices", Encode.list Choice.encode data.choices )
         ]
 
@@ -72,6 +77,7 @@ decoder =
         |> required "id" Decode.int
         |> required "stem" Decode.string
         |> required "domain" Domain.decoder
+        |> required "year_level" YearLevel.decoder
         |> required "choices" (Decode.list Choice.decoder)
         |> required "contributor" User.decoder
         |> required "comments" (Decode.list Comment.decoder)

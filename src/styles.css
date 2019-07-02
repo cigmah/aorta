@@ -8,27 +8,14 @@ html {
 
 
 
-/* Notes */
-
-.note:hover:after, .note:hover::after {
-  @apply p-4 text-lg;
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: inherit;
-  color: white;
-  padding-bottom: 3em;
+/* GRID */
+@responsive {
+  .grid {
+    display: grid;
+    grid-gap: 0.1em;
+  }
 }
 
-.note:hover {
-  border: 1px solid black;
-}
-
-.card:hover {
-  transform: scale(1.1);
-}
 
 /* Tags */
 
@@ -84,6 +71,21 @@ form {
 }
 
 /* Transitions */
+@keyframes fadeinout {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.fadeinout {
+  animation: fadeinout 1s;
+}
 
 .transition {
   transition: all 0.2s;
@@ -117,17 +119,7 @@ form {
 
 /* Loading */
 
-@keyframes fadeinout {
-  0% {
-    opacity: 0.2;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0.2;
-  }
-}
+
 
 div.loading {
   @apply bg-blue-500 mx-auto;
@@ -203,6 +195,10 @@ div.loading {
   padding-left: 0.5em;
 }
 
+.markdown a {
+  @apply text-blue-500;
+}
+
 /* Modal */
 
 .modal {
@@ -251,6 +247,22 @@ div.loading {
 /* Responsive */
 
 @media (min-width: 768px) {
+
+
+  .note:hover:after, .note:hover::after {
+    @apply p-2 text-gray-700 bg-gray-200 rounded shadow-lg;
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 0%;
+    min-width: 25vw;
+  }
+
+  .note:hover {
+    transform: scale(1.1);
+  }
+
+
 
   .modal {
     display: flex;

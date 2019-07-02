@@ -8,6 +8,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Maybe.Extra exposing (isJust, isNothing)
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Choice as Choice
 import Types.Comment as Comment
@@ -18,6 +19,7 @@ import Types.Request as Request
 import Types.Session as Session exposing (Session)
 import Types.Specialty as Specialty exposing (Specialty)
 import Types.Styles exposing (tailwind)
+import Types.Topic as Topic exposing (Topic)
 import Types.YearLevel as YearLevel exposing (YearLevel)
 import Url.Builder as Builder
 import Views.Question exposing (..)
@@ -30,6 +32,7 @@ import Views.Question exposing (..)
 type alias Model =
     { session : Session
     , response : WebData (List Int)
+    , quantity : Int
     }
 
 
@@ -46,6 +49,9 @@ type Msg
     = NoOp
     | ChangedYearLevel String
     | ChangedSpecialty String
+    | ChangedTopic String
+    | ChangedDomain String
+    | ChangedQuantity String
     | ClickedStart
     | GotQuestionList (WebData (List Int))
 
@@ -58,6 +64,7 @@ init : Session -> ( Model, Cmd Msg )
 init session =
     ( { session = session
       , response = NotAsked
+      , quantity = 10
       }
     , Cmd.none
     )
@@ -110,17 +117,85 @@ update msg ({ session } as model) =
 
         ChangedYearLevel string ->
             let
+                newYearLevel =
+                    case string of
+                        "nothing" ->
+                            Nothing
+
+                        value ->
+                            value |> unwrap |> YearLevel.fromInt |> Just
+
                 newSession =
-                    { session | reviseYearLevel = string |> unwrap |> YearLevel.fromInt }
+                    { session | reviseYearLevel = newYearLevel }
             in
             ( { model | session = newSession }, Session.save newSession )
 
         ChangedSpecialty string ->
             let
+                newSpecialty =
+                    case string of
+                        "nothing" ->
+                            Nothing
+
+                        value ->
+                            value |> unwrap |> Specialty.fromInt |> Just
+
                 newSession =
-                    { session | reviseSpecialty = string |> unwrap |> Specialty.fromInt }
+                    { session | reviseSpecialty = newSpecialty }
             in
             ( { model | session = newSession }, Session.save newSession )
+
+        ChangedDomain string ->
+            let
+                newDomain =
+                    case string of
+                        "nothing" ->
+                            Nothing
+
+                        value ->
+                            value |> unwrap |> Domain.fromInt |> Just
+
+                newSession =
+                    { session | reviseDomain = newDomain }
+            in
+            ( { model | session = newSession }, Session.save newSession )
+
+        ChangedTopic string ->
+            let
+                newTopic =
+                    case string of
+                        "nothing" ->
+                            Nothing
+
+                        value ->
+                            value |> unwrap |> Topic.fromInt |> Just
+
+                newSession =
+                    { session | reviseTopic = newTopic }
+            in
+            ( { model | session = newSession }, Session.save newSession )
+
+        ChangedQuantity string ->
+            let
+                newValue =
+                    String.toInt string
+
+                newBounded =
+                    case newValue of
+                        Just value ->
+                            if value < 1 then
+                                1
+
+                            else if value > 100 then
+                                100
+
+                            else
+                                value
+
+                        Nothing ->
+                            10
+            in
+            ( { model | quantity = newBounded }, Cmd.none )
 
         ClickedStart ->
             case model.response of
@@ -169,16 +244,49 @@ update msg ({ session } as model) =
 -- Requests
 
 
+makeQueryList : Session -> List Builder.QueryParameter
+makeQueryList session =
+    let
+        yearLevel =
+            session.reviseYearLevel
+                |> Maybe.map YearLevel.toInt
+
+        specialty =
+            session.reviseSpecialty
+                |> Maybe.map Specialty.toInt
+
+        domain =
+            session.reviseDomain
+                |> Maybe.map Domain.toInt
+
+        topic =
+            session.reviseTopic
+                |> Maybe.map Topic.toInt
+
+        zipped =
+            [ ( Builder.int "note__specialty", specialty )
+            , ( Builder.int "note__topic", topic )
+            , ( Builder.int "domain", domain )
+            , ( Builder.int "year_level", yearLevel )
+            ]
+
+        mapped =
+            zipped
+                |> List.map (\( builder, maybeVal ) -> Maybe.map builder maybeVal)
+
+        filtered =
+            Maybe.Extra.values mapped
+    in
+    filtered
+
+
 getRandomQuestionList : Model -> Request.GetRequest (List Int) Msg
 getRandomQuestionList model =
     { endpoint = Request.GetRandomList
     , auth = model.session.auth
     , callback = GotQuestionList
     , returnDecoder = Decode.list Decode.int
-    , queryList =
-        [ Builder.int "note__year_level" (YearLevel.toInt model.session.reviseYearLevel)
-        , Builder.int "note__specialty" (Specialty.toInt model.session.reviseSpecialty)
-        ]
+    , queryList = Builder.int "quantity" model.quantity :: makeQueryList model.session
     }
 
 
@@ -193,22 +301,58 @@ view model =
     }
 
 
+wrapEnumValue : (a -> String) -> Maybe a -> String
+wrapEnumValue converter aMaybe =
+    case aMaybe of
+        Just a ->
+            converter a
+
+        Nothing ->
+            "nothing"
+
+
 viewBody : Model -> List (Html Msg)
 viewBody model =
     let
         yearLevelSelect =
             select
                 [ onInput <| ChangedYearLevel
-                , value (model.session.reviseYearLevel |> YearLevel.toInt |> String.fromInt)
+                , value (model.session.reviseYearLevel |> wrapEnumValue (YearLevel.toInt >> String.fromInt))
                 ]
-                (List.map (YearLevel.option model.session.reviseYearLevel) YearLevel.list)
+                (option [ value "nothing", selected True ]
+                    [ text "All Year Levels" ]
+                    :: List.map (YearLevel.option model.session.reviseYearLevel) YearLevel.list
+                )
 
         specialtySelect =
             select
                 [ onInput <| ChangedSpecialty
-                , value (model.session.reviseSpecialty |> Specialty.toInt |> String.fromInt)
+                , value (model.session.reviseSpecialty |> wrapEnumValue (Specialty.toInt >> String.fromInt))
                 ]
-                (List.map (Specialty.option model.session.reviseSpecialty) Specialty.list)
+                (option [ value "nothing", selected (isNothing model.session.reviseSpecialty) ]
+                    [ text "All Specialties" ]
+                    :: List.map (Specialty.option model.session.reviseSpecialty) Specialty.list
+                )
+
+        topicSelect =
+            select
+                [ onInput <| ChangedTopic
+                , value (model.session.reviseTopic |> wrapEnumValue (Topic.toInt >> String.fromInt))
+                ]
+                (option [ value "nothing", selected (isNothing model.session.reviseTopic) ]
+                    [ text "All Topics" ]
+                    :: List.map (Topic.option model.session.reviseTopic) Topic.list
+                )
+
+        domainSelect =
+            select
+                [ onInput <| ChangedDomain
+                , value (model.session.reviseDomain |> wrapEnumValue (Domain.toInt >> String.fromInt))
+                ]
+                (option [ value "nothing", selected (isNothing model.session.reviseDomain) ]
+                    [ text "All Domains" ]
+                    :: List.map (Domain.option model.session.reviseDomain) Domain.list
+                )
     in
     [ main_
         [ tailwind
@@ -246,12 +390,31 @@ viewBody model =
                         ]
                     ]
                     [ div [ class "field" ]
+                        [ label [] [ text "Specialty" ]
+                        , specialtySelect
+                        ]
+                    , div [ class "field" ]
+                        [ label [] [ text "Topic" ]
+                        , topicSelect
+                        ]
+                    , div [ class "field" ]
                         [ label [] [ text "Year Level" ]
                         , yearLevelSelect
                         ]
                     , div [ class "field" ]
-                        [ label [] [ text "Specialty" ]
-                        , specialtySelect
+                        [ label [] [ text "Domain" ]
+                        , domainSelect
+                        ]
+                    , div [ class "field" ]
+                        [ label [] [ text "Quantity" ]
+                        , input
+                            [ type_ "number"
+                            , value (String.fromInt model.quantity)
+                            , onInput ChangedQuantity
+                            , Html.Attributes.min "1"
+                            , Html.Attributes.max "100"
+                            ]
+                            []
                         ]
                     ]
                 , footer

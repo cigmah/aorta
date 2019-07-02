@@ -214,7 +214,7 @@ wrapBody model body =
             ]
             [ text "AORTA" ]
         , viewNavLink
-            { name = "Matrix"
+            { name = "Grid"
             , active = Parser.isEqual Route.Home model
             , route = Route.Home
             , icon = "notes"

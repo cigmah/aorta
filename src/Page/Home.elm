@@ -13,6 +13,7 @@ import Types.Request as Request
 import Types.Session as Session exposing (Session)
 import Types.Specialty as Specialty exposing (Specialty)
 import Types.Styles exposing (tailwind)
+import Types.Topic as Topic exposing (Topic)
 import Types.YearLevel as YearLevel exposing (YearLevel)
 import Url.Builder as Builder
 
@@ -23,9 +24,9 @@ import Url.Builder as Builder
 
 type alias Model =
     { session : Session
-    , yearLevel : YearLevel
     , webDataNoteList : WebData (List Note.ListData)
     , filter : String
+    , results : WebData (List Note.ListData)
     }
 
 
@@ -36,7 +37,6 @@ type alias Model =
 type Msg
     = NoOp
     | GotNoteList (WebData (List Note.ListData))
-    | ChangedYearLevel YearLevel
     | ChangedFilter String
 
 
@@ -49,9 +49,9 @@ init session =
     let
         initialModel =
             { session = session
-            , yearLevel = session.yearLevel
             , webDataNoteList = Loading
             , filter = ""
+            , results = NotAsked
             }
     in
     ( initialModel
@@ -106,30 +106,6 @@ update msg model =
         ChangedFilter string ->
             ( { model | filter = string }, Cmd.none )
 
-        ChangedYearLevel yearLevel ->
-            if model.yearLevel /= yearLevel then
-                let
-                    newSession =
-                        Session.changeYearLevel model.session yearLevel
-
-                    newModel =
-                        { model
-                            | yearLevel = yearLevel
-                            , webDataNoteList = Loading
-                            , session = newSession
-                            , filter = ""
-                        }
-                in
-                ( newModel
-                , Cmd.batch
-                    [ Request.get (getNoteList newModel)
-                    , Session.save newSession
-                    ]
-                )
-
-            else
-                ignore
-
 
 
 -- Requests
@@ -141,7 +117,7 @@ getNoteList model =
     , endpoint = Request.GetNoteList
     , callback = GotNoteList
     , returnDecoder = Note.decoderList
-    , queryList = [ Builder.int "year_level" (YearLevel.toInt model.yearLevel) ]
+    , queryList = []
     }
 
 
@@ -161,120 +137,44 @@ viewBody model =
     [ main_
         [ tailwind
             [ "bg-gray-100"
-            , "min-h-screen"
+            , "pb-16"
+            , "md:pb-0"
             ]
         ]
         [ section
             [ tailwind
-                [ "md:h-screen"
-                , "md:bg-blue-400"
-                , "w-full"
-                , "flex"
-                , "flex-col"
-                , "justify-center"
-                , "items-center"
-                , "md:p-4"
-                ]
-            ]
-            [ article
-                [ tailwind
-                    [ "md:container"
-                    , "md:shadow-xl"
-                    , "bg-white"
-                    , "md:rounded-b-lg"
-                    , "overflow-hidden"
-                    , "md:m-16"
-                    , "md:h-full"
-                    , "w-full"
-                    , "md:w-2/3"
-                    ]
-                ]
-                [ viewHeader model
-                , section
-                    [ tailwind
-                        [ "md:flex"
-                        , "items-start"
-                        , "md:h-full"
-                        , "overflow-auto"
-                        , "relative"
-                        , "hidden"
-                        ]
-                    ]
-                    [ viewGrid model.webDataNoteList ]
-                ]
-            ]
-        , section
-            [ tailwind
-                [ "container"
-                , "mx-auto"
-                , "md:mt-8"
-                , "flex"
-                , "justify-center"
-                , "p-3"
+                [ "w-full"
+                , "md:flex"
+                , "md:flex-col"
+                , "md:pt-16"
+                , "p-2"
                 ]
             ]
             [ input
                 [ value model.filter
                 , onInput ChangedFilter
                 , placeholder "Search matrix item titles here."
-                , tailwind [ "md:w-1/2", "text-lg", "p-4" ]
+                , tailwind [ "md:w-1/2", "text-lg", "p-2", "mx-auto" ]
                 ]
                 []
-            ]
-        , section
-            [ tailwind
-                [ "container"
-                , "mx-auto"
-                , "pb-32"
-                , "px-3"
-                , "flex"
-                , "flex-col"
-                , "sm:flex-row"
-                , "sm:flex-wrap"
-                , "sm:justify-center"
-                , "md:p-8"
-                , "min-h-screen"
+            , article
+                [ tailwind
+                    [ "md:container"
+                    , "w-full"
+                    , "mt-4"
+                    ]
+                ]
+                [ section
+                    [ tailwind
+                        [ "flex"
+                        , "relative"
+                        ]
+                    ]
+                    [ viewGrid model.webDataNoteList ]
                 ]
             ]
-            (viewCards model.filter model.webDataNoteList)
         ]
     ]
-
-
-viewHeader : Model -> Html Msg
-viewHeader model =
-    header
-        [ tailwind
-            [ "flex"
-            , "sticky"
-            , "md:relative"
-            ]
-        ]
-        (List.map
-            (viewHeaderItem model.yearLevel)
-            [ YearLevel.Year1, YearLevel.Year2a, YearLevel.Year3b, YearLevel.Year4c ]
-        )
-
-
-viewHeaderItem : YearLevel -> YearLevel -> Html Msg
-viewHeaderItem active yearLevel =
-    div
-        [ tailwind
-            [ "text-center"
-            , "flex-grow"
-            , "py-2"
-            , "px-4"
-            , "hover:bg-white"
-            , "hover:text-blue-600"
-            , "cursor-pointer"
-            ]
-        , classList
-            [ ( "bg-white text-blue-600", active == yearLevel )
-            , ( "bg-blue-500 text-white", not (active == yearLevel) )
-            ]
-        , onClick (ChangedYearLevel yearLevel)
-        ]
-        [ text (YearLevel.toString yearLevel) ]
 
 
 viewGrid : WebData (List Note.ListData) -> Html Msg
@@ -285,8 +185,7 @@ viewGrid webData =
                 [ text "This is an error that shouldn't happen. If you see it, let us know!" ]
 
         Loading ->
-            div
-                [ tailwind [ "flex", "justify-center", "items-center", "flex-grow", "h-full" ] ]
+            div [ tailwind [ "flex", "justify-center", "items-center", "flex-grow", "h-full" ] ]
                 [ div [ class "loading" ] [] ]
 
         Failure e ->
@@ -297,15 +196,15 @@ viewGrid webData =
             case listData of
                 [] ->
                     div [ tailwind [ "flex", "justify-center", "items-center", "flex-grow", "h-full" ] ]
-                        [ text "Oh no! There aren't any notes for this year level yet..." ]
+                        [ text "There don't appear to be any notes." ]
 
                 nonEmptyData ->
                     div
                         [ tailwind
                             [ "flex"
-                            , "flex-wrap"
-                            , "m-8"
-                            , "fadein"
+                            , "flex-col"
+                            , "md:grid"
+                            , "mx-auto"
                             ]
                         ]
                         (List.map viewGridItem nonEmptyData)
@@ -313,37 +212,84 @@ viewGrid webData =
 
 viewGridItem : Note.ListData -> Html Msg
 viewGridItem note =
-    let
-        baseColor =
-            Specialty.toColor note.specialty
-
-        darkerColor =
-            Specialty.toDark note.specialty
-
-        ( initial, _ ) =
-            note.title
-                |> String.uncons
-                |> Maybe.withDefault ( ' ', "" )
-    in
     a
         [ class "note"
         , tailwind
-            [ "md:w-8"
-            , "md:h-8"
-            , "lg:w-10"
-            , "lg:h-10"
-            , "m-px"
+            [ "md:w-6"
+            , "md:h-6"
+            , "lg:w-8"
+            , "lg:h-8"
+            , "my-1"
+            , "md:m-px"
             , "rounded"
-            , "flex"
-            , "justify-center"
-            , "items-center"
+            , "bg-gray-200"
+            , "relative"
+            , "p-2"
+            , "md:p-0"
+            , "transition"
             ]
         , Route.toHref (Route.Note note.id)
-        , Html.Attributes.attribute "data-tooltip" note.title
-        , Html.Attributes.style "background" (note.specialty |> Specialty.toColor |> Color.toCssString)
-        , Html.Attributes.style "color" (darkerColor |> Color.toCssString)
+        , attribute "data-tooltip" note.title
+        , style "grid-column" (String.fromInt (Topic.toInt note.topic + 1))
+        , style "grid-row" (String.fromInt (Specialty.toInt note.specialty + 1))
         ]
-        [ text (String.fromChar initial) ]
+        [ div
+            [ tailwind
+                [ "flex", "md:hidden" ]
+            ]
+            [ div
+                [ tailwind
+                    [ "bg-gray-400"
+                    , "h-24"
+                    , "w-24"
+                    , "mr-4"
+                    , "rounded"
+                    ]
+                ]
+                []
+            , div []
+                [ h1
+                    [ tailwind
+                        [ "text-gray-700"
+                        , "uppercase"
+                        , "font-bold"
+                        , "mb-2"
+                        ]
+                    ]
+                    [ text note.title ]
+                , div [ tailwind [ "flex", "flex-wrap" ] ]
+                    [ div
+                        [ tailwind
+                            [ "text-xs"
+                            , "text-gray-600"
+                            , "bg-gray-300"
+                            , "px-2"
+                            , "rounded-full"
+                            , "mr-2"
+                            , "mb-2"
+                            ]
+                        ]
+                        [ text (note.specialty |> Specialty.toString) ]
+                    , div
+                        [ tailwind
+                            [ "text-xs"
+                            , "text-gray-600"
+                            , "bg-gray-300"
+                            , "px-2"
+                            , "rounded-full"
+                            , "mb-2"
+                            ]
+                        ]
+                        [ text (note.topic |> Topic.toString) ]
+                    ]
+                , div
+                    [ tailwind [ "flex", "flex-wrap" ] ]
+                    [ div [ tailwind [ "text-xs", "mr-4" ] ] [ text (String.fromInt note.numQuestions ++ " questions.") ]
+                    , div [ tailwind [ "text-xs" ] ] [ text (String.fromInt note.numComments ++ " contributions.") ]
+                    ]
+                ]
+            ]
+        ]
 
 
 viewCards : String -> WebData (List Note.ListData) -> List (Html Msg)
@@ -387,7 +333,6 @@ viewCard note =
                 , "overflow-hidden"
                 , "fadein"
                 ]
-            , Html.Attributes.style "background" (note.specialty |> Specialty.toMedium |> Color.toCssString)
             ]
             [ section
                 [ tailwind
@@ -406,7 +351,6 @@ viewCard note =
                     ]
                 ]
                 [ div [ class "tag" ] [ text (Specialty.toString note.specialty) ]
-                , div [ class "tag" ] [ text (YearLevel.toString note.yearLevel) ]
                 , div [ class "tag" ] [ text (String.fromInt note.numComments ++ " comments") ]
                 , div [ class "tag" ] [ text (String.fromInt note.numQuestions ++ " questions") ]
                 ]

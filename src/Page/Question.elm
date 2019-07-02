@@ -170,7 +170,7 @@ postResponse session questionId choiceId =
 postLike : Session -> Int -> Request.PostRequest () Msg
 postLike session questionId =
     { auth = session.auth
-    , endpoint = Request.PostFlag
+    , endpoint = Request.PostLike
     , callback = GotLikeResponse
     , returnDecoder = Decode.succeed ()
     , queryList = []
