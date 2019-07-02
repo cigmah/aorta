@@ -3,32 +3,19 @@
 @tailwind utilities;
 
 html {
-  @apply bg-gray-200;
+  @apply bg-gray-100;
 }
 
 
 
-/* Notes */
-
-.note:hover:after, .note:hover::after {
-  @apply p-4 text-lg;
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: inherit;
-  color: white;
-  padding-bottom: 3em;
+/* GRID */
+@responsive {
+  .grid {
+    display: grid;
+    grid-gap: 0.1em;
+  }
 }
 
-.note:hover {
-  border: 1px solid black;
-}
-
-.card:hover {
-  transform: scale(1.1);
-}
 
 /* Tags */
 
@@ -57,11 +44,7 @@ main#profile article header {
 /* Inputs */
 
 button {
-  @apply border px-2 py-1 rounded;
-}
-
-button:hover {
-  @apply bg-white text-blue-900;
+  @apply px-2 py-1 rounded;
 }
 
 .field {
@@ -69,7 +52,7 @@ button:hover {
 }
 
 input, textarea, select {
-  @apply w-full bg-gray-300 py-1 px-2 rounded border-2 border-gray-300;
+  @apply w-full bg-gray-200 py-1 px-2 rounded border-2 border-gray-200;
 }
 
 input:focus, textarea:focus {
@@ -88,6 +71,21 @@ form {
 }
 
 /* Transitions */
+@keyframes fadeinout {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.fadeinout {
+  animation: fadeinout 1s;
+}
 
 .transition {
   transition: all 0.2s;
@@ -121,17 +119,7 @@ form {
 
 /* Loading */
 
-@keyframes fadeinout {
-  0% {
-    opacity: 0.2;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0.2;
-  }
-}
+
 
 div.loading {
   @apply bg-blue-500 mx-auto;
@@ -207,6 +195,10 @@ div.loading {
   padding-left: 0.5em;
 }
 
+.markdown a {
+  @apply text-blue-500;
+}
+
 /* Modal */
 
 .modal {
@@ -216,7 +208,7 @@ div.loading {
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 100;
+  z-index: 40;
 }
 
 .modal.hidden {
@@ -255,6 +247,22 @@ div.loading {
 /* Responsive */
 
 @media (min-width: 768px) {
+
+
+  .note:hover:after, .note:hover::after {
+    @apply p-2 text-gray-700 bg-gray-200 rounded shadow-lg;
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 0%;
+    min-width: 25vw;
+  }
+
+  .note:hover {
+    transform: scale(1.1);
+  }
+
+
 
   .modal {
     display: flex;

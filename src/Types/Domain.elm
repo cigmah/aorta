@@ -103,11 +103,20 @@ list =
     ]
 
 
-option : Domain -> Domain -> Html msg
-option selected domain =
+option : Maybe Domain -> Domain -> Html msg
+option selectedMaybe domain =
+    let
+        selected =
+            case selectedMaybe of
+                Just selectedValue ->
+                    selectedValue == domain
+
+                Nothing ->
+                    False
+    in
     Html.option
         [ Attributes.value (domain |> toInt |> String.fromInt)
-        , Attributes.selected (selected == domain)
+        , Attributes.selected selected
         ]
         [ Html.text (domain |> toString) ]
 

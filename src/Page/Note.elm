@@ -1,6 +1,8 @@
 module Page.Note exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
+import Architecture.Route as Route
 import Browser exposing (Document)
+import Browser.Navigation as Navigation
 import Color
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -23,8 +25,8 @@ import Types.Request as Request
 import Types.Session as Session exposing (Session)
 import Types.Specialty as Specialty exposing (Specialty)
 import Types.Styles exposing (tailwind)
+import Types.Topic as Topic exposing (Topic)
 import Types.YearLevel as YearLevel exposing (YearLevel)
-import Views.Question exposing (..)
 
 
 
@@ -45,7 +47,6 @@ type alias Model =
 type Modal
     = ModalNone
     | ModalAddQuestion AddQuestionData
-    | ModalQuestion ModalQuestionData
 
 
 type Tab
@@ -68,37 +69,24 @@ type Msg
     | GotNote (WebData Note.Data)
     | ClickedTab Tab
     | OpenedAddQuestionModal
-    | OpenedStudyModal
     | GotRandomQuestionId ( Maybe Question.ListData, List Question.ListData )
     | ClickedCloseModal
     | ChangedComment String
     | ClickedSubmitComment
     | GotSubmitCommentResponse (WebData Comment.ReadData)
+    | ClickedStudy
     | AddQuestionMsg AddQuestionSubMsg
-    | StudyMsg StudySubMsg
 
 
 type AddQuestionSubMsg
     = ChangedStem String
     | ChangedDomain String
+    | ChangedYearLevel String
     | ChangedChoiceContent Int String
     | ChangedChoiceExplanation Int String
     | AddedChoice
     | PostedQuestion
     | GotAddQuestionResponse (WebData Question.ReadData)
-
-
-type StudySubMsg
-    = GotQuestion (WebData Question.ReadData)
-    | ClickedChoice Choice.ReadData
-    | GotResponseResponse (WebData ())
-    | ClickedLike
-    | GotLikeResponse (WebData ())
-    | ClickedFlag
-    | GotFlagResponse (WebData ())
-    | ChangedQuestionComment String
-    | ClickedSubmitQuestionComment
-    | GotSubmitQuestionCommentResponse (WebData Comment.ReadData)
 
 
 
@@ -123,18 +111,6 @@ initAddQuestion : AddQuestionData
 initAddQuestion =
     { question = Question.new
     , response = NotAsked
-    }
-
-
-initStudy : Int -> ModalQuestionData
-initStudy questionId =
-    { questionId = questionId
-    , webData = Loading
-    , state = Unanswered
-    , comment = ""
-    , commentResponse = NotAsked
-    , likeResponse = NotAsked
-    , flagResponse = NotAsked
     }
 
 
@@ -170,7 +146,7 @@ subscriptions model =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg ({ session } as model) =
     let
         ignore =
             ( model, Cmd.none )
@@ -188,19 +164,6 @@ update msg model =
         ( OpenedAddQuestionModal, _ ) ->
             ( { model | modal = ModalAddQuestion initAddQuestion }, Cmd.none )
 
-        ( OpenedStudyModal, Success noteData ) ->
-            case ( model.session.auth, noteData.dueIds, noteData.knownIds ) of
-                ( User _, Just [], Just known ) ->
-                    -- If there are no due questions, select randomly from all cards
-                    ( model, Random.generate GotRandomQuestionId (choose noteData.allIds) )
-
-                ( User _, Just due, _ ) ->
-                    -- Or do the due questions first
-                    ( model, Random.generate GotRandomQuestionId (choose due) )
-
-                _ ->
-                    ( model, Random.generate GotRandomQuestionId (choose noteData.allIds) )
-
         ( GotRandomQuestionId ( maybeQuestionListData, left ), Success noteData ) ->
             case maybeQuestionListData of
                 Just ({ id } as selected) ->
@@ -217,12 +180,7 @@ update msg model =
                                 _ ->
                                     Nothing
                     in
-                    ( { model
-                        | modal = ModalQuestion (initStudy id)
-                        , webDataNote = Success { noteData | allIds = newAllIds, dueIds = newDue }
-                      }
-                    , Request.get (getQuestion model.session id) |> Cmd.map StudyMsg
-                    )
+                    ignore
 
                 Nothing ->
                     -- Reload
@@ -268,18 +226,40 @@ update msg model =
                 _ ->
                     ( { model | webDataComment = webData }, Cmd.none )
 
+        ( ClickedStudy, Success noteData ) ->
+            let
+                routeToQuestion listDatum =
+                    Navigation.pushUrl
+                        session.key
+                        (Route.toString (Route.Question listDatum.id))
+
+                sessionWithTest future =
+                    { session
+                        | test =
+                            Just
+                                { completed = []
+                                , future = List.map .id future
+                                , back = Route.toString (Route.Note model.noteId)
+                                }
+                    }
+            in
+            case noteData.dueIds of
+                -- TODO randomise the choice in which EMQs appear? Maybe not so important for note-based revision though.
+                Just (head :: tail) ->
+                    ( { model | session = sessionWithTest tail }, routeToQuestion head )
+
+                _ ->
+                    case noteData.allIds of
+                        head :: tail ->
+                            ( { model | session = sessionWithTest tail }, routeToQuestion head )
+
+                        _ ->
+                            ( { model | session = Session.addMessage session "There are no EMQs yet!" }, Cmd.none )
+
         ( AddQuestionMsg subMsg, Success noteData ) ->
             case model.modal of
                 ModalAddQuestion modalData ->
                     updateAddQuestion subMsg modalData noteData model
-
-                _ ->
-                    ignore
-
-        ( StudyMsg subMsg, Success noteData ) ->
-            case model.modal of
-                ModalQuestion modalData ->
-                    updateStudy subMsg modalData noteData model
 
                 _ ->
                     ignore
@@ -313,6 +293,16 @@ updateAddQuestion subMsg modalData noteData model =
                         |> Domain.fromInt
             in
             ( updateQuestion { question | domain = newDomain }, Cmd.none )
+
+        ChangedYearLevel string ->
+            let
+                newYearLevel =
+                    string
+                        |> String.toInt
+                        |> Maybe.withDefault 0
+                        |> YearLevel.fromInt
+            in
+            ( updateQuestion { question | yearLevel = newYearLevel }, Cmd.none )
 
         ChangedChoiceContent int string ->
             let
@@ -378,117 +368,6 @@ updateAddQuestion subMsg modalData noteData model =
                     ( { model | modal = ModalAddQuestion { modalData | response = webData } }, Cmd.none )
 
 
-updateStudy : StudySubMsg -> ModalQuestionData -> Note.Data -> Model -> ( Model, Cmd Msg )
-updateStudy msg questionData noteData model =
-    let
-        ignore =
-            ( model, Cmd.none )
-
-        wrap newQuestionData =
-            { model | modal = ModalQuestion newQuestionData }
-    in
-    case msg of
-        GotQuestion webData ->
-            ( { model | modal = ModalQuestion { questionData | webData = webData } }, Cmd.none )
-
-        ClickedChoice choice ->
-            case model.session.auth of
-                Guest ->
-                    ( wrap { questionData | state = Answered choice NotAsked }
-                    , Cmd.none
-                    )
-
-                User _ ->
-                    case questionData.state of
-                        Unanswered ->
-                            ( wrap { questionData | state = Answered choice Loading }
-                            , Request.post (postResponse model.session questionData.questionId choice.id) |> Cmd.map StudyMsg
-                            )
-
-                        Answered _ _ ->
-                            ignore
-
-        GotResponseResponse webData ->
-            case questionData.state of
-                Unanswered ->
-                    ignore
-
-                Answered choice _ ->
-                    ( wrap { questionData | state = Answered choice webData }
-                    , Cmd.none
-                    )
-
-        ClickedLike ->
-            case questionData.likeResponse of
-                Loading ->
-                    ignore
-
-                _ ->
-                    ( wrap { questionData | likeResponse = Loading }
-                    , Request.post (postLike model.session questionData.questionId)
-                        |> Cmd.map StudyMsg
-                    )
-
-        GotLikeResponse webData ->
-            ( wrap { questionData | likeResponse = webData }
-            , Cmd.none
-            )
-
-        ClickedFlag ->
-            case questionData.flagResponse of
-                Loading ->
-                    ignore
-
-                _ ->
-                    ( wrap { questionData | flagResponse = Loading }
-                    , Request.post (postFlag model.session questionData.questionId)
-                        |> Cmd.map StudyMsg
-                    )
-
-        GotFlagResponse webData ->
-            ( wrap { questionData | flagResponse = webData }
-            , Cmd.none
-            )
-
-        ChangedQuestionComment string ->
-            ( wrap { questionData | comment = string }, Cmd.none )
-
-        ClickedSubmitQuestionComment ->
-            case questionData.commentResponse of
-                Loading ->
-                    ignore
-
-                _ ->
-                    ( wrap { questionData | commentResponse = Loading }
-                    , Request.post (postQuestionComment model.session questionData.questionId questionData.comment)
-                        |> Cmd.map StudyMsg
-                    )
-
-        GotSubmitQuestionCommentResponse webData ->
-            case webData of
-                Success commentReturn ->
-                    case questionData.webData of
-                        Success questionWebData ->
-                            ( wrap
-                                { questionData
-                                    | commentResponse = webData
-                                    , comment = ""
-                                    , webData =
-                                        Success
-                                            { questionWebData
-                                                | comments = questionWebData.comments ++ [ commentReturn ]
-                                            }
-                                }
-                            , Cmd.none
-                            )
-
-                        _ ->
-                            ignore
-
-                _ ->
-                    ( wrap { questionData | commentResponse = webData }, Cmd.none )
-
-
 
 -- Requests
 
@@ -499,16 +378,6 @@ getNote session noteId =
     , endpoint = Request.GetNote noteId
     , callback = GotNote
     , returnDecoder = Note.decoder
-    , queryList = []
-    }
-
-
-getQuestion : Session -> Int -> Request.GetRequest Question.ReadData StudySubMsg
-getQuestion session questionId =
-    { auth = session.auth
-    , endpoint = Request.GetQuestion questionId
-    , callback = GotQuestion
-    , returnDecoder = Question.decoder
     , queryList = []
     }
 
@@ -539,62 +408,6 @@ postComment session int comment =
     }
 
 
-postResponse : Session -> Int -> Int -> Request.PostRequest () StudySubMsg
-postResponse session questionId choiceId =
-    { auth = session.auth
-    , endpoint = Request.PostResponse
-    , callback = GotResponseResponse
-    , returnDecoder = Decode.succeed ()
-    , queryList = []
-    , body =
-        Encode.object
-            [ ( "question", Encode.int questionId )
-            , ( "choice", Encode.int choiceId )
-            ]
-    }
-
-
-postLike : Session -> Int -> Request.PostRequest () StudySubMsg
-postLike session questionId =
-    { auth = session.auth
-    , endpoint = Request.PostFlag
-    , callback = GotLikeResponse
-    , returnDecoder = Decode.succeed ()
-    , queryList = []
-    , body =
-        Encode.object
-            [ ( "question", Encode.int questionId ) ]
-    }
-
-
-postFlag : Session -> Int -> Request.PostRequest () StudySubMsg
-postFlag session questionId =
-    { auth = session.auth
-    , endpoint = Request.PostFlag
-    , callback = GotFlagResponse
-    , returnDecoder = Decode.succeed ()
-    , queryList = []
-    , body =
-        Encode.object
-            [ ( "question", Encode.int questionId ) ]
-    }
-
-
-postQuestionComment : Session -> Int -> String -> Request.PostRequest Comment.ReadData StudySubMsg
-postQuestionComment session questionId comment =
-    { auth = session.auth
-    , endpoint = Request.PostQuestionComment
-    , callback = GotSubmitQuestionCommentResponse
-    , returnDecoder = Comment.decoder
-    , queryList = []
-    , body =
-        Encode.object
-            [ ( "question", Encode.int questionId )
-            , ( "content", Encode.string comment )
-            ]
-    }
-
-
 
 -- View
 
@@ -612,25 +425,27 @@ viewBody model =
         [ tailwind
             [ "h-screen"
             , "bg-grey-200"
-            , "container"
             , "mx-auto"
-            , "overflow-hidden"
-            , "p-4"
-            , "pt-10"
+            , "overflow-auto"
+            , "md:p-4"
+            , "md:pt-10"
             ]
         ]
         [ section
-            [ tailwind [ "flex" ] ]
+            [ tailwind
+                [ "md:flex"
+                , "container"
+                , "mx-auto"
+                ]
+            ]
             [ viewHeader model.webDataNote
             , section
                 [ tailwind
-                    [ "w-3/4"
-                    , "overflow-auto"
-                    , "md:overflow-hidden"
-                    , "md:flex"
+                    [ "md:flex"
                     , "md:justify-center"
-                    , "md:items-center"
-                    , "p-2"
+                    , "md:p-2"
+                    , "mt-2"
+                    , "w-full"
                     ]
                 ]
                 [ viewContent model model.webDataNote
@@ -647,30 +462,110 @@ viewHeader dataNoteWebData =
         headerColor =
             case dataNoteWebData of
                 Success data ->
-                    data.specialty |> Specialty.toMedium |> Color.toCssString
+                    "slategray"
 
                 _ ->
                     "slategray"
 
-        wrap title yearLevel specialty allIds loading =
+        makeStudyButton studyButtonText =
+            button
+                [ onClick ClickedStudy
+                , tailwind
+                    [ "w-full"
+                    , "bg-white"
+                    , "text-blue-500"
+                    , "rounded"
+                    , "p-2"
+                    , "items-center"
+                    , "border"
+                    , "md:border-0"
+                    , "flex"
+                    , "md:my-1"
+                    , "md:shadow"
+                    , "hover:bg-blue-400"
+                    , "hover:text-white"
+                    , "fadein"
+                    ]
+                ]
+                [ i [ class "material-icons" ] [ text "check" ]
+                , span [ tailwind [ "ml-2" ] ] [ text studyButtonText ]
+                ]
+
+        studyButton =
+            case dataNoteWebData of
+                Success noteData ->
+                    case noteData.dueIds of
+                        Just (head :: tail) ->
+                            makeStudyButton "Review Due"
+
+                        _ ->
+                            case noteData.allIds of
+                                [] ->
+                                    div [] []
+
+                                list ->
+                                    makeStudyButton
+                                        ("Study " ++ String.fromInt (List.length list) ++ " EMQs")
+
+                _ ->
+                    div [] []
+
+        dueAndKnown =
+            case dataNoteWebData of
+                Success noteData ->
+                    case ( noteData.dueIds, noteData.knownIds ) of
+                        ( Just dueIds, Just knownIds ) ->
+                            div
+                                [ tailwind
+                                    [ "p-2"
+                                    , "bg-gray-200"
+                                    , "text-gray-600"
+                                    , "w-full"
+                                    , "md:my-1"
+                                    , "text-center"
+                                    , "font-bold"
+                                    , "text-sm"
+                                    , "rounded"
+                                    ]
+                                ]
+                                [ text <|
+                                    String.fromInt (List.length dueIds)
+                                        ++ " due EMQs, "
+                                        ++ String.fromInt (List.length knownIds)
+                                        ++ " known EMQs."
+                                ]
+
+                        _ ->
+                            div [] []
+
+                _ ->
+                    div [] []
+
+        wrap title specialty allIds loading =
             section
                 [ tailwind
                     [ "flex"
                     , "flex-col"
                     , "items-center"
                     , "transition"
-                    , "w-1/4"
-                    , "p-4"
-                    , "mt-4"
+                    , "md:w-1/4"
+                    , "md:p-4"
                     ]
                 ]
                 [ div
                     [ Html.Attributes.style "background" headerColor
                     , tailwind
-                        [ "w-56"
-                        , "h-56"
-                        , "rounded-lg"
-                        , "p-4"
+                        [ "w-full"
+                        , "md:w-40"
+                        , "md:h-40"
+                        , "lg:w-56"
+                        , "lg:h-56"
+                        , "md:rounded-lg"
+                        , "p-2"
+                        , "lg:p-4"
+                        , "transition"
+                        , "mx-auto"
+                        , "md:mb-2"
                         ]
                     ]
                     [ div
@@ -684,50 +579,78 @@ viewHeader dataNoteWebData =
                             , "sm:flex"
                             , "mr-2"
                             , "hidden"
+                            , "text-sm"
+                            , "lg:text-base"
                             ]
                         ]
-                        [ div [ class "tag" ] [ text yearLevel ]
-                        , div [ class "tag" ] [ text specialty ]
+                        [ div [ class "tag" ] [ text specialty ]
                         ]
                     ]
                 , a
                     [ href "/"
                     , tailwind
-                        [ "mr-4"
-                        , "flex"
+                        [ "flex"
                         , "items-center"
                         , "p-2"
-                        , "px-4"
-                        , "hover:bg-white"
-                        , "hover:text-black"
+                        , "text-blue-500"
+                        , "bg-white"
+                        , "shadow"
+                        , "w-full"
+                        , "rounded"
+                        , "md:my-1"
+                        , "hover:bg-blue-400"
+                        , "hover:text-white"
                         ]
                     ]
                     [ i [ class "material-icons" ] [ text "arrow_back" ]
                     , span [ tailwind [ "ml-2" ] ] [ text "Back" ]
                     ]
-                , div [ tailwind [ "ml-2" ] ]
+                , div
+                    [ tailwind
+                        [ "p-2"
+                        , "bg-gray-200"
+                        , "text-gray-600"
+                        , "w-full"
+                        , "md:my-1"
+                        , "text-center"
+                        , "font-bold"
+                        , "text-sm"
+                        , "rounded"
+                        ]
+                    ]
                     [ text <| String.fromInt (List.length allIds) ++ " attached EMQs." ]
-                , button
-                    [ onClick OpenedAddQuestionModal
-                    , tailwind
-                        [ "mx-2"
+                , dueAndKnown
+                , div
+                    [ tailwind [ "flex", "md:block", "w-full" ] ]
+                    [ button
+                        [ onClick OpenedAddQuestionModal
+                        , tailwind
+                            [ "w-full"
+                            , "bg-white"
+                            , "text-blue-500"
+                            , "rounded"
+                            , "p-2"
+                            , "md:shadow"
+                            , "border"
+                            , "md:border-0"
+                            , "items-center"
+                            , "flex"
+                            , "md:my-1"
+                            , "hover:bg-blue-400"
+                            , "hover:text-white"
+                            ]
                         ]
-                    ]
-                    [ text "Add EMQ" ]
-                , button
-                    [ onClick OpenedStudyModal
-                    , tailwind
-                        [ "mx-2"
+                        [ i [ class "material-icons" ] [ text "add" ]
+                        , span [ tailwind [ "ml-2" ] ] [ text "Add EMQ" ]
                         ]
+                    , studyButton
                     ]
-                    [ text "Study" ]
                 ]
     in
     case dataNoteWebData of
         Loading ->
             wrap
                 "Loading"
-                ""
                 ""
                 []
                 True
@@ -736,7 +659,6 @@ viewHeader dataNoteWebData =
             wrap
                 "Not Asked"
                 ""
-                ""
                 []
                 False
 
@@ -744,14 +666,12 @@ viewHeader dataNoteWebData =
             wrap
                 "Failure"
                 ""
-                ""
                 []
                 False
 
         Success data ->
             wrap
                 data.title
-                (YearLevel.toString data.yearLevel)
                 (Specialty.toString data.specialty)
                 data.allIds
                 False
@@ -764,14 +684,22 @@ viewContent model dataNoteWebData =
             div
                 [ class "markdown"
                 , tailwind
-                    [ "container"
+                    [ "w-full"
+                    , "flex-grow"
+                    , "bg-white"
+                    , "rounded"
+                    , "shadow-lg"
+                    , "pb-16"
+                    , "min-h-screen"
+                    , "md:min-h-0"
+                    , "md:pb-0"
                     ]
                 ]
                 content
     in
     case dataNoteWebData of
         Loading ->
-            wrap [ div [ class "loading" ] [] ]
+            wrap [ div [ tailwind [ "min-h-screen", "flex", "items-center" ] ] [ div [ class "loading" ] [] ] ]
 
         NotAsked ->
             wrap [ text "Not asked" ]
@@ -788,47 +716,91 @@ viewContent model dataNoteWebData =
 
                         Community ->
                             [ div
-                                [ id "comments"
-                                , tailwind
-                                    [ "md:flex-grow"
-                                    , "md:overflow-auto"
-                                    ]
-                                ]
-                                (List.map viewComment data.comments)
-                            , div
-                                [ tailwind [ "mt-2" ] ]
-                                [ footer
-                                    [ tailwind [] ]
+                                [ tailwind [ "mb-4", "w-full", "border-b", "border-gray-400", "pb-8" ] ]
+                                [ div
+                                    [ tailwind [ "w-full" ] ]
                                     [ textarea
-                                        [ placeholder "Contribute comments, mnemonics or extra notes here."
+                                        [ placeholder "Contribute public comments, queries, requests, mnemonics or extra notes here."
                                         , value model.comment
                                         , required True
                                         , onInput ChangedComment
+                                        , rows 5
                                         ]
                                         []
                                     , button
                                         [ onClick ClickedSubmitComment
-                                        , tailwind [ "float-right" ]
+                                        , tailwind
+                                            [ "hover:bg-blue-400"
+                                            , "hover:text-white"
+                                            , "bg-gray-200"
+                                            , "uppercase"
+                                            , "text-gray-600"
+                                            , "font-bold"
+                                            , "text-sm"
+                                            , "ml-auto"
+                                            , "block"
+                                            ]
                                         ]
                                         [ text "Submit" ]
                                     ]
                                 ]
+                            , div
+                                [ id "comments"
+                                , tailwind
+                                    []
+                                ]
+                                (List.map viewComment data.comments)
                             ]
             in
             wrap
-                [ button [ onClick (ClickedTab Official) ] [ text "Starter Notes" ]
-                , button [ onClick (ClickedTab Community) ] [ text "Contributions" ]
+                [ div
+                    [ tailwind
+                        [ "flex"
+                        ]
+                    ]
+                    [ button
+                        [ onClick (ClickedTab Official)
+                        , tailwind
+                            [ "flex-grow"
+                            , "rounded-none"
+                            , "border-0"
+                            , "text-xs"
+                            , "uppercase"
+                            , "font-bold"
+                            , "p-3"
+                            , "hover:bg-blue-400"
+                            , "hover:text-white"
+                            ]
+                        , classList
+                            [ ( "bg-gray-200 text-gray-600", model.tab == Community )
+                            , ( "text-blue-500", model.tab == Official )
+                            ]
+                        ]
+                        [ text "Notes" ]
+                    , button
+                        [ onClick (ClickedTab Community)
+                        , tailwind
+                            [ "flex-grow"
+                            , "rounded-none"
+                            , "border-0"
+                            , "text-xs"
+                            , "uppercase"
+                            , "font-bold"
+                            , "p-3"
+                            , "hover:bg-blue-400"
+                            , "hover:text-white"
+                            ]
+                        , classList
+                            [ ( "bg-gray-200 text-gray-600", model.tab == Official )
+                            , ( "text-blue-500", model.tab == Community )
+                            ]
+                        ]
+                        [ text "Contributions" ]
+                    ]
                 , article
                     [ id "note"
                     , tailwind
-                        [ "bg-white"
-                        , "shadow-lg"
-                        , "rounded"
-                        , "m-1"
-                        , "md:m-2"
-                        , "p-4"
-                        , "md:h-85vh"
-                        , "md:overflow-auto"
+                        [ "p-8"
                         ]
                     ]
                     dataContent
@@ -845,20 +817,40 @@ viewNote content =
             Markdown.toHtml Nothing content
 
 
-viewStats : WebData Note.Data -> Html Msg
-viewStats dataNoteWebData =
-    case dataNoteWebData of
-        Loading ->
-            article [ id "stats" ] [ div [ class "loading" ] [] ]
-
-        NotAsked ->
-            article [ id "stats" ] [ text "Not asked" ]
-
-        Failure e ->
-            article [ id "stats" ] [ text "Failure" ]
-
-        Success data ->
-            article [ id "stats" ] []
+viewComment : Comment.ReadData -> Html msg
+viewComment data =
+    div
+        [ tailwind
+            [ "p-2"
+            , "border-b"
+            , "border-gray-400"
+            , "my-1"
+            ]
+        ]
+        [ div
+            [ class "markdown"
+            , tailwind
+                []
+            ]
+            (Markdown.toHtml Nothing data.content)
+        , div
+            [ tailwind
+                [ "text-xs"
+                , "text-gray-600"
+                , "w-full"
+                , "text-right"
+                , "mb-2"
+                ]
+            ]
+            [ strong [] [ text data.author.username ]
+            , text " "
+            , text
+                (String.join
+                    " "
+                    [ "on", Datetime.posixToString data.created_at ]
+                )
+            ]
+        ]
 
 
 viewModal : Modal -> Html Msg
@@ -870,60 +862,64 @@ viewModal modal =
         ModalAddQuestion addQuestionData ->
             viewModalAddQuestion addQuestionData
 
-        ModalQuestion modalQuestionData ->
-            viewModalStudy modalQuestionData
-
 
 viewModalAddQuestion : AddQuestionData -> Html Msg
 viewModalAddQuestion addQuestionData =
     section [ class "modal" ]
-        [ Html.form [ onSubmit (AddQuestionMsg PostedQuestion) ]
-            [ article []
-                [ header
-                    [ tailwind
-                        [ "flex", "items-center" ]
-                    ]
-                    [ h1 []
-                        [ text "Add EMQ" ]
-                    , button [ onClick ClickedCloseModal ]
-                        [ i [ class "material-icons" ] [ text "close" ] ]
-                    ]
-                , section []
-                    [ div [ class "field" ]
-                        [ label [ for "stem" ] [ text "Question Stem" ]
-                        , textarea
-                            [ value addQuestionData.question.stem
-                            , placeholder "Question stem"
-                            , onInput (AddQuestionMsg << ChangedStem)
-                            , id "stem"
-                            , required True
-                            ]
-                            []
+        [ article []
+            [ header
+                [ tailwind
+                    [ "flex", "items-center" ]
+                ]
+                [ h1 []
+                    [ text "Add EMQ" ]
+                , button [ onClick ClickedCloseModal ]
+                    [ i [ class "material-icons" ] [ text "close" ] ]
+                ]
+            , section []
+                [ div [ class "field" ]
+                    [ label [ for "stem" ] [ text "Question Stem" ]
+                    , textarea
+                        [ value addQuestionData.question.stem
+                        , placeholder "Question stem"
+                        , onInput (AddQuestionMsg << ChangedStem)
+                        , id "stem"
+                        , required True
                         ]
-                    , div [ class "field" ]
-                        [ label [ for "domain" ] [ text "Domain" ]
-                        , select
-                            [ onInput (AddQuestionMsg << ChangedDomain)
-                            , value (addQuestionData.question.domain |> Domain.toInt |> String.fromInt)
-                            , id "domain"
-                            ]
-                            (List.map (Domain.option addQuestionData.question.domain) Domain.list)
-                        ]
-                    , div []
-                        (List.indexedMap
-                            viewCreateChoice
-                            addQuestionData.question.choices
-                        )
-                        |> Html.map AddQuestionMsg
-                    , div []
-                        [ button
-                            [ onClick (AddQuestionMsg AddedChoice), type_ "button" ]
-                            [ text "Add Distractor" ]
-                        ]
+                        []
                     ]
-                , footer []
-                    [ button [ type_ "submit" ] [ text "Add Question" ]
+                , div [ class "field" ]
+                    [ label [ for "domain" ] [ text "Domain" ]
+                    , select
+                        [ onInput (AddQuestionMsg << ChangedDomain)
+                        , value (addQuestionData.question.domain |> Domain.toInt |> String.fromInt)
+                        , id "domain"
+                        ]
+                        (List.map (Domain.option (Just addQuestionData.question.domain)) Domain.list)
                     ]
+                , div [ class "field" ]
+                    [ label [ for "year_level" ] [ text "Year Level" ]
+                    , select
+                        [ onInput (AddQuestionMsg << ChangedYearLevel)
+                        , value (addQuestionData.question.yearLevel |> YearLevel.toInt |> String.fromInt)
+                        , id "year_level"
+                        ]
+                        (List.map (YearLevel.option (Just addQuestionData.question.yearLevel)) YearLevel.list)
+                    ]
+                , div []
+                    (List.indexedMap
+                        viewCreateChoice
+                        addQuestionData.question.choices
+                    )
+                    |> Html.map AddQuestionMsg
+                , div []
+                    [ button
+                        [ onClick (AddQuestionMsg AddedChoice), type_ "button" ]
+                        [ text "Add Distractor" ]
+                    ]
+                ]
+            , footer []
+                [ button [ type_ "submit", onClick (AddQuestionMsg PostedQuestion) ] [ text "Add Question" ]
                 ]
             ]
         ]
@@ -984,31 +980,3 @@ viewCreateChoice int creationDataChoice =
                     ]
                     []
                 ]
-
-
-questionMsgs : QuestionMsgs Msg
-questionMsgs =
-    { clickedLike = StudyMsg ClickedLike
-    , clickedFlag = StudyMsg ClickedFlag
-    , nextQuestion = OpenedStudyModal
-    , clickedChoice = StudyMsg << ClickedChoice
-    , changedComment = StudyMsg << ChangedQuestionComment
-    , submitComment = StudyMsg ClickedSubmitQuestionComment
-    , clickedClose = ClickedCloseModal
-    }
-
-
-viewModalStudy : ModalQuestionData -> Html Msg
-viewModalStudy modalData =
-    case modalData.webData of
-        Loading ->
-            section [ class "modal" ] [ div [ class "loading" ] [] ]
-
-        NotAsked ->
-            section [ class "modal" ] [ text "Not asked" ]
-
-        Failure e ->
-            section [ class "modal" ] [ text "Failure" ]
-
-        Success question ->
-            viewQuestionSection questionMsgs modalData question

@@ -1,0 +1,705 @@
+module Page.Question exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
+
+{-| This page is the main EMQ review page for reviewing questions.
+
+This page may be entered by:
+
+1.  Clicking Study from a Note page when items are due
+2.  Clicking Study from a Note page when no items are due
+3.  Clicking Study from the Revise page to start a session
+4.  Clicking Next Question from this page itself
+5.  Accessing a URL e.g. ./questions/1/
+
+-}
+
+import Architecture.Route as Route
+import Browser exposing (Document)
+import Browser.Navigation as Navigation
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
+import Http exposing (Error(..))
+import Json.Decode as Decode
+import Json.Encode as Encode
+import Markdown
+import RemoteData exposing (RemoteData(..), WebData)
+import Types.Choice as Choice
+import Types.Comment as Comment
+import Types.Credentials as Credentials exposing (Auth(..))
+import Types.Datetime as Datetime
+import Types.Question as Question
+import Types.Request as Request
+import Types.Session as Session exposing (Session)
+import Types.Styles exposing (tailwind)
+import Types.Test as Test exposing (Test)
+
+
+
+-- Model
+
+
+type alias Model =
+    { session : Session
+    , questionId : Int
+    , webQuestion : WebQuestion
+    }
+
+
+type WebQuestion
+    = LoadingQuestion
+    | FailureQuestion Http.Error
+    | SuccessQuestion Question.ReadData State
+
+
+type State
+    = Unanswered
+    | Answered AnsweredData
+
+
+type alias AnsweredData =
+    { choice : Choice.ReadData
+    , responseResponse : WebData ()
+    , comment : String
+    , commentResponse : WebData Comment.ReadData
+    , likeResponse : WebData ()
+    , flagResponse : WebData ()
+    }
+
+
+initAnswer : Choice.ReadData -> AnsweredData
+initAnswer choice =
+    { choice = choice
+    , responseResponse = Loading
+    , comment = ""
+    , commentResponse = NotAsked
+    , likeResponse = NotAsked
+    , flagResponse = NotAsked
+    }
+
+
+
+-- Msg
+
+
+type Msg
+    = NoOp
+    | ClickedClose
+    | GotQuestion (WebData Question.ReadData)
+    | ClickedChoice Choice.ReadData
+    | GotResponseResponse (WebData ())
+    | ClickedLike
+    | GotLikeResponse (WebData ())
+    | ClickedFlag
+    | GotFlagResponse (WebData ())
+    | ChangedComment String
+    | ClickedSubmitComment
+    | GotSubmitCommentResponse (WebData Comment.ReadData)
+    | ClickedNextQuestion
+
+
+
+-- Init
+
+
+init : Session -> Int -> ( Model, Cmd Msg )
+init session questionId =
+    ( { session = session
+      , questionId = questionId
+      , webQuestion = LoadingQuestion
+      }
+    , Request.get (getQuestion session questionId)
+    )
+
+
+
+-- Eject
+
+
+eject : Model -> Session
+eject model =
+    model.session
+
+
+
+-- Inject
+
+
+inject : Model -> Session -> ( Model, Cmd Msg )
+inject model session =
+    ( { model | session = session }, Cmd.none )
+
+
+
+-- Subscriptions
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
+
+
+
+-- Requests
+
+
+getQuestion : Session -> Int -> Request.GetRequest Question.ReadData Msg
+getQuestion session questionId =
+    { auth = session.auth
+    , endpoint = Request.GetQuestion questionId
+    , callback = GotQuestion
+    , returnDecoder = Question.decoder
+    , queryList = []
+    }
+
+
+postResponse : Session -> Int -> Int -> Request.PostRequest () Msg
+postResponse session questionId choiceId =
+    { auth = session.auth
+    , endpoint = Request.PostResponse
+    , callback = GotResponseResponse
+    , returnDecoder = Decode.succeed ()
+    , queryList = []
+    , body =
+        Encode.object
+            [ ( "question", Encode.int questionId )
+            , ( "choice", Encode.int choiceId )
+            ]
+    }
+
+
+postLike : Session -> Int -> Request.PostRequest () Msg
+postLike session questionId =
+    { auth = session.auth
+    , endpoint = Request.PostLike
+    , callback = GotLikeResponse
+    , returnDecoder = Decode.succeed ()
+    , queryList = []
+    , body =
+        Encode.object
+            [ ( "question", Encode.int questionId ) ]
+    }
+
+
+postFlag : Session -> Int -> Request.PostRequest () Msg
+postFlag session questionId =
+    { auth = session.auth
+    , endpoint = Request.PostFlag
+    , callback = GotFlagResponse
+    , returnDecoder = Decode.succeed ()
+    , queryList = []
+    , body =
+        Encode.object
+            [ ( "question", Encode.int questionId ) ]
+    }
+
+
+postComment : Session -> Int -> String -> Request.PostRequest Comment.ReadData Msg
+postComment session questionId comment =
+    { auth = session.auth
+    , endpoint = Request.PostQuestionComment
+    , callback = GotSubmitCommentResponse
+    , returnDecoder = Comment.decoder
+    , queryList = []
+    , body =
+        Encode.object
+            [ ( "question", Encode.int questionId )
+            , ( "content", Encode.string comment )
+            ]
+    }
+
+
+
+-- Update
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg ({ session } as model) =
+    let
+        ignore =
+            ( model, Cmd.none )
+
+        exit =
+            case session.test of
+                Just test ->
+                    ( model
+                    , Navigation.pushUrl
+                        session.key
+                        test.back
+                    )
+
+                Nothing ->
+                    ( model
+                    , Navigation.pushUrl
+                        session.key
+                        (Route.toString Route.Home)
+                    )
+    in
+    case model.webQuestion of
+        LoadingQuestion ->
+            case msg of
+                GotQuestion webData ->
+                    case webData of
+                        Success question ->
+                            ( { model | webQuestion = SuccessQuestion question Unanswered }, Cmd.none )
+
+                        Failure e ->
+                            ( { model | webQuestion = FailureQuestion e }, Cmd.none )
+
+                        _ ->
+                            ( { model | webQuestion = FailureQuestion (Http.BadStatus 404) }, Cmd.none )
+
+                ClickedClose ->
+                    exit
+
+                _ ->
+                    ignore
+
+        FailureQuestion errorHttp ->
+            case msg of
+                ClickedClose ->
+                    exit
+
+                _ ->
+                    ignore
+
+        SuccessQuestion question state ->
+            case state of
+                Unanswered ->
+                    case msg of
+                        ClickedChoice choice ->
+                            let
+                                newModel newAnswer =
+                                    { model
+                                        | webQuestion =
+                                            SuccessQuestion
+                                                question
+                                                (Answered newAnswer)
+                                    }
+                            in
+                            case model.session.auth of
+                                Guest ->
+                                    ( newModel (initAnswer choice), Cmd.none )
+
+                                User user ->
+                                    let
+                                        initial =
+                                            initAnswer choice
+                                    in
+                                    ( newModel { initial | responseResponse = Loading }
+                                    , Request.post (postResponse model.session model.questionId choice.id)
+                                    )
+
+                        ClickedClose ->
+                            exit
+
+                        _ ->
+                            ignore
+
+                Answered data ->
+                    let
+                        wrap newData =
+                            { model | webQuestion = SuccessQuestion question (Answered newData) }
+                    in
+                    case msg of
+                        GotResponseResponse webData ->
+                            ( wrap { data | responseResponse = webData }, Cmd.none )
+
+                        ClickedLike ->
+                            case data.likeResponse of
+                                Loading ->
+                                    ignore
+
+                                _ ->
+                                    ( wrap { data | likeResponse = Loading }
+                                    , Request.post (postLike model.session model.questionId)
+                                    )
+
+                        GotLikeResponse webData ->
+                            ( wrap { data | likeResponse = webData }, Cmd.none )
+
+                        ClickedFlag ->
+                            case data.flagResponse of
+                                Loading ->
+                                    ignore
+
+                                _ ->
+                                    ( wrap { data | flagResponse = Loading }
+                                    , Request.post (postFlag model.session model.questionId)
+                                    )
+
+                        GotFlagResponse webData ->
+                            ( wrap { data | flagResponse = webData }, Cmd.none )
+
+                        ChangedComment string ->
+                            ( wrap { data | comment = string }, Cmd.none )
+
+                        ClickedSubmitComment ->
+                            case data.commentResponse of
+                                Loading ->
+                                    ignore
+
+                                _ ->
+                                    case data.comment of
+                                        "" ->
+                                            ignore
+
+                                        _ ->
+                                            ( wrap { data | commentResponse = Loading }
+                                            , Request.post (postComment model.session model.questionId data.comment)
+                                            )
+
+                        GotSubmitCommentResponse webData ->
+                            case webData of
+                                Success newComment ->
+                                    ( { model
+                                        | webQuestion =
+                                            SuccessQuestion
+                                                { question | comments = question.comments ++ [ newComment ] }
+                                                (Answered
+                                                    { data
+                                                        | commentResponse = webData
+                                                        , comment = ""
+                                                    }
+                                                )
+                                      }
+                                    , Cmd.none
+                                    )
+
+                                _ ->
+                                    ( wrap { data | commentResponse = webData }, Cmd.none )
+
+                        ClickedClose ->
+                            exit
+
+                        ClickedNextQuestion ->
+                            case session.test of
+                                Just test ->
+                                    let
+                                        newTest =
+                                            { test
+                                                | completed =
+                                                    test.completed
+                                                        ++ [ { id = model.questionId
+                                                             , wasCorrect = data.choice.isCorrect
+                                                             }
+                                                           ]
+                                            }
+                                    in
+                                    case test.future of
+                                        [] ->
+                                            ( { model | session = { session | test = Just newTest } }
+                                            , Navigation.pushUrl
+                                                session.key
+                                                (Route.toString Route.Finish)
+                                            )
+
+                                        head :: tail ->
+                                            ( { model
+                                                | session = { session | test = Just { newTest | future = tail } }
+                                              }
+                                            , Navigation.pushUrl session.key (Route.toString (Route.Question head))
+                                            )
+
+                                Nothing ->
+                                    ( model
+                                    , Navigation.pushUrl session.key (Route.toString Route.Home)
+                                    )
+
+                        _ ->
+                            ignore
+
+
+
+-- View
+
+
+view : Model -> Document Msg
+view model =
+    { title = "AORTA - Question"
+    , body = viewBody model
+    }
+
+
+viewBody : Model -> List (Html Msg)
+viewBody model =
+    case model.webQuestion of
+        LoadingQuestion ->
+            [ section [ class "modal" ]
+                [ div [ class "loading" ] [] ]
+            ]
+
+        FailureQuestion errorHttp ->
+            [ section [ class "modal" ]
+                [ text "Failure" ]
+            ]
+
+        SuccessQuestion question state ->
+            [ section [ class "modal question-modal" ]
+                [ viewQuestion model state question
+                , viewQuestionComments state question
+                ]
+            ]
+
+
+
+-- View Helpers
+
+
+viewQuestion : Model -> State -> Question.ReadData -> Html Msg
+viewQuestion model state question =
+    let
+        ( isCorrect, isIncorrect ) =
+            case state of
+                Unanswered ->
+                    ( False, False )
+
+                Answered answeredData ->
+                    if answeredData.choice.isCorrect then
+                        ( True, False )
+
+                    else
+                        ( False, True )
+
+        footerButtonText =
+            case model.session.test of
+                Just test ->
+                    case test.future of
+                        [] ->
+                            "Review Results"
+
+                        head :: tail ->
+                            "Next Question"
+
+                Nothing ->
+                    "Go Home"
+
+        numLikesInfo =
+            case question.numLikes of
+                Just int ->
+                    span [] [ text (String.fromInt int) ]
+
+                Nothing ->
+                    span [] []
+    in
+    article [ id "question" ]
+        [ header
+            [ classList
+                [ ( "correct-bg", isCorrect )
+                , ( "incorrect-bg", isIncorrect )
+                ]
+            , tailwind
+                [ "items-center", "flex", "transition" ]
+            ]
+            [ h1
+                []
+                [ text ("Question #" ++ String.fromInt question.id) ]
+            , button [ onClick ClickedClose ]
+                [ i [ class "material-icons" ] [ text "close" ] ]
+            ]
+        , section []
+            [ div
+                [ tailwind
+                    [ "mb-4" ]
+                , class "markdown"
+                ]
+                (Markdown.toHtml Nothing question.stem)
+            , div
+                [ tailwind
+                    [ "flex", "flex-col" ]
+                ]
+                (List.map (viewChoiceRead state) question.choices)
+            ]
+        , footer
+            [ classList
+                [ ( "opacity-0", state == Unanswered )
+                , ( "correct-bg", isCorrect )
+                , ( "incorrect-bg", isIncorrect )
+                ]
+            , tailwind
+                [ "transition", "opacity-1" ]
+            ]
+            [ button
+                [ onClick ClickedFlag
+                , tailwind [ "mx-1" ]
+                , type_ "button"
+                ]
+                [ span [ class "material-icons" ] [ text "flag" ] ]
+            , button
+                [ onClick ClickedLike
+                , tailwind [ "mx-1" ]
+                , type_ "button"
+                ]
+                [ span [ class "material-icons" ] [ text "thumb_up" ]
+                , numLikesInfo
+                ]
+            , button
+                [ onClick ClickedNextQuestion
+                , tailwind [ "mx-1" ]
+                , type_ "button"
+                ]
+                [ text footerButtonText ]
+            ]
+        ]
+
+
+viewChoiceRead : State -> Choice.ReadData -> Html Msg
+viewChoiceRead state choice =
+    case state of
+        Unanswered ->
+            button
+                [ class "choice"
+                , onClick (ClickedChoice choice)
+                , tailwind
+                    [ "my-1"
+                    , "flex"
+                    , "justify-start"
+                    , "hover:bg-blue-500"
+                    , "hover:text-white"
+                    , "p-2"
+                    ]
+                ]
+                [ span [] [ text choice.content ] ]
+
+        Answered answeredData ->
+            let
+                opened =
+                    answeredData.choice.id == choice.id
+
+                openedString =
+                    if opened then
+                        "open"
+
+                    else
+                        "closed"
+
+                -- Dummy
+            in
+            details
+                [ tailwind [ "my-1", "rounded-b" ]
+                , classList
+                    [ ( "bg-green-200", choice.isCorrect )
+                    , ( "bg-red-200", not choice.isCorrect && opened )
+                    , ( "bg-gray-200", not choice.isCorrect && not opened )
+                    ]
+                , Html.Attributes.attribute openedString ""
+                ]
+                [ summary
+                    [ class "choice"
+                    , classList
+                        [ ( "bg-red-500 text-white", not choice.isCorrect && opened )
+                        , ( "bg-green-500 text-white", choice.isCorrect )
+                        , ( "bg-gray-300 text-gray-800", not choice.isCorrect && not opened )
+                        ]
+                    , tailwind
+                        [ "flex"
+                        , "p-2"
+                        , "rounded"
+                        , "items-center"
+                        ]
+                    ]
+                    [ span [] [ text choice.content ]
+                    , span [ tailwind [ "ml-auto" ] ] [ text (String.fromInt choice.numChosen ++ " other users.") ]
+                    ]
+                , div
+                    [ class "markdown"
+                    , tailwind [ "px-2", "py-1" ]
+                    ]
+                    (Markdown.toHtml Nothing choice.explanation)
+                ]
+
+
+choiceCorrectToString : Bool -> String
+choiceCorrectToString correct =
+    if correct then
+        "correct"
+
+    else
+        "incorrect"
+
+
+viewComment : Comment.ReadData -> Html msg
+viewComment data =
+    div
+        [ tailwind
+            [ "mb-2", "pb-2", "text-sm" ]
+        ]
+        [ label
+            [ tailwind
+                [ "text-xs"
+                , "text-gray-700"
+                ]
+            ]
+            [ text
+                (String.join
+                    " "
+                    [ data.author.username, "on", Datetime.posixToString data.created_at ]
+                )
+            ]
+        , div
+            [ class "markdown"
+            , tailwind
+                [ "pl-3", "border-l", "border-dotted", "border-gray-600" ]
+            ]
+            (Markdown.toHtml Nothing data.content)
+        ]
+
+
+viewCommentChatStyle : Comment.ReadData -> Html msg
+viewCommentChatStyle data =
+    div
+        [ tailwind
+            [ "mb-2"
+            , "p-2"
+            , "bg-gray-200"
+            , "w-full"
+            , "text-gray-800"
+            , "rounded-lg"
+            , "text-sm"
+            ]
+        ]
+        [ label
+            [ tailwind [ "font-bold", "text-gray-600", "text-xs" ] ]
+            [ text (data.author.username ++ " @ " ++ Datetime.posixToString data.created_at) ]
+        , div [ class "markdown", tailwind [ "w-full" ] ]
+            (Markdown.toHtml Nothing data.content)
+        ]
+
+
+viewQuestionComments : State -> Question.ReadData -> Html Msg
+viewQuestionComments state question =
+    case state of
+        Unanswered ->
+            article
+                [ id "comments" ]
+                []
+
+        Answered answeredData ->
+            let
+                backgroundColor =
+                    case answeredData.choice.isCorrect of
+                        True ->
+                            "correct-bg"
+
+                        False ->
+                            "incorrect-bg"
+            in
+            article [ id "comments" ]
+                [ section []
+                    [ div [ id "comments" ]
+                        (List.map viewCommentChatStyle question.comments)
+                    ]
+                , footer
+                    [ tailwind
+                        [ backgroundColor ]
+                    ]
+                    [ textarea
+                        [ placeholder "Comment here."
+                        , value answeredData.comment
+                        , onInput ChangedComment
+                        , tailwind [ "text-black" ]
+                        , required True
+                        ]
+                        []
+                    , button [ onClick ClickedSubmitComment, tailwind [ "ml-1" ] ] [ text "Submit" ]
+                    ]
+                ]

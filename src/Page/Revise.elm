@@ -1,11 +1,14 @@
 module Page.Revise exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
+import Architecture.Route as Route
 import Browser exposing (Document)
+import Browser.Navigation as Navigation
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Maybe.Extra exposing (isJust, isNothing)
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Choice as Choice
 import Types.Comment as Comment
@@ -16,6 +19,7 @@ import Types.Request as Request
 import Types.Session as Session exposing (Session)
 import Types.Specialty as Specialty exposing (Specialty)
 import Types.Styles exposing (tailwind)
+import Types.Topic as Topic exposing (Topic)
 import Types.YearLevel as YearLevel exposing (YearLevel)
 import Url.Builder as Builder
 import Views.Question exposing (..)
@@ -27,8 +31,8 @@ import Views.Question exposing (..)
 
 type alias Model =
     { session : Session
-    , response : WebData Question.ReadData
-    , modal : Modal
+    , response : WebData (List Int)
+    , quantity : Int
     }
 
 
@@ -45,22 +49,11 @@ type Msg
     = NoOp
     | ChangedYearLevel String
     | ChangedSpecialty String
+    | ChangedTopic String
+    | ChangedDomain String
+    | ChangedQuantity String
     | ClickedStart
-    | ClickedFinish
-    | GotQuestion (WebData Question.ReadData)
-    | StudyMsg StudySubMsg
-
-
-type StudySubMsg
-    = ClickedChoice Choice.ReadData
-    | GotResponseResponse (WebData ())
-    | ClickedLike
-    | GotLikeResponse (WebData ())
-    | ClickedFlag
-    | GotFlagResponse (WebData ())
-    | ChangedQuestionComment String
-    | ClickedSubmitQuestionComment
-    | GotSubmitQuestionCommentResponse (WebData Comment.ReadData)
+    | GotQuestionList (WebData (List Int))
 
 
 
@@ -71,22 +64,10 @@ init : Session -> ( Model, Cmd Msg )
 init session =
     ( { session = session
       , response = NotAsked
-      , modal = ModalNone
+      , quantity = 10
       }
     , Cmd.none
     )
-
-
-initQuestionModal : Question.ReadData -> ModalQuestionData
-initQuestionModal data =
-    { questionId = data.id
-    , webData = Success data
-    , state = Unanswered
-    , comment = ""
-    , commentResponse = NotAsked
-    , likeResponse = NotAsked
-    , flagResponse = NotAsked
-    }
 
 
 
@@ -136,17 +117,85 @@ update msg ({ session } as model) =
 
         ChangedYearLevel string ->
             let
+                newYearLevel =
+                    case string of
+                        "nothing" ->
+                            Nothing
+
+                        value ->
+                            value |> unwrap |> YearLevel.fromInt |> Just
+
                 newSession =
-                    { session | reviseYearLevel = string |> unwrap |> YearLevel.fromInt }
+                    { session | reviseYearLevel = newYearLevel }
             in
             ( { model | session = newSession }, Session.save newSession )
 
         ChangedSpecialty string ->
             let
+                newSpecialty =
+                    case string of
+                        "nothing" ->
+                            Nothing
+
+                        value ->
+                            value |> unwrap |> Specialty.fromInt |> Just
+
                 newSession =
-                    { session | reviseSpecialty = string |> unwrap |> Specialty.fromInt }
+                    { session | reviseSpecialty = newSpecialty }
             in
             ( { model | session = newSession }, Session.save newSession )
+
+        ChangedDomain string ->
+            let
+                newDomain =
+                    case string of
+                        "nothing" ->
+                            Nothing
+
+                        value ->
+                            value |> unwrap |> Domain.fromInt |> Just
+
+                newSession =
+                    { session | reviseDomain = newDomain }
+            in
+            ( { model | session = newSession }, Session.save newSession )
+
+        ChangedTopic string ->
+            let
+                newTopic =
+                    case string of
+                        "nothing" ->
+                            Nothing
+
+                        value ->
+                            value |> unwrap |> Topic.fromInt |> Just
+
+                newSession =
+                    { session | reviseTopic = newTopic }
+            in
+            ( { model | session = newSession }, Session.save newSession )
+
+        ChangedQuantity string ->
+            let
+                newValue =
+                    String.toInt string
+
+                newBounded =
+                    case newValue of
+                        Just value ->
+                            if value < 1 then
+                                1
+
+                            else if value > 100 then
+                                100
+
+                            else
+                                value
+
+                        Nothing ->
+                            10
+            in
+            ( { model | quantity = newBounded }, Cmd.none )
 
         ClickedStart ->
             case model.response of
@@ -155,211 +204,89 @@ update msg ({ session } as model) =
 
                 -- TODO incorporate filters
                 _ ->
-                    ( { model | response = Loading }, Request.get (getRandomQuestion model) )
+                    ( { model | response = Loading }, Request.get (getRandomQuestionList model) )
 
-        ClickedFinish ->
-            ( { model | response = NotAsked, modal = ModalNone }, Cmd.none )
-
-        GotQuestion webData ->
+        GotQuestionList webData ->
             case webData of
                 Success data ->
-                    ( { model
-                        | response = webData
-                        , modal = ModalQuestion (initQuestionModal data)
-                      }
-                    , Cmd.none
-                    )
-
-                _ ->
-                    ( { model | response = webData }, Cmd.none )
-
-        StudyMsg subMsg ->
-            case model.modal of
-                ModalQuestion modalData ->
-                    updateStudy subMsg modalData model
-
-                _ ->
-                    ignore
-
-
-updateStudy : StudySubMsg -> ModalQuestionData -> Model -> ( Model, Cmd Msg )
-updateStudy msg questionData model =
-    let
-        wrap newQuestion =
-            { model | modal = ModalQuestion newQuestion }
-
-        ignore =
-            ( model, Cmd.none )
-    in
-    case msg of
-        ClickedChoice choice ->
-            case model.session.auth of
-                Guest ->
-                    ( wrap { questionData | state = Answered choice NotAsked }
-                    , Cmd.none
-                    )
-
-                User _ ->
-                    case questionData.state of
-                        Unanswered ->
-                            ( wrap { questionData | state = Answered choice Loading }
-                            , Request.post (postResponse model.session questionData.questionId choice.id) |> Cmd.map StudyMsg
-                            )
-
-                        Answered _ _ ->
-                            ignore
-
-        GotResponseResponse webData ->
-            case questionData.state of
-                Unanswered ->
-                    ignore
-
-                Answered choice _ ->
-                    ( wrap { questionData | state = Answered choice webData }
-                    , Cmd.none
-                    )
-
-        ClickedLike ->
-            case questionData.likeResponse of
-                Loading ->
-                    ignore
-
-                _ ->
-                    ( wrap { questionData | likeResponse = Loading }
-                    , Request.post (postLike model.session questionData.questionId)
-                        |> Cmd.map StudyMsg
-                    )
-
-        GotLikeResponse webData ->
-            ( wrap { questionData | likeResponse = webData }
-            , Cmd.none
-            )
-
-        ClickedFlag ->
-            case questionData.flagResponse of
-                Loading ->
-                    ignore
-
-                _ ->
-                    ( wrap { questionData | flagResponse = Loading }
-                    , Request.post (postFlag model.session questionData.questionId)
-                        |> Cmd.map StudyMsg
-                    )
-
-        GotFlagResponse webData ->
-            ( wrap { questionData | flagResponse = webData }
-            , Cmd.none
-            )
-
-        ChangedQuestionComment string ->
-            ( wrap { questionData | comment = string }, Cmd.none )
-
-        ClickedSubmitQuestionComment ->
-            case questionData.commentResponse of
-                Loading ->
-                    ignore
-
-                _ ->
-                    ( wrap { questionData | commentResponse = Loading }
-                    , Request.post (postQuestionComment model.session questionData.questionId questionData.comment)
-                        |> Cmd.map StudyMsg
-                    )
-
-        GotSubmitQuestionCommentResponse webData ->
-            case webData of
-                Success commentReturn ->
-                    case questionData.webData of
-                        Success questionWebData ->
-                            ( wrap
-                                { questionData
-                                    | commentResponse = webData
-                                    , comment = ""
-                                    , webData =
-                                        Success
-                                            { questionWebData
-                                                | comments = questionWebData.comments ++ [ commentReturn ]
-                                            }
-                                }
+                    case data of
+                        [] ->
+                            ( { model
+                                | session =
+                                    Session.addMessage session "There are no questions matching these criteria!"
+                                , response = NotAsked
+                              }
                             , Cmd.none
                             )
 
-                        _ ->
-                            ignore
+                        head :: tail ->
+                            ( { model
+                                | session =
+                                    { session
+                                        | test =
+                                            Just
+                                                { completed = []
+                                                , future = tail
+                                                , back = Route.toString Route.Revise
+                                                }
+                                    }
+                              }
+                            , Navigation.pushUrl
+                                session.key
+                                (Route.toString <| Route.Question head)
+                            )
 
                 _ ->
-                    ( wrap { questionData | commentResponse = webData }, Cmd.none )
+                    ( { model | response = webData }, Cmd.none )
 
 
 
 -- Requests
 
 
-getRandomQuestion : Model -> Request.GetRequest Question.ReadData Msg
-getRandomQuestion model =
-    { endpoint = Request.GetRandomQuestion
+makeQueryList : Session -> List Builder.QueryParameter
+makeQueryList session =
+    let
+        yearLevel =
+            session.reviseYearLevel
+                |> Maybe.map YearLevel.toInt
+
+        specialty =
+            session.reviseSpecialty
+                |> Maybe.map Specialty.toInt
+
+        domain =
+            session.reviseDomain
+                |> Maybe.map Domain.toInt
+
+        topic =
+            session.reviseTopic
+                |> Maybe.map Topic.toInt
+
+        zipped =
+            [ ( Builder.int "note__specialty", specialty )
+            , ( Builder.int "note__topic", topic )
+            , ( Builder.int "domain", domain )
+            , ( Builder.int "year_level", yearLevel )
+            ]
+
+        mapped =
+            zipped
+                |> List.map (\( builder, maybeVal ) -> Maybe.map builder maybeVal)
+
+        filtered =
+            Maybe.Extra.values mapped
+    in
+    filtered
+
+
+getRandomQuestionList : Model -> Request.GetRequest (List Int) Msg
+getRandomQuestionList model =
+    { endpoint = Request.GetRandomList
     , auth = model.session.auth
-    , callback = GotQuestion
-    , returnDecoder = Question.decoder
-    , queryList =
-        [ Builder.int "note__year_level" (YearLevel.toInt model.session.reviseYearLevel)
-        , Builder.int "note__specialty" (Specialty.toInt model.session.reviseSpecialty)
-        ]
-    }
-
-
-postResponse : Session -> Int -> Int -> Request.PostRequest () StudySubMsg
-postResponse session questionId choiceId =
-    { auth = session.auth
-    , endpoint = Request.PostResponse
-    , callback = GotResponseResponse
-    , returnDecoder = Decode.succeed ()
-    , queryList = []
-    , body =
-        Encode.object
-            [ ( "question", Encode.int questionId )
-            , ( "choice", Encode.int choiceId )
-            ]
-    }
-
-
-postLike : Session -> Int -> Request.PostRequest () StudySubMsg
-postLike session questionId =
-    { auth = session.auth
-    , endpoint = Request.PostFlag
-    , callback = GotLikeResponse
-    , returnDecoder = Decode.succeed ()
-    , queryList = []
-    , body =
-        Encode.object
-            [ ( "question", Encode.int questionId ) ]
-    }
-
-
-postFlag : Session -> Int -> Request.PostRequest () StudySubMsg
-postFlag session questionId =
-    { auth = session.auth
-    , endpoint = Request.PostFlag
-    , callback = GotFlagResponse
-    , returnDecoder = Decode.succeed ()
-    , queryList = []
-    , body =
-        Encode.object
-            [ ( "question", Encode.int questionId ) ]
-    }
-
-
-postQuestionComment : Session -> Int -> String -> Request.PostRequest Comment.ReadData StudySubMsg
-postQuestionComment session questionId comment =
-    { auth = session.auth
-    , endpoint = Request.PostQuestionComment
-    , callback = GotSubmitQuestionCommentResponse
-    , returnDecoder = Comment.decoder
-    , queryList = []
-    , body =
-        Encode.object
-            [ ( "question", Encode.int questionId )
-            , ( "content", Encode.string comment )
-            ]
+    , callback = GotQuestionList
+    , returnDecoder = Decode.list Decode.int
+    , queryList = Builder.int "quantity" model.quantity :: makeQueryList model.session
     }
 
 
@@ -374,22 +301,58 @@ view model =
     }
 
 
+wrapEnumValue : (a -> String) -> Maybe a -> String
+wrapEnumValue converter aMaybe =
+    case aMaybe of
+        Just a ->
+            converter a
+
+        Nothing ->
+            "nothing"
+
+
 viewBody : Model -> List (Html Msg)
 viewBody model =
     let
         yearLevelSelect =
             select
                 [ onInput <| ChangedYearLevel
-                , value (model.session.reviseYearLevel |> YearLevel.toInt |> String.fromInt)
+                , value (model.session.reviseYearLevel |> wrapEnumValue (YearLevel.toInt >> String.fromInt))
                 ]
-                (List.map (YearLevel.option model.session.reviseYearLevel) YearLevel.list)
+                (option [ value "nothing", selected True ]
+                    [ text "All Year Levels" ]
+                    :: List.map (YearLevel.option model.session.reviseYearLevel) YearLevel.list
+                )
 
         specialtySelect =
             select
                 [ onInput <| ChangedSpecialty
-                , value (model.session.reviseSpecialty |> Specialty.toInt |> String.fromInt)
+                , value (model.session.reviseSpecialty |> wrapEnumValue (Specialty.toInt >> String.fromInt))
                 ]
-                (List.map (Specialty.option model.session.reviseSpecialty) Specialty.list)
+                (option [ value "nothing", selected (isNothing model.session.reviseSpecialty) ]
+                    [ text "All Specialties" ]
+                    :: List.map (Specialty.option model.session.reviseSpecialty) Specialty.list
+                )
+
+        topicSelect =
+            select
+                [ onInput <| ChangedTopic
+                , value (model.session.reviseTopic |> wrapEnumValue (Topic.toInt >> String.fromInt))
+                ]
+                (option [ value "nothing", selected (isNothing model.session.reviseTopic) ]
+                    [ text "All Topics" ]
+                    :: List.map (Topic.option model.session.reviseTopic) Topic.list
+                )
+
+        domainSelect =
+            select
+                [ onInput <| ChangedDomain
+                , value (model.session.reviseDomain |> wrapEnumValue (Domain.toInt >> String.fromInt))
+                ]
+                (option [ value "nothing", selected (isNothing model.session.reviseDomain) ]
+                    [ text "All Domains" ]
+                    :: List.map (Domain.option model.session.reviseDomain) Domain.list
+                )
     in
     [ main_
         [ tailwind
@@ -427,12 +390,31 @@ viewBody model =
                         ]
                     ]
                     [ div [ class "field" ]
+                        [ label [] [ text "Specialty" ]
+                        , specialtySelect
+                        ]
+                    , div [ class "field" ]
+                        [ label [] [ text "Topic" ]
+                        , topicSelect
+                        ]
+                    , div [ class "field" ]
                         [ label [] [ text "Year Level" ]
                         , yearLevelSelect
                         ]
                     , div [ class "field" ]
-                        [ label [] [ text "Specialty" ]
-                        , specialtySelect
+                        [ label [] [ text "Domain" ]
+                        , domainSelect
+                        ]
+                    , div [ class "field" ]
+                        [ label [] [ text "Quantity" ]
+                        , input
+                            [ type_ "number"
+                            , value (String.fromInt model.quantity)
+                            , onInput ChangedQuantity
+                            , Html.Attributes.min "1"
+                            , Html.Attributes.max "100"
+                            ]
+                            []
                         ]
                     ]
                 , footer
@@ -447,38 +429,4 @@ viewBody model =
                 ]
             ]
         ]
-    , viewModal model
     ]
-
-
-questionMsgs : QuestionMsgs Msg
-questionMsgs =
-    { clickedLike = StudyMsg ClickedLike
-    , clickedFlag = StudyMsg ClickedFlag
-    , nextQuestion = ClickedStart
-    , clickedChoice = StudyMsg << ClickedChoice
-    , changedComment = StudyMsg << ChangedQuestionComment
-    , submitComment = StudyMsg ClickedSubmitQuestionComment
-    , clickedClose = ClickedFinish
-    }
-
-
-viewModal : Model -> Html Msg
-viewModal model =
-    case model.modal of
-        ModalNone ->
-            div [] []
-
-        ModalQuestion modalData ->
-            case modalData.webData of
-                Success question ->
-                    viewQuestionSection questionMsgs modalData question
-
-                Failure e ->
-                    div [] []
-
-                Loading ->
-                    div [] []
-
-                NotAsked ->
-                    div [] []

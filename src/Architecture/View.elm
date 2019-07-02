@@ -2,6 +2,7 @@ module Architecture.View exposing (view)
 
 import Architecture.Model exposing (..)
 import Architecture.Msg exposing (..)
+import Architecture.Parser as Parser
 import Architecture.Route as Route exposing (Route)
 import Architecture.Update exposing (eject)
 import Browser exposing (Document)
@@ -9,15 +10,20 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Markdown
+import Page.Finish as Finish
 import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
+import Page.Question as Question
 import Page.Revise as Revise
-import Secret exposing (baseUrl)
 import Types.Credentials exposing (Auth(..))
 import Types.Session as Session exposing (Session)
 import Types.Styles exposing (tailwind)
+
+
+
+-- Major View Router
 
 
 view : Model -> Document Msg
@@ -43,16 +49,29 @@ view model =
             Revise.view subModel
                 |> viewPage model GotReviseMsg
 
+        Question subModel ->
+            Question.view subModel
+                |> viewPage model GotQuestionMsg
 
+        Finish subModel ->
+            Finish.view subModel
+                |> viewPage model GotFinishMsg
+
+
+{-| Wrap each page's individual view function |
+-}
 viewPage : Model -> (subMsg -> Msg) -> Document subMsg -> Document Msg
 viewPage model toMsg page =
     { title = page.title
     , body =
-        List.map (Html.map toMsg) page.body
+        page.body
+            |> List.map (Html.map toMsg)
             |> wrapBody model
     }
 
 
+{-| View ech navigation link |
+-}
 viewNavLink : { name : String, active : Bool, route : Route, icon : String, right : Bool } -> Html Msg
 viewNavLink data =
     a
@@ -81,10 +100,18 @@ viewNavLink data =
                 [ "md:pr-2" ]
             ]
             [ text data.icon ]
-        , label [ tailwind [ "cursor-pointer", "md:pr-2" ] ] [ text data.name ]
+        , label
+            [ tailwind
+                [ "cursor-pointer"
+                , "md:pr-2"
+                ]
+            ]
+            [ text data.name ]
         ]
 
 
+{-| View a single message |
+-}
 viewSingleMessage : String -> Html Msg
 viewSingleMessage string =
     article
@@ -103,6 +130,8 @@ viewSingleMessage string =
         (Markdown.toHtml Nothing string)
 
 
+{-| View the list of all messages in a session |
+-}
 viewMessage : Session -> Html Msg
 viewMessage session =
     case session.message of
@@ -111,7 +140,7 @@ viewMessage session =
                 [ class "message-list"
                 , onClick ClearMessages
                 , tailwind
-                    [ "fixed", "right-0", "top-0", "md:p-2", "md:w-1/4", "z-10" ]
+                    [ "fixed", "right-0", "top-0", "md:p-2", "md:w-1/4", "z-50" ]
                 ]
                 (List.map viewSingleMessage stringList)
 
@@ -119,25 +148,8 @@ viewMessage session =
             section [ class "hidden" ] []
 
 
-isRouteEqual : Route -> Model -> Bool
-isRouteEqual route model =
-    case ( route, model ) of
-        ( Route.Home, Home _ ) ->
-            True
-
-        ( Route.Profile, Profile _ ) ->
-            True
-
-        ( Route.Note _, Note _ ) ->
-            True
-
-        ( Route.Revise, Revise _ ) ->
-            True
-
-        _ ->
-            False
-
-
+{-| Wrap each page's individual body with a nav bar and messages |
+-}
 wrapBody : Model -> List (Html Msg) -> List (Html Msg)
 wrapBody model body =
     let
@@ -151,6 +163,14 @@ wrapBody model body =
 
                 Guest ->
                     "Log In"
+
+        hideNav =
+            case model of
+                Question _ ->
+                    True
+
+                _ ->
+                    False
     in
     [ nav
         [ tailwind
@@ -165,11 +185,10 @@ wrapBody model body =
             , "text-sm"
             , "md:text-base"
             , "items-center"
-            , "z-50"
+            , "z-30"
             ]
-
-        --        , classList
-        --            [ ( "hidden", isRouteEqual (Route.Note 0) model ) ]
+        , classList
+            [ ( "hidden", hideNav ) ]
         ]
         [ img
             [ src "./icon.svg"
@@ -195,27 +214,27 @@ wrapBody model body =
             ]
             [ text "AORTA" ]
         , viewNavLink
-            { name = "Matrix"
-            , active = isRouteEqual Route.Home model
+            { name = "Grid"
+            , active = Parser.isEqual Route.Home model
             , route = Route.Home
             , icon = "notes"
             , right = False
             }
         , viewNavLink
             { name = "Revise"
-            , active = isRouteEqual Route.Revise model
+            , active = Parser.isEqual Route.Revise model
             , route = Route.Revise
             , icon = "check"
             , right = False
             }
         , viewNavLink
             { name = profileText
-            , active = isRouteEqual Route.Profile model
+            , active = Parser.isEqual Route.Profile model
             , route = Route.Profile
             , icon = "person"
             , right = True
             }
         ]
-    , viewMessage (eject model)
     ]
         ++ body
+        ++ [ viewMessage (eject model) ]

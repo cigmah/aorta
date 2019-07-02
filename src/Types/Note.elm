@@ -14,14 +14,15 @@ import Types.Comment as Comment
 import Types.Domain as Domain exposing (Domain)
 import Types.Question as Question
 import Types.Specialty as Specialty exposing (Specialty)
+import Types.Topic as Topic exposing (Topic)
 import Types.User as User exposing (User)
 import Types.YearLevel as YearLevel exposing (YearLevel)
 
 
 type alias ListData =
     { id : Int
-    , yearLevel : YearLevel
     , specialty : Specialty
+    , topic : Topic
     , modifiedAt : Posix
     , title : String
     , numQuestions : Int
@@ -36,8 +37,8 @@ decoderList =
     Decode.list
         (Decode.succeed ListData
             |> required "id" Decode.int
-            |> required "year_level" YearLevel.decoder
             |> required "specialty" Specialty.decoder
+            |> required "topic" Topic.decoder
             |> required "modified_at" Iso8601.decoder
             |> required "title" Decode.string
             |> required "num_questions" Decode.int
@@ -50,7 +51,7 @@ decoderList =
 type alias Data =
     { id : Int
     , specialty : Specialty
-    , yearLevel : YearLevel
+    , topic : Topic
     , title : String
     , content : String
     , contributor : Maybe User
@@ -67,7 +68,7 @@ decoder =
     Decode.succeed Data
         |> required "id" Decode.int
         |> required "specialty" Specialty.decoder
-        |> required "year_level" YearLevel.decoder
+        |> required "topic" Topic.decoder
         |> required "title" Decode.string
         |> required "content" Decode.string
         |> required "contributor" (Decode.maybe User.decoder)

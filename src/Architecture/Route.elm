@@ -1,17 +1,14 @@
 module Architecture.Route exposing
     ( Route(..)
-    , fromUrl
-    , parser
     , toHref
     , toString
     )
 
-import Architecture.Model exposing (..)
 import Browser.Navigation exposing (Key, replaceUrl)
 import Html exposing (Attribute)
 import Html.Attributes exposing (href)
 import Url exposing (Url)
-import Url.Parser exposing (..)
+import Url.Builder as Builder
 
 
 type Route
@@ -20,56 +17,61 @@ type Route
     | Profile
     | Revise
     | Note Int
+    | Question Int
+    | Finish
 
 
-{-| This parser is completely fragment-based to accommodate GitHub pages. |
--}
-parser : Parser (Route -> a) a
-parser =
-    oneOf
-        [ map Profile <| s "profile"
-        , map Note <| s "notes" </> int
-        , map Revise <| s "revise"
-        , map Home top
-        ]
-
-
-fromUrl : Url -> Route
-fromUrl url =
-    -- Using hash routing at the moment, so moving the fragment into the path.
-    { url
-        | path = Maybe.withDefault "" url.fragment
-        , fragment = Nothing
-    }
-        |> parse parser
-        |> Maybe.withDefault NotFound
+buildFuture : List Int -> List Builder.QueryParameter
+buildFuture future =
+    future
+        |> List.map (Builder.string "future" << String.fromInt)
 
 
 toString : Route -> String
 toString route =
-    let
-        path =
-            case route of
-                Home ->
-                    ""
+    case route of
+        Home ->
+            Builder.absolute
+                [ "" ]
+                []
 
-                NotFound ->
-                    "404/"
+        NotFound ->
+            Builder.absolute
+                [ "404" ]
+                []
 
-                Profile ->
-                    "profile/"
+        Profile ->
+            Builder.absolute
+                [ "profile" ]
+                []
 
-                Note noteId ->
-                    "note/" ++ String.fromInt noteId
+        Note noteId ->
+            Builder.absolute
+                [ "notes"
+                , String.fromInt noteId
+                ]
+                []
 
-                Revise ->
-                    "revise/"
-    in
-    "#/" ++ path
+        Revise ->
+            Builder.absolute
+                [ "revise" ]
+                []
+
+        Question questionId ->
+            Builder.absolute
+                [ "questions"
+                , String.fromInt questionId
+                ]
+                []
+
+        Finish ->
+            Builder.absolute
+                [ "finish" ]
+                []
 
 
 toHref : Route -> Attribute msg
 toHref route =
-    "/"
+    ""
         ++ toString route
         |> href

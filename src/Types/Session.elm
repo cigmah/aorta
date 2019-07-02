@@ -1,7 +1,6 @@
 port module Types.Session exposing
     ( Session
     , addMessage
-    , changeYearLevel
     , clearMessages
     , decoder
     , default
@@ -12,7 +11,10 @@ import Browser.Navigation exposing (Key)
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
 import Types.Credentials as Credentials exposing (..)
+import Types.Domain as Domain exposing (Domain)
 import Types.Specialty as Specialty exposing (Specialty)
+import Types.Test as Test exposing (Test)
+import Types.Topic as Topic exposing (Topic)
 import Types.YearLevel as YearLevel exposing (YearLevel)
 
 
@@ -20,20 +22,24 @@ type alias Session =
     { message : Maybe (List String)
     , auth : Auth
     , key : Key
-    , yearLevel : YearLevel
-    , reviseYearLevel : YearLevel
-    , reviseSpecialty : Specialty
+    , reviseTopic : Maybe Topic
+    , reviseSpecialty : Maybe Specialty
+    , reviseYearLevel : Maybe YearLevel
+    , reviseDomain : Maybe Domain
+    , test : Maybe Test
     }
 
 
-fillKey : Auth -> YearLevel -> YearLevel -> Specialty -> Key -> Session
-fillKey auth yearLevel reviseYearLevel reviseSpecialty key =
+fillKey : Auth -> Maybe Topic -> Maybe Specialty -> Maybe YearLevel -> Maybe Domain -> Key -> Session
+fillKey auth topic specialty yearLevel domain key =
     { message = Nothing
     , auth = auth
     , key = key
-    , yearLevel = yearLevel
-    , reviseYearLevel = reviseYearLevel
-    , reviseSpecialty = reviseSpecialty
+    , reviseTopic = topic
+    , reviseSpecialty = specialty
+    , reviseYearLevel = yearLevel
+    , reviseDomain = domain
+    , test = Nothing
     }
 
 
@@ -42,9 +48,11 @@ default key =
     { message = Nothing
     , auth = Guest
     , key = key
-    , yearLevel = YearLevel.Year1
-    , reviseYearLevel = YearLevel.Year1
-    , reviseSpecialty = Specialty.Anatomy
+    , reviseTopic = Nothing
+    , reviseSpecialty = Nothing
+    , reviseYearLevel = Nothing
+    , reviseDomain = Nothing
+    , test = Nothing
     }
 
 
@@ -63,28 +71,35 @@ clearMessages session =
     { session | message = Nothing }
 
 
-changeYearLevel : Session -> YearLevel -> Session
-changeYearLevel session yearLevel =
-    { session | yearLevel = yearLevel }
+encodeMaybe : (a -> Value) -> Maybe a -> Value
+encodeMaybe encoder maybeA =
+    case maybeA of
+        Just a ->
+            encoder a
+
+        Nothing ->
+            Encode.null
 
 
 encode : Session -> Value
 encode session =
     Encode.object
         [ ( "auth", Credentials.encode session.auth )
-        , ( "year_level", YearLevel.encode session.yearLevel )
-        , ( "revise_year_level", YearLevel.encode session.reviseYearLevel )
-        , ( "revise_specialty", Specialty.encode session.reviseSpecialty )
+        , ( "revise_topic", encodeMaybe Topic.encode session.reviseTopic )
+        , ( "revise_specialty", encodeMaybe Specialty.encode session.reviseSpecialty )
+        , ( "revise_year_level", encodeMaybe YearLevel.encode session.reviseYearLevel )
+        , ( "revise_domain", encodeMaybe Domain.encode session.reviseDomain )
         ]
 
 
 decoder : Decoder (Key -> Session)
 decoder =
-    Decode.map4 fillKey
+    Decode.map5 fillKey
         (Decode.field "auth" Credentials.decoder)
-        (Decode.field "year_level" YearLevel.decoder)
-        (Decode.field "revise_year_level" YearLevel.decoder)
-        (Decode.field "revise_specialty" Specialty.decoder)
+        (Decode.field "revise_topic" <| Decode.maybe <| Topic.decoder)
+        (Decode.field "revise_specialty" <| Decode.maybe <| Specialty.decoder)
+        (Decode.field "revise_year_level" <| Decode.maybe <| YearLevel.decoder)
+        (Decode.field "revise_domain" <| Decode.maybe <| Domain.decoder)
 
 
 
