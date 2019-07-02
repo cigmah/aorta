@@ -19,16 +19,6 @@ import Url exposing (Url)
 
 init : Value -> Url -> Key -> ( Model, Cmd Msg )
 init flags url key =
-<<<<<<< HEAD
-    let
-        debugging =
-            flags
-                |> Decode.decodeValue Decode.string
-                |> Result.andThen (Decode.decodeString Session.decoder)
-                |> Result.map (\filler -> filler key)
-    in
-=======
->>>>>>> develop
     -- TODO Add a message if decoding fails
     flags
         |> Decode.decodeValue Decode.string
