@@ -223,8 +223,8 @@ viewGrid webData =
 
         Loading ->
             div [ tailwind [ "flex", "flex-col", "md:grid", "mx-auto" ] ]
-                (gridRowHeaders
-                    ++ gridColumnHeaders
+                (gridRowHeaders True
+                    ++ gridColumnHeaders True
                     ++ (List.map viewLoadingItem (List.range 0 (List.length Topic.list - 1))
                             |> List.map (\f -> List.map f (List.range 0 (List.length Specialty.list - 1)))
                             |> List.concat
@@ -250,11 +250,11 @@ viewGrid webData =
                             , "mx-auto"
                             ]
                         ]
-                        (gridRowHeaders ++ gridColumnHeaders ++ List.map viewGridItem nonEmptyData)
+                        (gridRowHeaders False ++ gridColumnHeaders False ++ List.map viewGridItem nonEmptyData)
 
 
-gridRowHeaders : List (Html Msg)
-gridRowHeaders =
+gridRowHeaders : Bool -> List (Html Msg)
+gridRowHeaders loading =
     let
         showHeader row specialty =
             div
@@ -264,20 +264,22 @@ gridRowHeaders =
                     [ "text-xs"
                     , "text-gray-700"
                     , "text-right"
-                    , "pr-2"
+                    , "pr-3"
                     , "md:flex"
                     , "items-center"
                     , "justify-end"
                     , "hidden"
+                    , "transition"
                     ]
+                , classList [ ( "opacity-25", loading ) ]
                 ]
                 [ text (Specialty.toString specialty) ]
     in
     List.indexedMap showHeader Specialty.list
 
 
-gridColumnHeaders : List (Html Msg)
-gridColumnHeaders =
+gridColumnHeaders : Bool -> List (Html Msg)
+gridColumnHeaders loading =
     let
         showHeader column topic =
             div
@@ -291,10 +293,13 @@ gridColumnHeaders =
                     , "md:flex"
                     , "items-center"
                     , "hidden"
+                    , "pb-4"
+                    , "transition"
                     ]
+                , classList [ ( "opacity-25", loading ) ]
                 ]
                 [ div
-                    [ tailwind [ "rotate-90", "min-w-0", "pl-2", "text-left" ] ]
+                    [ tailwind [ "rotate-90", "min-w-0", "text-left" ] ]
                     [ text (Topic.toBrief topic) ]
                 ]
     in
@@ -311,7 +316,6 @@ noteTailwind =
         , "my-1"
         , "md:m-px"
         , "rounded"
-        , "bg-gray-200"
         , "relative"
         , "p-2"
         , "md:p-0"
@@ -323,7 +327,7 @@ viewLoadingItem : Int -> Int -> Html Msg
 viewLoadingItem column row =
     a
         [ noteTailwind
-        , tailwind [ "fadeinout" ]
+        , tailwind [ "fadeinout", "bg-gray-100" ]
         , style "grid-column" (String.fromInt <| column + 2)
         , style "grid-row" (String.fromInt <| row + 2)
         ]
@@ -335,6 +339,7 @@ viewGridItem note =
     a
         [ class "note"
         , noteTailwind
+        , tailwind [ "bg-gray-200" ]
         , Route.toHref (Route.Note note.id)
         , attribute "data-tooltip" note.title
         , style "grid-column" (String.fromInt (Topic.toInt note.topic + 2))

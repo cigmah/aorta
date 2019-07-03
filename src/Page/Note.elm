@@ -438,7 +438,7 @@ viewBody model =
                 , "mx-auto"
                 ]
             ]
-            [ viewHeader model.webDataNote
+            [ viewHeader model model.webDataNote
             , section
                 [ tailwind
                     [ "md:flex"
@@ -456,8 +456,33 @@ viewBody model =
     ]
 
 
-viewHeader : WebData Note.Data -> Html Msg
-viewHeader dataNoteWebData =
+tailwindButton : Attribute msg
+tailwindButton =
+    -- TODO refactor to css
+    tailwind
+        [ "flex"
+        , "items-center"
+        , "p-2"
+        , "text-blue-500"
+        , "bg-white"
+        , "border-2"
+        , "border-blue-400"
+        , "w-full"
+        , "rounded"
+        , "md:my-1"
+        , "hover:bg-blue-400"
+        , "hover:text-white"
+        , "uppercase"
+        , "text-xs"
+        , "focus:bg-blue-500"
+        , "focus:text-white"
+        , "font-bold"
+        , "fadein"
+        ]
+
+
+viewHeader : Model -> WebData Note.Data -> Html Msg
+viewHeader model dataNoteWebData =
     let
         headerColor =
             case dataNoteWebData of
@@ -470,22 +495,7 @@ viewHeader dataNoteWebData =
         makeStudyButton studyButtonText =
             button
                 [ onClick ClickedStudy
-                , tailwind
-                    [ "w-full"
-                    , "bg-white"
-                    , "text-blue-500"
-                    , "rounded"
-                    , "p-2"
-                    , "items-center"
-                    , "border"
-                    , "md:border-0"
-                    , "flex"
-                    , "md:my-1"
-                    , "md:shadow"
-                    , "hover:bg-blue-400"
-                    , "hover:text-white"
-                    , "fadein"
-                    ]
+                , tailwindButton
                 ]
                 [ i [ class "material-icons" ] [ text "check" ]
                 , span [ tailwind [ "ml-2" ] ] [ text studyButtonText ]
@@ -570,75 +580,41 @@ viewHeader dataNoteWebData =
                     ]
                     [ div
                         [ tailwind
-                            [ "text-lg", "text-white" ]
+                            [ "text-sm", "text-white", "text-center", "uppercase" ]
                         ]
                         [ text title ]
-                    , div
-                        [ tailwind
-                            [ "ml-auto"
-                            , "sm:flex"
-                            , "mr-2"
-                            , "hidden"
-                            , "text-sm"
-                            , "lg:text-base"
-                            ]
-                        ]
-                        [ div [ class "tag" ] [ text specialty ]
-                        ]
                     ]
                 , a
                     [ href "/"
-                    , tailwind
-                        [ "flex"
-                        , "items-center"
-                        , "p-2"
-                        , "text-blue-500"
-                        , "bg-white"
-                        , "shadow"
-                        , "w-full"
-                        , "rounded"
-                        , "md:my-1"
-                        , "hover:bg-blue-400"
-                        , "hover:text-white"
-                        ]
+                    , tailwindButton
                     ]
                     [ i [ class "material-icons" ] [ text "arrow_back" ]
                     , span [ tailwind [ "ml-2" ] ] [ text "Back" ]
                     ]
                 , div
                     [ tailwind
-                        [ "p-2"
-                        , "bg-gray-200"
+                        [ "bg-gray-200"
                         , "text-gray-600"
                         , "w-full"
                         , "md:my-1"
                         , "text-center"
                         , "font-bold"
                         , "text-sm"
+                        , "p-2"
                         , "rounded"
+                        , "transition"
                         ]
+                    , classList [ ( "opacity-0", loading ) ]
                     ]
                     [ text <| String.fromInt (List.length allIds) ++ " attached EMQs." ]
                 , dueAndKnown
                 , div
-                    [ tailwind [ "flex", "md:block", "w-full" ] ]
+                    [ tailwind [ "flex", "md:block", "w-full" ]
+                    ]
                     [ button
                         [ onClick OpenedAddQuestionModal
-                        , tailwind
-                            [ "w-full"
-                            , "bg-white"
-                            , "text-blue-500"
-                            , "rounded"
-                            , "p-2"
-                            , "md:shadow"
-                            , "border"
-                            , "md:border-0"
-                            , "items-center"
-                            , "flex"
-                            , "md:my-1"
-                            , "hover:bg-blue-400"
-                            , "hover:text-white"
-                            ]
+                        , tailwindButton
+                        , classList [ ( "hidden", Session.isGuest model.session ) ]
                         ]
                         [ i [ class "material-icons" ] [ text "add" ]
                         , span [ tailwind [ "ml-2" ] ] [ text "Add EMQ" ]
@@ -696,10 +672,26 @@ viewContent model dataNoteWebData =
                     ]
                 ]
                 content
+
+        tailwindTab =
+            tailwind
+                [ "flex-grow"
+                , "rounded-none"
+                , "border-b-2"
+                , "border-gray-200"
+                , "text-xs"
+                , "uppercase"
+                , "font-bold"
+                , "p-3"
+                , "hover:bg-blue-400"
+                , "hover:text-white"
+                , "focus:outline-none"
+                , "focus:border-blue-400"
+                ]
     in
     case dataNoteWebData of
         Loading ->
-            wrap [ div [ tailwind [ "min-h-screen", "flex", "items-center" ] ] [ div [ class "loading" ] [] ] ]
+            wrap [ div [ tailwind [ "h-full", "flex", "items-center" ] ] [ div [ class "loading" ] [] ] ]
 
         NotAsked ->
             wrap [ text "Not asked" ]
@@ -716,7 +708,9 @@ viewContent model dataNoteWebData =
 
                         Community ->
                             [ div
-                                [ tailwind [ "mb-4", "w-full", "border-b", "border-gray-400", "pb-8" ] ]
+                                [ tailwind [ "mb-4", "w-full", "border-b", "border-gray-400", "pb-8" ]
+                                , classList [ ( "hidden", Session.isGuest model.session ) ]
+                                ]
                                 [ div
                                     [ tailwind [ "w-full" ] ]
                                     [ textarea
@@ -729,17 +723,8 @@ viewContent model dataNoteWebData =
                                         []
                                     , button
                                         [ onClick ClickedSubmitComment
-                                        , tailwind
-                                            [ "hover:bg-blue-400"
-                                            , "hover:text-white"
-                                            , "bg-gray-200"
-                                            , "uppercase"
-                                            , "text-gray-600"
-                                            , "font-bold"
-                                            , "text-sm"
-                                            , "ml-auto"
-                                            , "block"
-                                            ]
+                                        , tailwindButton
+                                        , tailwind [ "justify-center" ]
                                         ]
                                         [ text "Submit" ]
                                     ]
@@ -760,17 +745,7 @@ viewContent model dataNoteWebData =
                     ]
                     [ button
                         [ onClick (ClickedTab Official)
-                        , tailwind
-                            [ "flex-grow"
-                            , "rounded-none"
-                            , "border-0"
-                            , "text-xs"
-                            , "uppercase"
-                            , "font-bold"
-                            , "p-3"
-                            , "hover:bg-blue-400"
-                            , "hover:text-white"
-                            ]
+                        , tailwindTab
                         , classList
                             [ ( "bg-gray-200 text-gray-600", model.tab == Community )
                             , ( "text-blue-500", model.tab == Official )
@@ -779,17 +754,7 @@ viewContent model dataNoteWebData =
                         [ text "Notes" ]
                     , button
                         [ onClick (ClickedTab Community)
-                        , tailwind
-                            [ "flex-grow"
-                            , "rounded-none"
-                            , "border-0"
-                            , "text-xs"
-                            , "uppercase"
-                            , "font-bold"
-                            , "p-3"
-                            , "hover:bg-blue-400"
-                            , "hover:text-white"
-                            ]
+                        , tailwindTab
                         , classList
                             [ ( "bg-gray-200 text-gray-600", model.tab == Official )
                             , ( "text-blue-500", model.tab == Community )
@@ -811,7 +776,7 @@ viewNote : String -> List (Html Msg)
 viewNote content =
     case content of
         "" ->
-            [ text "We haven't added any official AORTA notes to this item yet - sorry about that! We'll be on it soon. In the meantime, you can submit public contributions below." ]
+            [ text "There are no official AORTA notes yet. In the meantime, you can view public contributions on the contributions tab and can submit contributions if you are logged in." ]
 
         value ->
             Markdown.toHtml Nothing content

@@ -361,7 +361,6 @@ viewBody model =
             , "justify-center"
             , "items-center"
             , "w-full"
-            , "bg-blue-400"
             , "overflow-auto"
             ]
         ]

@@ -201,6 +201,7 @@ wrapBody model body =
                 , "ml-8"
                 , "mr-6"
                 , "text-xl"
+                , "font-light"
                 ]
             ]
             [ text "aorta" ]

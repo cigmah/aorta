@@ -242,13 +242,13 @@ toBrief topic =
             "Cells"
 
         OrganLevelStructure ->
-            "Tissues"
+            "Anatomy"
 
         TheoryOfNormalFunction ->
-            "Normal Function"
+            "Physiology"
 
         TheoryOfAbnormalFunction ->
-            "Abnormal Function"
+            "Pathology"
 
         Medications ->
             "Drugs"
@@ -260,7 +260,7 @@ toBrief topic =
             "Exam"
 
         ClinicalInvestigtions ->
-            "Investigtions"
+            "Investigations"
 
         ClinicalProcedures ->
             "Procedures"
@@ -278,13 +278,13 @@ toBrief topic =
             "Paediatrics"
 
         DisordersPrimaryCarePrevention ->
-            "Primary Care"
+            "GP"
 
         DisordersTraumaExternal ->
             "Trauma"
 
         MiscellaneousTopics ->
-            "Miscellaneous"
+            "Misc."
 
 
 list : List Topic

@@ -22,6 +22,8 @@ import Http exposing (Error(..))
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Markdown
+import Random
+import Random.List
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Choice as Choice
 import Types.Comment as Comment
@@ -47,6 +49,7 @@ type alias Model =
 
 type WebQuestion
     = LoadingQuestion
+    | RandomisingQuestion Question.ReadData
     | FailureQuestion Http.Error
     | SuccessQuestion Question.ReadData State
 
@@ -85,6 +88,7 @@ type Msg
     = NoOp
     | ClickedClose
     | GotQuestion (WebData Question.ReadData)
+    | RandomisedQuestion (List Choice.ReadData)
     | ClickedChoice Choice.ReadData
     | GotResponseResponse (WebData ())
     | ClickedLike
@@ -240,7 +244,9 @@ update msg ({ session } as model) =
                 GotQuestion webData ->
                     case webData of
                         Success question ->
-                            ( { model | webQuestion = SuccessQuestion question Unanswered }, Cmd.none )
+                            ( { model | webQuestion = RandomisingQuestion question }
+                            , Random.generate RandomisedQuestion (Random.List.shuffle question.choices)
+                            )
 
                         Failure e ->
                             ( { model | webQuestion = FailureQuestion e }, Cmd.none )
@@ -250,6 +256,16 @@ update msg ({ session } as model) =
 
                 ClickedClose ->
                     exit
+
+                _ ->
+                    ignore
+
+        RandomisingQuestion question ->
+            case msg of
+                RandomisedQuestion choices ->
+                    ( { model | webQuestion = SuccessQuestion { question | choices = choices } Unanswered }
+                    , Cmd.none
+                    )
 
                 _ ->
                     ignore
@@ -422,11 +438,25 @@ view model =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
+    let
+        loading =
+            [ section [ class "modal question-modal" ]
+                [ article [ id "question" ]
+                    [ viewHeader model Unanswered
+                    , section [ tailwind [ "flex", "justify-center", "items-center" ] ]
+                        [ div [ class "loading" ] []
+                        ]
+                    ]
+                , article [ id "comments" ] []
+                ]
+            ]
+    in
     case model.webQuestion of
         LoadingQuestion ->
-            [ section [ class "modal" ]
-                [ div [ class "loading" ] [] ]
-            ]
+            loading
+
+        RandomisingQuestion question ->
+            loading
 
         FailureQuestion errorHttp ->
             [ section [ class "modal" ]
@@ -436,7 +466,7 @@ viewBody model =
         SuccessQuestion question state ->
             [ section [ class "modal question-modal" ]
                 [ viewQuestion model state question
-                , viewQuestionComments state question
+                , viewQuestionComments model state question
                 ]
             ]
 
@@ -447,6 +477,94 @@ viewBody model =
 
 viewQuestion : Model -> State -> Question.ReadData -> Html Msg
 viewQuestion model state question =
+    let
+        totalChosen =
+            List.map (\choice -> choice.numChosen) question.choices
+                |> List.sum
+    in
+    article [ id "question" ]
+        [ viewHeader model state
+        , section []
+            [ div
+                [ tailwind
+                    [ "mb-4" ]
+                , class "markdown"
+                ]
+                (Markdown.toHtml Nothing question.stem)
+            , div
+                [ tailwind
+                    [ "flex", "flex-col" ]
+                ]
+                (List.map (viewChoiceRead totalChosen state) question.choices)
+            ]
+        , viewFooter model state question
+        ]
+
+
+viewHeader : Model -> State -> Html Msg
+viewHeader model state =
+    let
+        viewComplete : { id : Int, wasCorrect : Bool } -> Html Msg
+        viewComplete { id, wasCorrect } =
+            div
+                [ tailwind [ "h-4", "w-4", "m-px", "rounded" ]
+                , classList
+                    [ ( "bg-green-500", wasCorrect )
+                    , ( "bg-red-500", not wasCorrect )
+                    ]
+                ]
+                []
+
+        viewCurrent =
+            case state of
+                Unanswered ->
+                    div [ tailwind [ "h-4", "w-4", "m-px", "rounded", "border", "bg-white", "border-blue-500" ] ] []
+
+                Answered answeredData ->
+                    let
+                        color =
+                            if answeredData.choice.isCorrect then
+                                "bg-green-500"
+
+                            else
+                                "bg-red-500"
+                    in
+                    div [ tailwind [ "h-4", "w-4", "m-px", "rounded", "border", color, "border-gray-400" ] ] []
+
+        viewFuture : a -> Html Msg
+        viewFuture _ =
+            div [ tailwind [ "h-4", "w-4", "m-px", "rounded", "bg-gray-300" ] ] []
+
+        progress =
+            case model.session.test of
+                Just test ->
+                    List.map viewComplete test.completed ++ [ viewCurrent ] ++ List.map viewFuture test.future
+
+                Nothing ->
+                    case state of
+                        Unanswered ->
+                            []
+
+                        Answered answeredData ->
+                            if answeredData.choice.isCorrect then
+                                [ span [ tailwind [ "text-green-500" ] ] [ text "Well done!" ] ]
+
+                            else
+                                [ span [ tailwind [ "text-red-500" ] ] [ text "Better luck next time!" ] ]
+    in
+    header
+        [ tailwind
+            [ "items-center", "flex", "bg-white" ]
+        ]
+        [ div [ tailwind [ "flex-grow", "justify-center", "flex-wrap", "flex", "overflow-auto" ] ]
+            progress
+        , button [ onClick ClickedClose, tailwind [ "hover:text-blue-800", "focus:text-blue-200" ] ]
+            [ i [ class "material-icons" ] [ text "close" ] ]
+        ]
+
+
+viewFooter : Model -> State -> Question.ReadData -> Html Msg
+viewFooter model state question =
     let
         ( isCorrect, isIncorrect ) =
             case state of
@@ -476,74 +594,71 @@ viewQuestion model state question =
         numLikesInfo =
             case question.numLikes of
                 Just int ->
-                    span [] [ text (String.fromInt int) ]
+                    div [ tailwind [ "ml-2", "font-bold", "text-sm" ] ] [ text (String.fromInt int) ]
 
                 Nothing ->
-                    span [] []
+                    div [] []
     in
-    article [ id "question" ]
-        [ header
-            [ classList
-                [ ( "correct-bg", isCorrect )
-                , ( "incorrect-bg", isIncorrect )
+    footer
+        [ classList
+            [ ( "opacity-0", state == Unanswered )
+            , ( "correct-bg", isCorrect )
+            , ( "incorrect-bg", isIncorrect )
+            ]
+        , tailwind
+            [ "transition", "opacity-1" ]
+        ]
+        [ button
+            [ onClick ClickedFlag
+            , tailwind [ "mx-1" ]
+            , type_ "button"
+            , classList [ ( "hidden", Session.isGuest model.session ) ]
+            ]
+            [ span [ class "material-icons" ] [ text "flag" ] ]
+        , button
+            [ onClick ClickedLike
+            , tailwind [ "mx-1", "flex", "items-center" ]
+            , type_ "button"
+            , classList
+                [ ( "cursor-auto text-gray-600", Session.isGuest model.session || Maybe.withDefault True question.liked )
+                , ( "border-blue-500", not <| Session.isGuest model.session && not (Maybe.withDefault True question.liked) )
                 ]
+            ]
+            [ span [ class "material-icons" ] [ text "thumb_up" ]
+            , numLikesInfo
+            ]
+        , button
+            [ onClick ClickedNextQuestion
             , tailwind
-                [ "items-center", "flex", "transition" ]
+                [ "mx-1"
+                , "border-2"
+                , "border-blue-500"
+                , "uppercase"
+                , "text-sm"
+                , "font-bold"
+                , "hover:bg-blue-500"
+                , "hover:text-white"
+                ]
+            , type_ "button"
             ]
-            [ h1
-                []
-                [ text ("Question #" ++ String.fromInt question.id) ]
-            , button [ onClick ClickedClose ]
-                [ i [ class "material-icons" ] [ text "close" ] ]
-            ]
-        , section []
-            [ div
-                [ tailwind
-                    [ "mb-4" ]
-                , class "markdown"
-                ]
-                (Markdown.toHtml Nothing question.stem)
-            , div
-                [ tailwind
-                    [ "flex", "flex-col" ]
-                ]
-                (List.map (viewChoiceRead state) question.choices)
-            ]
-        , footer
-            [ classList
-                [ ( "opacity-0", state == Unanswered )
-                , ( "correct-bg", isCorrect )
-                , ( "incorrect-bg", isIncorrect )
-                ]
-            , tailwind
-                [ "transition", "opacity-1" ]
-            ]
-            [ button
-                [ onClick ClickedFlag
-                , tailwind [ "mx-1" ]
-                , type_ "button"
-                ]
-                [ span [ class "material-icons" ] [ text "flag" ] ]
-            , button
-                [ onClick ClickedLike
-                , tailwind [ "mx-1" ]
-                , type_ "button"
-                ]
-                [ span [ class "material-icons" ] [ text "thumb_up" ]
-                , numLikesInfo
-                ]
-            , button
-                [ onClick ClickedNextQuestion
-                , tailwind [ "mx-1" ]
-                , type_ "button"
-                ]
-                [ text footerButtonText ]
-            ]
+            [ text footerButtonText ]
         ]
 
 
-viewChoiceRead : State -> Choice.ReadData -> Html Msg
-viewChoiceRead state choice =
+viewChoiceRead : Int -> State -> Choice.ReadData -> Html Msg
+viewChoiceRead total state choice =
+    let
+        percentChosen =
+            case total of
+                0 ->
+                    0
+
+                _ ->
+                    toFloat choice.numChosen
+                        / toFloat total
+                        |> (*) 100
+                        |> round
+    in
     case state of
         Unanswered ->
             button
@@ -553,7 +668,11 @@ viewChoiceRead state choice =
                     [ "my-1"
                     , "flex"
                     , "justify-start"
+                    , "border-2"
+                    , "border-blue-500"
                     , "hover:bg-blue-500"
+                    , "text-blue-500"
+                    , "font-semibold"
                     , "hover:text-white"
                     , "p-2"
                     ]
@@ -595,10 +714,11 @@ viewChoiceRead state choice =
                         , "p-2"
                         , "rounded"
                         , "items-center"
+                        , "font-semibold"
                         ]
                     ]
                     [ span [] [ text choice.content ]
-                    , span [ tailwind [ "ml-auto" ] ] [ text (String.fromInt choice.numChosen ++ " other users.") ]
+                    , span [ tailwind [ "ml-auto", "font-normal" ] ] [ text (String.fromInt percentChosen ++ "%") ]
                     ]
                 , div
                     [ class "markdown"
@@ -665,8 +785,8 @@ viewCommentChatStyle data =
         ]
 
 
-viewQuestionComments : State -> Question.ReadData -> Html Msg
-viewQuestionComments state question =
+viewQuestionComments : Model -> State -> Question.ReadData -> Html Msg
+viewQuestionComments model state question =
     case state of
         Unanswered ->
             article
@@ -690,16 +810,32 @@ viewQuestionComments state question =
                     ]
                 , footer
                     [ tailwind
-                        [ backgroundColor ]
+                        [ backgroundColor, "flex", "flex-col" ]
                     ]
                     [ textarea
                         [ placeholder "Comment here."
                         , value answeredData.comment
                         , onInput ChangedComment
-                        , tailwind [ "text-black" ]
+                        , tailwind [ "text-black", "text-sm" ]
+                        , classList [ ( "hidden", Session.isGuest model.session ) ]
                         , required True
+                        , rows 4
                         ]
                         []
-                    , button [ onClick ClickedSubmitComment, tailwind [ "ml-1" ] ] [ text "Submit" ]
+                    , button
+                        [ onClick ClickedSubmitComment
+                        , tailwind
+                            [ "mt-1"
+                            , "border-2"
+                            , "border-blue-500"
+                            , "hover:bg-blue-500"
+                            , "hover:text-white"
+                            , "uppercase"
+                            , "text-sm"
+                            , "font-bold"
+                            ]
+                        , classList [ ( "hidden", Session.isGuest model.session ) ]
+                        ]
+                        [ text "Submit" ]
                     ]
                 ]

@@ -4,6 +4,7 @@ port module Types.Session exposing
     , clearMessage
     , decoder
     , default
+    , isGuest
     , save
     )
 
@@ -55,6 +56,16 @@ default key =
     , reviseDomain = Nothing
     , test = Nothing
     }
+
+
+isGuest : Session -> Bool
+isGuest session =
+    case session.auth of
+        Guest ->
+            True
+
+        User _ ->
+            False
 
 
 addMessage : Session -> String -> Session

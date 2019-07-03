@@ -356,8 +356,7 @@ viewBody model =
     [ main_
         [ id "profile"
         , tailwind
-            [ "bg-gray-200"
-            , "min-h-screen"
+            [ "min-h-screen"
             , "pb-16"
             , "md:pt-16"
             , "pb-0"
@@ -404,7 +403,7 @@ cardIntro =
     article
         []
         [ header [] [ h1 [] [ text "About" ] ]
-        , section []
+        , section [ class "markdown" ]
             [ p []
                 [ strong [] [ text "AORTA " ]
                 , text " is "
