@@ -106,13 +106,7 @@ view model =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    [ main_
-        [ tailwind
-            [ "pb-16"
-            , "md:pb-0"
-            , "md:mt-16"
-            ]
-        ]
+    [ section [ class "modal" ]
         [ viewTestResults model ]
     ]
 

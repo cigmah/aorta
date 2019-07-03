@@ -1,15 +1,17 @@
 port module Types.Session exposing
     ( Session
     , addMessage
-    , clearMessages
+    , clearMessage
     , decoder
     , default
+    , isGuest
     , save
     )
 
 import Browser.Navigation exposing (Key)
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
+import List.Extra exposing (remove)
 import Types.Credentials as Credentials exposing (..)
 import Types.Domain as Domain exposing (Domain)
 import Types.Specialty as Specialty exposing (Specialty)
@@ -56,6 +58,16 @@ default key =
     }
 
 
+isGuest : Session -> Bool
+isGuest session =
+    case session.auth of
+        Guest ->
+            True
+
+        User _ ->
+            False
+
+
 addMessage : Session -> String -> Session
 addMessage session message =
     case session.message of
@@ -66,9 +78,18 @@ addMessage session message =
             { session | message = Just [ message ] }
 
 
-clearMessages : Session -> Session
-clearMessages session =
-    { session | message = Nothing }
+clearMessage : String -> Session -> Session
+clearMessage message session =
+    case session.message of
+        Just stringList ->
+            let
+                newMessages =
+                    remove message stringList
+            in
+            { session | message = Just newMessages }
+
+        Nothing ->
+            { session | message = Nothing }
 
 
 encodeMaybe : (a -> Value) -> Maybe a -> Value

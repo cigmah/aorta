@@ -139,43 +139,43 @@ toString specialty =
             "Principles"
 
         Cardiovascular ->
-            "Cardiovascular"
+            "Cardio"
 
         Respiratory ->
-            "Respiratory"
+            "Resp"
 
         Gastrointestinal ->
-            "Gastrointestinal"
+            "Gastro"
 
         RenalAndUrological ->
-            "Renal And Urological"
+            "Renal"
 
         MusculoskeletalAndRheumatological ->
-            "Musculoskeletal And Rheumatological"
+            "MSK"
 
         Neurological ->
-            "Neurological"
+            "Neuro"
 
         Haematological ->
-            "Haematological"
+            "Haem"
 
         Endocrine ->
-            "Endocrine"
+            "Endo"
 
         MentalAndBehavioural ->
-            "Mental And Behavioural"
+            "Psych"
 
         ObstetricAndGynaecological ->
-            "Obstetric And Gynaecological"
+            "Obgyn"
 
         Otolaryngological ->
-            "Otolaryngological"
+            "ENT"
 
         Ophthalmological ->
-            "Ophthalmological"
+            "Ophthal"
 
         Dermatological ->
-            "Dermatological"
+            "Derm"
 
 
 list : List Specialty

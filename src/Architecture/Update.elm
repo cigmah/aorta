@@ -45,9 +45,9 @@ update msg model =
             eject model
                 |> Init.fromRoute (Parser.fromUrl url)
 
-        ( ClearMessages, _ ) ->
+        ( ClickedMessage string, _ ) ->
             eject model
-                |> Session.clearMessages
+                |> Session.clearMessage string
                 |> inject model
 
         ( GotHomeMsg subMsg, Home subModel ) ->
