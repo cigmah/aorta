@@ -700,14 +700,15 @@ viewChoiceRead total state choice =
                     , ( "bg-red-200", not choice.isCorrect && opened )
                     , ( "bg-gray-200", not choice.isCorrect && not opened )
                     ]
-                , Html.Attributes.attribute openedString ""
+
+                --, Html.Attributes.attribute openedString ""
                 ]
                 [ summary
                     [ class "choice"
                     , classList
-                        [ ( "bg-red-500 text-white", not choice.isCorrect && opened )
-                        , ( "bg-green-500 text-white", choice.isCorrect )
-                        , ( "bg-gray-300 text-gray-800", not choice.isCorrect && not opened )
+                        [ ( "bg-red-500 text-white border-2 border-red-500", not choice.isCorrect && opened )
+                        , ( "bg-green-500 text-white border-2 border-green-500", choice.isCorrect )
+                        , ( "bg-gray-200 text-gray-700 border-2 border-gray-200", not choice.isCorrect && not opened )
                         ]
                     , tailwind
                         [ "flex"
