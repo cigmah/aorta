@@ -1,3 +1,3 @@
 module.exports = {
-    homepage: "https://cigmah.github.io/aorta",
+    homepage: "https://aorta.netlify.com",
 }
