@@ -33,6 +33,7 @@ type Topic
     | ClinicalProcedures
     | DisordersInfectious
     | DisordersNeoplastic
+    | DisordersEmergency
     | DisordersSpecific
     | DisordersPaediatric
     | DisordersPrimaryCarePrevention
@@ -85,20 +86,23 @@ toInt topic =
         DisordersNeoplastic ->
             13
 
-        DisordersSpecific ->
+        DisordersEmergency ->
             14
 
-        DisordersPaediatric ->
+        DisordersSpecific ->
             15
 
-        DisordersPrimaryCarePrevention ->
+        DisordersPaediatric ->
             16
 
-        DisordersTraumaExternal ->
+        DisordersPrimaryCarePrevention ->
             17
 
-        MiscellaneousTopics ->
+        DisordersTraumaExternal ->
             18
+
+        MiscellaneousTopics ->
+            19
 
 
 fromInt : Int -> Topic
@@ -147,18 +151,21 @@ fromInt int =
             DisordersNeoplastic
 
         14 ->
-            DisordersSpecific
+            DisordersEmergency
 
         15 ->
-            DisordersPaediatric
+            DisordersSpecific
 
         16 ->
-            DisordersPrimaryCarePrevention
+            DisordersPaediatric
 
         17 ->
-            DisordersTraumaExternal
+            DisordersPrimaryCarePrevention
 
         18 ->
+            DisordersTraumaExternal
+
+        19 ->
             MiscellaneousTopics
 
         _ ->
@@ -209,6 +216,9 @@ toString topic =
 
         DisordersNeoplastic ->
             "Disorders - Neoplastic"
+
+        DisordersEmergency ->
+            "Disorders - Emergency"
 
         DisordersSpecific ->
             "Disorders - Specific"
@@ -271,6 +281,9 @@ toBrief topic =
         DisordersNeoplastic ->
             "Neoplasms"
 
+        DisordersEmergency ->
+            "Emergencies"
+
         DisordersSpecific ->
             "Disorders"
 
@@ -303,6 +316,7 @@ list =
     , ClinicalProcedures
     , DisordersInfectious
     , DisordersNeoplastic
+    , DisordersEmergency
     , DisordersSpecific
     , DisordersPaediatric
     , DisordersPrimaryCarePrevention

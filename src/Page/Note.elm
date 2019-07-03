@@ -614,7 +614,10 @@ viewHeader model dataNoteWebData =
                     [ button
                         [ onClick OpenedAddQuestionModal
                         , tailwindButton
-                        , classList [ ( "hidden", Session.isGuest model.session ) ]
+                        , classList
+                            [ ( "hidden", Session.isGuest model.session )
+                            , ( "hidden", loading )
+                            ]
                         ]
                         [ i [ class "material-icons" ] [ text "add" ]
                         , span [ tailwind [ "ml-2" ] ] [ text "Add EMQ" ]

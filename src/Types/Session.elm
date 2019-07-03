@@ -12,8 +12,10 @@ import Browser.Navigation exposing (Key)
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
 import List.Extra exposing (remove)
+import RemoteData exposing (RemoteData(..), WebData)
 import Types.Credentials as Credentials exposing (..)
 import Types.Domain as Domain exposing (Domain)
+import Types.Note as Note
 import Types.Specialty as Specialty exposing (Specialty)
 import Types.Test as Test exposing (Test)
 import Types.Topic as Topic exposing (Topic)
@@ -24,6 +26,7 @@ type alias Session =
     { message : Maybe (List String)
     , auth : Auth
     , key : Key
+    , webDataNoteList : WebData (List Note.ListData)
     , reviseTopic : Maybe Topic
     , reviseSpecialty : Maybe Specialty
     , reviseYearLevel : Maybe YearLevel
@@ -37,6 +40,7 @@ fillKey auth topic specialty yearLevel domain key =
     { message = Nothing
     , auth = auth
     , key = key
+    , webDataNoteList = Loading
     , reviseTopic = topic
     , reviseSpecialty = specialty
     , reviseYearLevel = yearLevel
@@ -50,6 +54,7 @@ default key =
     { message = Nothing
     , auth = Guest
     , key = key
+    , webDataNoteList = Loading
     , reviseTopic = Nothing
     , reviseSpecialty = Nothing
     , reviseYearLevel = Nothing

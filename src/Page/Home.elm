@@ -25,7 +25,6 @@ import Url.Builder as Builder
 
 type alias Model =
     { session : Session
-    , webDataNoteList : WebData (List Note.ListData)
     , filter : String
     , results : WebData (List Note.ListData)
     }
@@ -52,7 +51,6 @@ init session =
     let
         initialModel =
             { session = session
-            , webDataNoteList = Loading
             , filter = ""
             , results = NotAsked
             }
@@ -94,7 +92,7 @@ subscriptions model =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg ({ session } as model) =
     let
         ignore =
             ( model, Cmd.none )
@@ -104,7 +102,7 @@ update msg model =
             ignore
 
         GotNoteList webData ->
-            ( { model | webDataNoteList = webData }, Cmd.none )
+            ( { model | session = { session | webDataNoteList = webData } }, Cmd.none )
 
         ChangedFilter string ->
             -- At some point, may need to change this if it hits the backend too hard
@@ -207,7 +205,7 @@ viewBody model =
                         , "relative"
                         ]
                     ]
-                    [ viewGrid model.webDataNoteList ]
+                    [ viewGrid model.session.webDataNoteList ]
                 ]
             ]
         ]
@@ -336,10 +334,35 @@ viewLoadingItem column row =
 
 viewGridItem : Note.ListData -> Html Msg
 viewGridItem note =
+    let
+        bg =
+            case ( note.numDue, note.numKnown ) of
+                ( Just due, Just known ) ->
+                    if note.numQuestions > 0 then
+                        if due > 0 then
+                            Color.hsl 0 (toFloat due / toFloat note.numQuestions) 0.4
+
+                        else
+                            Color.hsl 0.35 (toFloat known / toFloat note.numQuestions) 0.4
+
+                    else
+                        Color.white
+
+                _ ->
+                    Color.lightGray
+
+        border =
+            if note.numQuestions > 0 then
+                bg
+
+            else
+                Color.gray
+    in
     a
         [ class "note"
         , noteTailwind
-        , tailwind [ "bg-gray-200" ]
+        , style "background" (Color.toCssString bg)
+        , style "border" ("1px solid " ++ Color.toCssString border)
         , Route.toHref (Route.Note note.id)
         , attribute "data-tooltip" note.title
         , style "grid-column" (String.fromInt (Topic.toInt note.topic + 2))
