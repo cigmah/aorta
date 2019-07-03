@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 html {
-  @apply bg-gray-100;
+  @apply bg-white;
 }
 
 
@@ -84,7 +84,7 @@ form {
 }
 
 .fadeinout {
-  animation: fadeinout 1s;
+  animation: fadeinout 1s ease-in-out infinite;
 }
 
 .transition {
@@ -99,6 +99,23 @@ form {
 .fadein {
   animation: fadein 0.3s;
 }
+
+.rotate-90 {
+  -webkit-transform: rotate(-90deg);
+  -moz-transform: rotate(-90deg);
+  -o-transform: rotate(-90deg);
+  -ms-transform: rotate(-90deg);
+  transform: rotate(-90deg);
+}
+
+.rotate-45 {
+  -webkit-transform: rotate(-45deg);
+  -moz-transform: rotate(-45deg);
+  -o-transform: rotate(-45deg);
+  -ms-transform: rotate(-45deg);
+  transform: rotate(-45deg);
+}
+
 
 /* Utilities */
 
@@ -260,6 +277,7 @@ div.loading {
 
   .note:hover {
     transform: scale(1.1);
+    z-index: 50;
   }
 
 

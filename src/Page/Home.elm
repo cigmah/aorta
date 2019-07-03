@@ -6,6 +6,7 @@ import Color
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Http exposing (Error(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Credentials as Credentials exposing (Auth(..))
 import Types.Note as Note
@@ -38,6 +39,8 @@ type Msg
     = NoOp
     | GotNoteList (WebData (List Note.ListData))
     | ChangedFilter String
+    | ClearedFilter
+    | GotResults (WebData (List Note.ListData))
 
 
 
@@ -104,7 +107,29 @@ update msg model =
             ( { model | webDataNoteList = webData }, Cmd.none )
 
         ChangedFilter string ->
-            ( { model | filter = string }, Cmd.none )
+            -- At some point, may need to change this if it hits the backend too hard
+            let
+                cmd =
+                    if String.length string > 3 then
+                        Request.get (getFilteredNoteList model string)
+
+                    else
+                        Cmd.none
+
+                results =
+                    if String.length string > 3 then
+                        Loading
+
+                    else
+                        NotAsked
+            in
+            ( { model | filter = string, results = results }, cmd )
+
+        ClearedFilter ->
+            ( { model | filter = "", results = NotAsked }, Cmd.none )
+
+        GotResults results ->
+            ( { model | results = results }, Cmd.none )
 
 
 
@@ -121,13 +146,23 @@ getNoteList model =
     }
 
 
+getFilteredNoteList : Model -> String -> Request.GetRequest (List Note.ListData) Msg
+getFilteredNoteList model string =
+    { auth = model.session.auth
+    , endpoint = Request.GetNoteList
+    , callback = GotResults
+    , returnDecoder = Note.decoderList
+    , queryList = [ Builder.string "search" string ]
+    }
+
+
 
 -- View
 
 
 view : Model -> Document Msg
 view model =
-    { title = "AORTA - Matrix"
+    { title = "AORTA - Grid"
     , body = viewBody model
     }
 
@@ -136,8 +171,7 @@ viewBody : Model -> List (Html Msg)
 viewBody model =
     [ main_
         [ tailwind
-            [ "bg-gray-100"
-            , "pb-16"
+            [ "pb-16"
             , "md:pb-0"
             ]
         ]
@@ -146,22 +180,25 @@ viewBody model =
                 [ "w-full"
                 , "md:flex"
                 , "md:flex-col"
-                , "md:pt-16"
+                , "md:pt-24"
                 , "p-2"
                 ]
             ]
-            [ input
-                [ value model.filter
-                , onInput ChangedFilter
-                , placeholder "Search matrix item titles here."
-                , tailwind [ "md:w-1/2", "text-lg", "p-2", "mx-auto" ]
+            [ section [ tailwind [ "md:w-1/2", "mx-auto", "z-10", "hidden" ] ]
+                [ input
+                    [ value model.filter
+                    , onInput ChangedFilter
+                    , placeholder "Search matrix item titles here."
+                    , tailwind [ "w-full", "text-lg", "p-2", "mx-auto" ]
+                    ]
+                    []
+                , viewResults model.results
                 ]
-                []
             , article
                 [ tailwind
                     [ "md:container"
                     , "w-full"
-                    , "mt-4"
+                    , "md:mt-4"
                     ]
                 ]
                 [ section
@@ -185,8 +222,14 @@ viewGrid webData =
                 [ text "This is an error that shouldn't happen. If you see it, let us know!" ]
 
         Loading ->
-            div [ tailwind [ "flex", "justify-center", "items-center", "flex-grow", "h-full" ] ]
-                [ div [ class "loading" ] [] ]
+            div [ tailwind [ "flex", "flex-col", "md:grid", "mx-auto" ] ]
+                (gridRowHeaders
+                    ++ gridColumnHeaders
+                    ++ (List.map viewLoadingItem (List.range 0 (List.length Topic.list - 1))
+                            |> List.map (\f -> List.map f (List.range 0 (List.length Specialty.list - 1)))
+                            |> List.concat
+                       )
+                )
 
         Failure e ->
             div [ tailwind [ "flex", "justify-center", "items-center", "flex-grow", "h-full" ] ]
@@ -207,31 +250,95 @@ viewGrid webData =
                             , "mx-auto"
                             ]
                         ]
-                        (List.map viewGridItem nonEmptyData)
+                        (gridRowHeaders ++ gridColumnHeaders ++ List.map viewGridItem nonEmptyData)
+
+
+gridRowHeaders : List (Html Msg)
+gridRowHeaders =
+    let
+        showHeader row specialty =
+            div
+                [ style "grid-column" "1"
+                , style "grid-row" (String.fromInt <| row + 2)
+                , tailwind
+                    [ "text-xs"
+                    , "text-gray-700"
+                    , "text-right"
+                    , "pr-2"
+                    , "md:flex"
+                    , "items-center"
+                    , "justify-end"
+                    , "hidden"
+                    ]
+                ]
+                [ text (Specialty.toString specialty) ]
+    in
+    List.indexedMap showHeader Specialty.list
+
+
+gridColumnHeaders : List (Html Msg)
+gridColumnHeaders =
+    let
+        showHeader column topic =
+            div
+                [ style "grid-column" (String.fromInt <| column + 2)
+                , style "grid-row" "1"
+                , tailwind
+                    [ "text-xs"
+                    , "text-gray-700"
+                    , "w-8"
+                    , "leading-tight"
+                    , "md:flex"
+                    , "items-center"
+                    , "hidden"
+                    ]
+                ]
+                [ div
+                    [ tailwind [ "rotate-90", "min-w-0", "pl-2", "text-left" ] ]
+                    [ text (Topic.toBrief topic) ]
+                ]
+    in
+    List.indexedMap showHeader Topic.list
+
+
+noteTailwind : Attribute Msg
+noteTailwind =
+    tailwind
+        [ "md:w-6"
+        , "md:h-6"
+        , "lg:w-8"
+        , "lg:h-8"
+        , "my-1"
+        , "md:m-px"
+        , "rounded"
+        , "bg-gray-200"
+        , "relative"
+        , "p-2"
+        , "md:p-0"
+        , "transition"
+        ]
+
+
+viewLoadingItem : Int -> Int -> Html Msg
+viewLoadingItem column row =
+    a
+        [ noteTailwind
+        , tailwind [ "fadeinout" ]
+        , style "grid-column" (String.fromInt <| column + 2)
+        , style "grid-row" (String.fromInt <| row + 2)
+        ]
+        []
 
 
 viewGridItem : Note.ListData -> Html Msg
 viewGridItem note =
     a
         [ class "note"
-        , tailwind
-            [ "md:w-6"
-            , "md:h-6"
-            , "lg:w-8"
-            , "lg:h-8"
-            , "my-1"
-            , "md:m-px"
-            , "rounded"
-            , "bg-gray-200"
-            , "relative"
-            , "p-2"
-            , "md:p-0"
-            , "transition"
-            ]
+        , noteTailwind
         , Route.toHref (Route.Note note.id)
         , attribute "data-tooltip" note.title
-        , style "grid-column" (String.fromInt (Topic.toInt note.topic + 1))
-        , style "grid-row" (String.fromInt (Specialty.toInt note.specialty + 1))
+        , style "grid-column" (String.fromInt (Topic.toInt note.topic + 2))
+        , style "grid-row" (String.fromInt (Specialty.toInt note.specialty + 2))
         ]
         [ div
             [ tailwind
@@ -356,3 +463,45 @@ viewCard note =
                 ]
             ]
         ]
+
+
+viewResults : WebData (List Note.ListData) -> Html Msg
+viewResults webData =
+    let
+        viewResult : Note.ListData -> Html Msg
+        viewResult note =
+            article
+                []
+                [ text note.title ]
+    in
+    case webData of
+        Success notes ->
+            case notes of
+                [] ->
+                    section
+                        [ tailwind
+                            [ "bg-white", "p-2", "rounded-b", "absolute" ]
+                        ]
+                        [ article [] [ text "There are no results." ] ]
+
+                _ ->
+                    section
+                        [ tailwind
+                            [ "bg-white", "p-2", "rounded-b", "absolute" ]
+                        ]
+                        (List.map viewResult notes)
+
+        Loading ->
+            section
+                [ tailwind
+                    [ "bg-white", "p-2", "rounded-b", "absolute" ]
+                ]
+                [ article [] [ text "Loading" ] ]
+
+        Failure e ->
+            section
+                [ tailwind [ "bg-white", "p-2", "rounded-b" ] ]
+                [ article [] [ text "There was an error" ] ]
+
+        NotAsked ->
+            section [] []

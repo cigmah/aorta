@@ -1,7 +1,7 @@
 port module Types.Session exposing
     ( Session
     , addMessage
-    , clearMessages
+    , clearMessage
     , decoder
     , default
     , save
@@ -10,6 +10,7 @@ port module Types.Session exposing
 import Browser.Navigation exposing (Key)
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
+import List.Extra exposing (remove)
 import Types.Credentials as Credentials exposing (..)
 import Types.Domain as Domain exposing (Domain)
 import Types.Specialty as Specialty exposing (Specialty)
@@ -66,9 +67,18 @@ addMessage session message =
             { session | message = Just [ message ] }
 
 
-clearMessages : Session -> Session
-clearMessages session =
-    { session | message = Nothing }
+clearMessage : String -> Session -> Session
+clearMessage message session =
+    case session.message of
+        Just stringList ->
+            let
+                newMessages =
+                    remove message stringList
+            in
+            { session | message = Just newMessages }
+
+        Nothing ->
+            { session | message = Nothing }
 
 
 encodeMaybe : (a -> Value) -> Maybe a -> Value

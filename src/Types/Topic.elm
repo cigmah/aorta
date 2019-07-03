@@ -1,4 +1,15 @@
-module Types.Topic exposing (Topic(..), count, decoder, encode, fromInt, list, option, toInt, toString)
+module Types.Topic exposing
+    ( Topic(..)
+    , count
+    , decoder
+    , encode
+    , fromInt
+    , list
+    , option
+    , toBrief
+    , toInt
+    , toString
+    )
 
 import Color
 import Html exposing (Html)
@@ -213,6 +224,67 @@ toString topic =
 
         MiscellaneousTopics ->
             "Miscellaneous Topics"
+
+
+toBrief : Topic -> String
+toBrief topic =
+    case topic of
+        Overview ->
+            "Overview"
+
+        GlobalIssues ->
+            "Society"
+
+        Development ->
+            "Development"
+
+        CellLevelStructure ->
+            "Cells"
+
+        OrganLevelStructure ->
+            "Tissues"
+
+        TheoryOfNormalFunction ->
+            "Normal Function"
+
+        TheoryOfAbnormalFunction ->
+            "Abnormal Function"
+
+        Medications ->
+            "Drugs"
+
+        ClinicalHistory ->
+            "History"
+
+        ClinicalExam ->
+            "Exam"
+
+        ClinicalInvestigtions ->
+            "Investigtions"
+
+        ClinicalProcedures ->
+            "Procedures"
+
+        DisordersInfectious ->
+            "Infections"
+
+        DisordersNeoplastic ->
+            "Neoplasms"
+
+        DisordersSpecific ->
+            "Disorders"
+
+        DisordersPaediatric ->
+            "Paediatrics"
+
+        DisordersPrimaryCarePrevention ->
+            "Primary Care"
+
+        DisordersTraumaExternal ->
+            "Trauma"
+
+        MiscellaneousTopics ->
+            "Miscellaneous"
 
 
 list : List Topic

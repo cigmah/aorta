@@ -16,7 +16,7 @@ type Msg
     = UrlRequested UrlRequest
     | UrlChanged Url
     | RouteChanged Route
-    | ClearMessages
+    | ClickedMessage String
     | GotHomeMsg Home.Msg
     | GotNotFoundMsg NotFound.Msg
     | GotProfileMsg Profile.Msg

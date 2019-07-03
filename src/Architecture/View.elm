@@ -80,17 +80,21 @@ viewNavLink data =
             [ "flex"
             , "flex-col"
             , "p-2"
+            , "px-4"
             , "flex-grow"
             , "items-center"
             , "md:flex-none"
             , "md:flex-row"
             , "justify-center"
             , "cursor-pointer"
-            , "hover:bg-white"
-            , "hover:text-blue-800"
+            , "hover:bg-gray-200"
+            , "bg-white"
+            , "hover:text-gray-700"
+            , "text-sm"
+            , "uppercase"
             ]
         , classList
-            [ ( "bg-blue-600", data.active )
+            [ ( "text-blue-500 font-bold", data.active )
             , ( "md:ml-auto", data.right )
             ]
         ]
@@ -126,6 +130,7 @@ viewSingleMessage string =
             , "md:mb-4"
             , "cursor-pointer"
             ]
+        , onClick <| ClickedMessage string
         ]
         (Markdown.toHtml Nothing string)
 
@@ -138,7 +143,6 @@ viewMessage session =
         Just stringList ->
             section
                 [ class "message-list"
-                , onClick ClearMessages
                 , tailwind
                     [ "fixed", "right-0", "top-0", "md:p-2", "md:w-1/4", "z-50" ]
                 ]
@@ -175,8 +179,6 @@ wrapBody model body =
     [ nav
         [ tailwind
             [ "w-full"
-            , "bg-blue-500"
-            , "text-white"
             , "flex"
             , "fixed"
             , "bottom-0"
@@ -186,33 +188,22 @@ wrapBody model body =
             , "md:text-base"
             , "items-center"
             , "z-30"
+            , "text-gray-500"
+            , "bg-white"
             ]
         , classList
             [ ( "hidden", hideNav ) ]
         ]
-        [ img
-            [ src "./icon.svg"
-            , tailwind
-                [ "h-6"
-                , "w-6"
-                , "ml-4"
-                , "hidden"
-                , "md:block"
-                ]
-            ]
-            []
-        , div
+        [ div
             [ tailwind
-                [ "text-white"
-                , "font-bold"
-                , "hidden"
+                [ "hidden"
                 , "md:block"
-                , "ml-4"
+                , "ml-8"
                 , "mr-6"
-                , "text-lg"
+                , "text-xl"
                 ]
             ]
-            [ text "AORTA" ]
+            [ text "aorta" ]
         , viewNavLink
             { name = "Grid"
             , active = Parser.isEqual Route.Home model
