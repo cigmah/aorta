@@ -311,7 +311,8 @@ noteTailwind =
         , "md:h-6"
         , "lg:w-8"
         , "lg:h-8"
-        , "my-1"
+        , "my-px"
+        , "w-full"
         , "md:m-px"
         , "rounded"
         , "relative"
@@ -340,23 +341,34 @@ viewGridItem note =
                 ( Just due, Just known ) ->
                     if note.numQuestions > 0 then
                         if due > 0 then
-                            Color.hsl 0 (toFloat due / toFloat note.numQuestions) 0.4
+                            Color.hsl 0 (toFloat due / toFloat note.numQuestions / 2) 0.5
 
                         else
-                            Color.hsl 0.35 (toFloat known / toFloat note.numQuestions) 0.4
+                            Color.hsl 0.35 (toFloat known / toFloat note.numQuestions / 2) 0.5
 
                     else
                         Color.white
 
                 _ ->
-                    Color.lightGray
+                    if note.numQuestions > 0 then
+                        Color.rgb255 74 85 104
+
+                    else
+                        Color.white
 
         border =
             if note.numQuestions > 0 then
                 bg
 
             else
-                Color.gray
+                Color.lightGray
+
+        textColor =
+            if bg == Color.white then
+                Color.rgb255 74 85 104
+
+            else
+                Color.white
     in
     a
         [ class "note"
@@ -372,57 +384,14 @@ viewGridItem note =
             [ tailwind
                 [ "flex", "md:hidden" ]
             ]
-            [ div
+            [ h1
                 [ tailwind
-                    [ "bg-gray-400"
-                    , "h-24"
-                    , "w-24"
-                    , "mr-4"
-                    , "rounded"
+                    [ "font-bold"
+                    , "text-sm"
                     ]
+                , style "color" (Color.toCssString textColor)
                 ]
-                []
-            , div []
-                [ h1
-                    [ tailwind
-                        [ "text-gray-700"
-                        , "uppercase"
-                        , "font-bold"
-                        , "mb-2"
-                        ]
-                    ]
-                    [ text note.title ]
-                , div [ tailwind [ "flex", "flex-wrap" ] ]
-                    [ div
-                        [ tailwind
-                            [ "text-xs"
-                            , "text-gray-600"
-                            , "bg-gray-300"
-                            , "px-2"
-                            , "rounded-full"
-                            , "mr-2"
-                            , "mb-2"
-                            ]
-                        ]
-                        [ text (note.specialty |> Specialty.toString) ]
-                    , div
-                        [ tailwind
-                            [ "text-xs"
-                            , "text-gray-600"
-                            , "bg-gray-300"
-                            , "px-2"
-                            , "rounded-full"
-                            , "mb-2"
-                            ]
-                        ]
-                        [ text (note.topic |> Topic.toString) ]
-                    ]
-                , div
-                    [ tailwind [ "flex", "flex-wrap" ] ]
-                    [ div [ tailwind [ "text-xs", "mr-4" ] ] [ text (String.fromInt note.numQuestions ++ " questions.") ]
-                    , div [ tailwind [ "text-xs" ] ] [ text (String.fromInt note.numComments ++ " contributions.") ]
-                    ]
-                ]
+                [ text note.title ]
             ]
         ]
 

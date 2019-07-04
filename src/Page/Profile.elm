@@ -4,6 +4,7 @@ import Browser exposing (Document)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Http exposing (Error(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Contact as Contact
 import Types.Credentials as Credentials exposing (Auth(..), Credentials)
@@ -217,6 +218,9 @@ updateRegister msg data ({ session } as model) =
             if data.loading then
                 ignore
 
+            else if String.trim data.username == "" then
+                ( { model | session = Session.addMessage session "You can't have a blank username." }, Cmd.none )
+
             else
                 ( { model | modal = Register { data | loading = True } }
                 , Request.post (postRegisterData model data) |> Cmd.map RegisterMsg
@@ -241,11 +245,17 @@ updateRegister msg data ({ session } as model) =
                     )
 
                 Failure error ->
-                    ( { unloaded
-                        | session = Session.addMessage session "There was an error with registration. We apologise for the inconvenience. Try again later or get in touch with us."
-                      }
-                    , Cmd.none
-                    )
+                    let
+                        wrap errorMessage =
+                            ( { unloaded | session = Session.addMessage session errorMessage }, Cmd.none )
+                    in
+                    case error of
+                        Http.BadStatus 500 ->
+                            -- TODO Change the response code to something that isn't 500...and update both frontend and backend.
+                            wrap "Someone with that username and/or email already exists. Please try another username. If the problem persists, let us know."
+
+                        _ ->
+                            wrap "There was an error with registration. We apologise for the inconvenience. Try again later or get in touch with us."
 
                 _ ->
                     ignore
@@ -267,6 +277,9 @@ updateLogin msg data ({ session } as model) =
         LoginClickedSubmit ->
             if data.loading then
                 ignore
+
+            else if String.trim data.username == "" || String.trim data.password == "" then
+                ( { model | session = Session.addMessage session "You need to fill in both your username and password." }, Cmd.none )
 
             else
                 ( { model | modal = Login { data | loading = True } }
@@ -294,7 +307,7 @@ updateLogin msg data ({ session } as model) =
                 Failure error ->
                     -- TODO handle network errors etc. separately
                     ( { unloaded
-                        | session = Session.addMessage session "There was a problem with your login. If the issue persists, please get in touch with us."
+                        | session = Session.addMessage session "That login didn't work. If you think it should have, please get in touch with us."
                       }
                     , Cmd.none
                     )
@@ -424,12 +437,33 @@ cardIntro =
                 , text ". We welcome pull requests. "
                 ]
             , p []
-                [ text "Content on this website is written by users and volunteers, and provided under a "
-                , a [ rel "license", href "http://creativecommons.org/licenses/by-sa/4.0/" ]
-                    [ text "Creative Commons Attribution-ShareAlike 4.0 International License" ]
-                , text "."
+                [ text "Content on this website is written by users and volunteers"
                 ]
             ]
+        ]
+
+
+tailwindButton =
+    tailwind
+        [ "border-2"
+        , "bg-white"
+        , "hover:bg-blue-500"
+        , "hover:text-white"
+        , "border-blue-500"
+        , "text-sm"
+        , "uppercase"
+        , "font-bold"
+        , "mx-2"
+        ]
+
+
+tailwindLabel : Attribute msg
+tailwindLabel =
+    tailwind
+        [ "uppercase"
+        , "text-xs"
+        , "font-bold"
+        , "text-gray-700"
         ]
 
 
@@ -455,8 +489,8 @@ cardUser model =
                 [ header [] [ h1 [] [ text "User" ] ]
                 , section [] [ p [] [ text "You are not logged in." ] ]
                 , footer []
-                    [ button [ onClick ClickedOpenRegisterModal ] [ text "Register" ]
-                    , button [ onClick ClickedOpenLoginModal ] [ text "Login" ]
+                    [ button [ tailwindButton, onClick ClickedOpenRegisterModal ] [ text "Register" ]
+                    , button [ tailwindButton, onClick ClickedOpenLoginModal ] [ text "Login" ]
                     ]
                 ]
 
@@ -471,7 +505,7 @@ cardUser model =
                         ]
                     ]
                 , footer []
-                    [ button [ onClick ClickedLogout ] [ text "Logout" ] ]
+                    [ button [ tailwindButton, onClick ClickedLogout ] [ text "Logout" ] ]
                 ]
 
 
@@ -497,9 +531,9 @@ cardContact model =
                     [ p [] [ text "If you have any questions, feedback or feature requests, please get in touch with us." ]
                     , p [] [ text "You can contact us through the form below. A subject and body are required; a name and contact email are optional." ]
                     ]
-                , section [ class "controls" ]
+                , section [ class "controls", tailwind [ "mt-4" ] ]
                     [ div [ class "field" ]
-                        [ label [ for "contact-name" ] [ text "Name" ]
+                        [ label [ tailwindLabel, for "contact-name" ] [ text "Name" ]
                         , input
                             [ type_ "text"
                             , name "contact-name"
@@ -511,7 +545,7 @@ cardContact model =
                             []
                         ]
                     , div [ class "field" ]
-                        [ label [ for "contact-email" ] [ text "Email" ]
+                        [ label [ tailwindLabel, for "contact-email" ] [ text "Email" ]
                         , input
                             [ type_ "email"
                             , name "contact-email"
@@ -523,7 +557,7 @@ cardContact model =
                             []
                         ]
                     , div [ class "field" ]
-                        [ label [ for "contact-subject" ] [ text "Subject" ]
+                        [ label [ tailwindLabel, for "contact-subject" ] [ text "Subject" ]
                         , input
                             [ type_ "text"
                             , name "contact-subject"
@@ -536,7 +570,7 @@ cardContact model =
                             []
                         ]
                     , div [ class "field" ]
-                        [ label [ for "contact-body" ] [ text "Body" ]
+                        [ label [ tailwindLabel, for "contact-body" ] [ text "Body" ]
                         , textarea
                             [ name "contact-body"
                             , id "contact-body"
@@ -551,7 +585,7 @@ cardContact model =
                     ]
                 ]
             , footer []
-                [ button [ type_ "submit" ] [ submitContent model ]
+                [ button [ tailwindButton, type_ "submit" ] [ submitContent model ]
                 ]
             ]
         ]
@@ -577,15 +611,15 @@ hideRegister model =
 
 viewRegisterData : Register.Data -> Html RegisterSubMsg
 viewRegisterData data =
-    section []
+    section [ class "markdown" ]
         [ section [ class "explanation" ]
             [ p [] [ text "To register, we only require you to provide a username. \n              This username may be shown publicly on leaderboards or content you contribute, so we ask you to keep it appropriate and recommend you do not use your email as your username." ]
             , p [] [ text "When you click register, you will be given a randomly-generated password on screen for future use.\n              It is your responsibility to remember or safely store this password.\n              This password is hashed in our database.\n              For further security, we do not let users choose their own passwords." ]
             , p [] [ text "Providing an email address is optional; we give you this choice so you can provide as little information as you would like. Providing an email address allows us to generate a new random password for you to use if you forget or lose yours. If you do not provide an email address and lose your password, you will have to make a new account. We do not share or use your email for any other purpose." ]
             ]
-        , section [ class "controls" ]
+        , section [ class "controls", tailwind [ "mt-4" ] ]
             [ div [ class "field" ]
-                [ label [ for "register-username" ] [ text "Username" ]
+                [ label [ tailwindLabel, for "register-username" ] [ text "Username" ]
                 , input
                     [ type_ "text"
                     , name "register-username"
@@ -598,7 +632,7 @@ viewRegisterData data =
                     []
                 ]
             , div [ class "field" ]
-                [ label [ for "register-email" ] [ text "Email" ]
+                [ label [ tailwindLabel, for "register-email" ] [ text "Email" ]
                 , input
                     [ type_ "email"
                     , name "register-email"
@@ -667,21 +701,21 @@ modalRegister model =
         [ class "modal"
         , classList [ ( "hidden", hideRegister model ) ]
         ]
-        [ Html.form [ onSubmit (RegisterMsg RegisterClickedSubmit) ]
-            [ article []
-                [ header []
-                    [ h1 [] [ text "Register" ]
-                    , button [ onClick ClickedCloseModal ]
-                        [ i [ class "material-icons" ] [ text "close" ] ]
+        [ article []
+            [ header []
+                [ h1 [] [ text "Register" ]
+                , button [ onClick ClickedCloseModal ]
+                    [ i [ class "material-icons" ] [ text "close" ] ]
+                ]
+            , body
+            , footer []
+                [ button
+                    [ type_ "submit"
+                    , classList [ ( "hidden", hideRegisterSubmit model ) ]
+                    , tailwindButton
+                    , onClick (RegisterMsg RegisterClickedSubmit)
                     ]
-                , body
-                , footer []
-                    [ button
-                        [ type_ "submit"
-                        , classList [ ( "hidden", hideRegisterSubmit model ) ]
-                        ]
-                        [ submitButtonContent ]
-                    ]
+                    [ submitButtonContent ]
                 ]
             ]
         ]
@@ -712,9 +746,9 @@ viewLoginData data =
             , p [] [ text "If you have forgotten your password and provided an email when you registered, please contact us through\n              the contact form with your username and we will generate and email a new password to you." ]
             , p [] [ text "If you have forgotten your password and did not provide an email when you registered, you will have to make a new account." ]
             ]
-        , section [ class "controls" ]
+        , section [ class "controls", tailwind [ "mt-4" ] ]
             [ div [ class "field" ]
-                [ label [ for "login-username" ] [ text "Username" ]
+                [ label [ tailwindLabel, for "login-username" ] [ text "Username" ]
                 , input
                     [ type_ "text"
                     , name "login-username"
@@ -727,7 +761,7 @@ viewLoginData data =
                     []
                 ]
             , div [ class "field" ]
-                [ label [ for "login-password" ] [ text "Password" ]
+                [ label [ tailwindLabel, for "login-password" ] [ text "Password" ]
                 , input
                     [ type_ "password"
                     , name "login-password"
@@ -791,21 +825,21 @@ modalLogin model =
         [ class "modal"
         , classList [ ( "hidden", hideLogin model ) ]
         ]
-        [ Html.form [ onSubmit (LoginMsg LoginClickedSubmit) ]
-            [ article []
-                [ header []
-                    [ h1 [] [ text "Login" ]
-                    , button [ onClick ClickedCloseModal ]
-                        [ i [ class "material-icons" ] [ text "close" ] ]
+        [ article []
+            [ header []
+                [ h1 [] [ text "Login" ]
+                , button [ onClick ClickedCloseModal ]
+                    [ i [ class "material-icons" ] [ text "close" ] ]
+                ]
+            , body
+            , footer []
+                [ button
+                    [ type_ "submit"
+                    , classList [ ( "hidden", hideLoginSubmit model ) ]
+                    , tailwindButton
+                    , onClick (LoginMsg LoginClickedSubmit)
                     ]
-                , body
-                , footer []
-                    [ button
-                        [ type_ "submit"
-                        , classList [ ( "hidden", hideLoginSubmit model ) ]
-                        ]
-                        [ submitButtonContent ]
-                    ]
+                    [ submitButtonContent ]
                 ]
             ]
         ]

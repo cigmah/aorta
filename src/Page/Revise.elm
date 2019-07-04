@@ -353,6 +353,14 @@ viewBody model =
                     [ text "All Domains" ]
                     :: List.map (Domain.option model.session.reviseDomain) Domain.list
                 )
+
+        startText =
+            case model.response of
+                Loading ->
+                    "Loading"
+
+                _ ->
+                    "Start"
     in
     [ main_
         [ tailwind
@@ -379,6 +387,13 @@ viewBody model =
                 [ header
                     [ tailwind
                         [ "p-2"
+                        , "font-bold"
+                        , "uppercase"
+                        , "text-blue-500"
+                        , "text-sm"
+                        , "p-4"
+                        , "border-b"
+                        , "border-blue-300"
                         ]
                     ]
                     [ text "Revise Random Questions" ]
@@ -419,12 +434,33 @@ viewBody model =
                 , footer
                     [ tailwind
                         [ "px-2"
-                        , "py-1"
+                        , "py-2"
                         , "flex"
                         , "justify-end"
+                        , "border-t"
+                        , "border-blue-300"
+                        , "font-bold"
+                        , "text-blue-500"
+                        , "uppercase"
+                        , "text-sm"
                         ]
                     ]
-                    [ button [ onClick ClickedStart ] [ text "Start" ] ]
+                    [ button
+                        [ onClick ClickedStart
+                        , tailwind
+                            [ "border-blue-500"
+                            , "border-2"
+                            , "bg-white"
+                            , "text-blue-500"
+                            , "hover:bg-blue-500"
+                            , "hover:text-white"
+                            , "uppercase"
+                            , "text-sm"
+                            , "font-bold"
+                            ]
+                        ]
+                        [ text startText ]
+                    ]
                 ]
             ]
         ]
