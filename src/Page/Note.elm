@@ -7,10 +7,12 @@ import Color
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Http exposing (Error(..))
 import Json.Decode as Decode
 import Json.Encode as Encode
 import List.Extra exposing (getAt, setAt)
 import Markdown
+import Maybe.Extra
 import Random
 import Random.List exposing (choose)
 import RemoteData exposing (RemoteData(..), WebData)
@@ -269,7 +271,7 @@ update msg ({ session } as model) =
 
 
 updateAddQuestion : AddQuestionSubMsg -> AddQuestionData -> Note.Data -> Model -> ( Model, Cmd Msg )
-updateAddQuestion subMsg modalData noteData model =
+updateAddQuestion subMsg modalData noteData ({ session } as model) =
     let
         question =
             modalData.question
@@ -340,32 +342,87 @@ updateAddQuestion subMsg modalData noteData model =
             )
 
         PostedQuestion ->
+            let
+                errors =
+                    validateQuestion question
+            in
             case modalData.response of
                 Loading ->
                     ignore
 
                 _ ->
-                    -- TODO Validate
-                    ( { model | modal = ModalAddQuestion { modalData | response = Loading } }
-                    , Request.post (postQuestion model.session noteData.id modalData.question)
-                    )
+                    case errors of
+                        [] ->
+                            ( { model | modal = ModalAddQuestion { modalData | response = Loading } }
+                            , Request.post (postQuestion model.session noteData.id question)
+                            )
+
+                        _ ->
+                            let
+                                message =
+                                    "Your question was invalid because " ++ String.join ", " errors ++ "."
+                            in
+                            ( { model | session = Session.addMessage session message }, Cmd.none )
 
         GotAddQuestionResponse webData ->
             case webData of
                 Success _ ->
                     let
-                        newSession =
-                            Session.addMessage model.session "Thank you! Your EMQ has been added to this topic."
+                        newQuestion =
+                            Question.new
                     in
                     ( { model
-                        | modal = ModalAddQuestion { modalData | response = webData }
-                        , session = newSession
+                        | modal =
+                            ModalAddQuestion
+                                { modalData
+                                    | response = webData
+                                    , question = { newQuestion | yearLevel = question.yearLevel, domain = question.domain }
+                                }
                       }
                     , Cmd.none
                     )
 
                 _ ->
                     ( { model | modal = ModalAddQuestion { modalData | response = webData } }, Cmd.none )
+
+
+
+-- Validator
+
+
+validateQuestion : Question.CreationData -> List String
+validateQuestion question =
+    let
+        validStem =
+            case String.trim question.stem of
+                "" ->
+                    Just "your stem was blank"
+
+                _ ->
+                    Nothing
+
+        content =
+            List.map (String.trim << .content) question.choices
+
+        validChoiceContent =
+            if List.any ((==) "") content then
+                Just "one or more of your choices was blank"
+
+            else
+                Nothing
+
+        allUnique =
+            let
+                unique =
+                    List.Extra.unique content
+            in
+            if List.length unique == List.length content then
+                Nothing
+
+            else
+                Just "not all your choices were unique"
+    in
+    Maybe.Extra.values [ validStem, validChoiceContent, allUnique ]
 
 
 
@@ -468,7 +525,7 @@ tailwindButton =
         , "border-2"
         , "border-blue-400"
         , "w-full"
-        , "rounded"
+        , "md:rounded"
         , "md:my-1"
         , "hover:bg-blue-400"
         , "hover:text-white"
@@ -496,6 +553,7 @@ viewHeader model dataNoteWebData =
             button
                 [ onClick ClickedStudy
                 , tailwindButton
+                , tailwind [ "my-2" ]
                 ]
                 [ i [ class "material-icons" ] [ text "check" ]
                 , span [ tailwind [ "ml-2" ] ] [ text studyButtonText ]
@@ -506,7 +564,7 @@ viewHeader model dataNoteWebData =
                 Success noteData ->
                     case noteData.dueIds of
                         Just (head :: tail) ->
-                            makeStudyButton "Review Due"
+                            makeStudyButton <| "Review " ++ String.fromInt (List.length tail + 1) ++ " due EMQs"
 
                         _ ->
                             case noteData.allIds of
@@ -515,7 +573,7 @@ viewHeader model dataNoteWebData =
 
                                 list ->
                                     makeStudyButton
-                                        ("Study " ++ String.fromInt (List.length list) ++ " EMQs")
+                                        ("Study all " ++ String.fromInt (List.length list) ++ " EMQs")
 
                 _ ->
                     div [] []
@@ -576,17 +634,26 @@ viewHeader model dataNoteWebData =
                         , "transition"
                         , "mx-auto"
                         , "md:mb-2"
+                        , "flex"
+                        , "md:block"
+                        , "items-center"
                         ]
                     ]
-                    [ div
+                    [ a
+                        [ Route.toHref Route.Home
+                        , tailwind [ "md:hidden", "text-white", "mr-4", "flex", "items-center" ]
+                        ]
+                        [ i [ class "material-icons" ] [ text "arrow_back" ] ]
+                    , div
                         [ tailwind
-                            [ "text-sm", "text-white", "text-center", "uppercase" ]
+                            [ "text-sm", "text-white", "text-center", "uppercase", "flex", "items-center" ]
                         ]
                         [ text title ]
                     ]
                 , a
                     [ href "/"
                     , tailwindButton
+                    , tailwind [ "hidden", "md:flex" ]
                     ]
                     [ i [ class "material-icons" ] [ text "arrow_back" ]
                     , span [ tailwind [ "ml-2" ] ] [ text "Back" ]
@@ -614,6 +681,7 @@ viewHeader model dataNoteWebData =
                     [ button
                         [ onClick OpenedAddQuestionModal
                         , tailwindButton
+                        , tailwind [ "mr-2", "ml-1", "my-2", "md:ml-0", "md:mr-0" ]
                         , classList
                             [ ( "hidden", Session.isGuest model.session )
                             , ( "hidden", loading )
@@ -643,7 +711,7 @@ viewHeader model dataNoteWebData =
 
         Failure e ->
             wrap
-                "Failure"
+                "There was an error."
                 ""
                 []
                 False
@@ -700,7 +768,7 @@ viewContent model dataNoteWebData =
             wrap [ text "Not asked" ]
 
         Failure e ->
-            wrap [ text "Failure" ]
+            wrap [ div [ tailwind [ "h-full", "flex", "items-center", "justify-center", "p-4" ] ] [ text "It seems like there was an error. We're sorry. Let us know, or try again later." ] ]
 
         Success data ->
             let
@@ -831,22 +899,66 @@ viewModal modal =
             viewModalAddQuestion addQuestionData
 
 
+labelTailwind : Attribute msg
+labelTailwind =
+    tailwind
+        [ "uppercase"
+        , "text-xs"
+        , "font-bold"
+        , "text-gray-700"
+        ]
+
+
 viewModalAddQuestion : AddQuestionData -> Html Msg
 viewModalAddQuestion addQuestionData =
+    let
+        viewAddMessage =
+            case addQuestionData.response of
+                Success question ->
+                    div
+                        [ tailwind [ "text-green-500", "pl-2", "font-bold", "normal-case", "text-sm", "flex-grow" ] ]
+                        [ text "Thank you. Your question was added successfully." ]
+
+                Failure e ->
+                    let
+                        wrap string =
+                            div [ tailwind [ "text-red-500", "pl-2", "font-bold", "normal-case", "text-sm", "flex-grow" ] ] [ text string ]
+                    in
+                    case e of
+                        Http.BadStatus 500 ->
+                            wrap "There was an error. Did you fill out all the fields? Let us know!"
+
+                        Http.NetworkError ->
+                            wrap "There was a network error."
+
+                        _ ->
+                            wrap "There was an error. Let us know!"
+
+                Loading ->
+                    div
+                        [ tailwind [ "text-grey-500", "pl-2", "font-bold", "normal-case", "text-sm", "flex-grow" ] ]
+                        [ text "Loading..." ]
+
+                _ ->
+                    div [] []
+    in
     section [ class "modal" ]
         [ article []
             [ header
                 [ tailwind
-                    [ "flex", "items-center" ]
+                    [ "flex", "items-center", "border-b-2", "border-blue-300" ]
                 ]
                 [ h1 []
-                    [ text "Add EMQ" ]
-                , button [ onClick ClickedCloseModal ]
+                    [ text "Create an EMQ" ]
+                , button
+                    [ onClick ClickedCloseModal
+                    , tailwind [ "hover:text-blue-800" ]
+                    ]
                     [ i [ class "material-icons" ] [ text "close" ] ]
                 ]
             , section []
                 [ div [ class "field" ]
-                    [ label [ for "stem" ] [ text "Question Stem" ]
+                    [ label [ for "stem", labelTailwind ] [ text "Question Stem" ]
                     , textarea
                         [ value addQuestionData.question.stem
                         , placeholder "Question stem"
@@ -857,18 +969,20 @@ viewModalAddQuestion addQuestionData =
                         []
                     ]
                 , div [ class "field" ]
-                    [ label [ for "domain" ] [ text "Domain" ]
+                    [ label [ for "domain", labelTailwind ] [ text "Domain" ]
                     , select
                         [ onInput (AddQuestionMsg << ChangedDomain)
+                        , tailwind [ "mb-2" ]
                         , value (addQuestionData.question.domain |> Domain.toInt |> String.fromInt)
                         , id "domain"
                         ]
                         (List.map (Domain.option (Just addQuestionData.question.domain)) Domain.list)
                     ]
                 , div [ class "field" ]
-                    [ label [ for "year_level" ] [ text "Year Level" ]
+                    [ label [ for "year_level", labelTailwind ] [ text "Year Level" ]
                     , select
                         [ onInput (AddQuestionMsg << ChangedYearLevel)
+                        , tailwind [ "mb-2" ]
                         , value (addQuestionData.question.yearLevel |> YearLevel.toInt |> String.fromInt)
                         , id "year_level"
                         ]
@@ -882,12 +996,43 @@ viewModalAddQuestion addQuestionData =
                     |> Html.map AddQuestionMsg
                 , div []
                     [ button
-                        [ onClick (AddQuestionMsg AddedChoice), type_ "button" ]
-                        [ text "Add Distractor" ]
+                        [ onClick (AddQuestionMsg AddedChoice)
+                        , type_ "button"
+                        , tailwind
+                            [ "border-2"
+                            , "border-blue-500"
+                            , "hover:bg-blue-500"
+                            , "hover:text-white"
+                            , "text-blue-500"
+                            , "items-center"
+                            , "uppercase"
+                            , "font-bold"
+                            , "text-xs"
+                            , "flex"
+                            ]
+                        ]
+                        [ div [ class "material-icons" ] [ text "add" ], text "Add Distractor" ]
                     ]
                 ]
-            , footer []
-                [ button [ type_ "submit", onClick (AddQuestionMsg PostedQuestion) ] [ text "Add Question" ]
+            , footer
+                [ tailwind [ "border-t-2", "border-blue-300", "flex", "items-center" ] ]
+                [ viewAddMessage
+                , button
+                    [ type_ "submit"
+                    , tailwind
+                        [ "border-2"
+                        , "border-blue-500"
+                        , "hover:bg-blue-500"
+                        , "hover:text-white"
+                        , "text-blue-500"
+                        , "font-bold"
+                        , "uppercase"
+                        , "text-sm"
+                        , "ml-2"
+                        ]
+                    , onClick (AddQuestionMsg PostedQuestion)
+                    ]
+                    [ text "Add Question" ]
                 ]
             ]
         ]
@@ -904,8 +1049,12 @@ viewCreateChoice int creationDataChoice =
             div [ class "field choice" ]
                 [ label
                     [ for choiceId
+                    , labelTailwind
+                    , tailwind [ "items-center", "flex" ]
                     ]
-                    [ text "Answer" ]
+                    [ div [ class "material-icons", tailwind [ "mr-2", "text-green-500" ] ] [ text "done" ]
+                    , text "Correct Answer"
+                    ]
                 , input
                     [ value creationDataChoice.content
                     , placeholder "Correct choice"
@@ -918,7 +1067,7 @@ viewCreateChoice int creationDataChoice =
                     []
                 , textarea
                     [ value creationDataChoice.explanation
-                    , placeholder "This is correct because..."
+                    , placeholder "This is correct because.../Additional explanation"
                     , onInput (ChangedChoiceExplanation int)
                     ]
                     []
@@ -928,8 +1077,10 @@ viewCreateChoice int creationDataChoice =
             div [ class "field choice" ]
                 [ label
                     [ for choiceId
+                    , labelTailwind
+                    , tailwind [ "items-center", "flex" ]
                     ]
-                    [ text "Distractor" ]
+                    [ div [ class "material-icons", tailwind [ "mr-2", "text-red-500" ] ] [ text "clear" ], text "Distractor" ]
                 , input
                     [ value creationDataChoice.content
                     , placeholder "Incorrect choice"
@@ -942,7 +1093,7 @@ viewCreateChoice int creationDataChoice =
                     []
                 , textarea
                     [ value creationDataChoice.explanation
-                    , placeholder "This is incorrect because..."
+                    , placeholder "This is incorrect because.../Additional explanation"
                     , onInput (ChangedChoiceExplanation int)
                     , class "incorrect"
                     ]

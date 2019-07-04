@@ -331,7 +331,22 @@ update msg ({ session } as model) =
                                     )
 
                         GotLikeResponse webData ->
-                            ( wrap { data | likeResponse = webData }, Cmd.none )
+                            case webData of
+                                Success _ ->
+                                    ( { model
+                                        | webQuestion =
+                                            SuccessQuestion
+                                                { question
+                                                    | numLikes = Maybe.withDefault 0 question.numLikes + 1 |> Just
+                                                    , liked = Just True
+                                                }
+                                                (Answered { data | likeResponse = webData })
+                                      }
+                                    , Cmd.none
+                                    )
+
+                                _ ->
+                                    ( wrap { data | likeResponse = webData }, Cmd.none )
 
                         ClickedFlag ->
                             case data.flagResponse of
@@ -377,6 +392,23 @@ update msg ({ session } as model) =
                                                         , comment = ""
                                                     }
                                                 )
+                                      }
+                                    , Cmd.none
+                                    )
+
+                                Failure e ->
+                                    let
+                                        message =
+                                            case e of
+                                                Http.NetworkError ->
+                                                    "There was a network error."
+
+                                                _ ->
+                                                    "There was an error submitting your comment. Please try again later."
+                                    in
+                                    ( { model
+                                        | webQuestion = SuccessQuestion question (Answered { data | commentResponse = webData })
+                                        , session = Session.addMessage session message
                                       }
                                     , Cmd.none
                                     )
@@ -496,6 +528,10 @@ viewQuestion model state question =
                     [ "flex", "flex-col" ]
                 ]
                 (List.map (viewChoiceRead totalChosen state) question.choices)
+            , div [ tailwind [ "text-gray-500", "text-sm", "text-right", "w-full", "mt-4" ] ]
+                [ text "Contributed by "
+                , span [ tailwind [ "font-bold" ] ] [ text question.contributor.username ]
+                ]
             ]
         , viewFooter model state question
         ]
@@ -556,7 +592,7 @@ viewHeader model state =
         [ tailwind
             [ "items-center", "flex", "bg-white" ]
         ]
-        [ div [ tailwind [ "flex-grow", "justify-center", "flex-wrap", "flex", "overflow-auto" ] ]
+        [ div [ tailwind [ "flex-grow", "flex-wrap", "flex", "overflow-auto" ] ]
             progress
         , button [ onClick ClickedClose, tailwind [ "hover:text-blue-800", "focus:text-blue-200" ] ]
             [ i [ class "material-icons" ] [ text "close" ] ]
@@ -598,6 +634,33 @@ viewFooter model state question =
 
                 Nothing ->
                     div [] []
+
+        ( likeStyles, canLike ) =
+            case question.liked of
+                Just False ->
+                    ( "border-2 border-blue-500 hover:bg-blue-500 hover:text-white", True )
+
+                _ ->
+                    ( "", False )
+
+        ( isFlagDisabled, flagContents ) =
+            case state of
+                Unanswered ->
+                    ( False, span [] [] )
+
+                Answered answeredData ->
+                    case answeredData.flagResponse of
+                        NotAsked ->
+                            ( False, span [ class "material-icons" ] [ text "flag" ] )
+
+                        Loading ->
+                            ( True, span [ class "material-icons" ] [ text "hourglass_empty" ] )
+
+                        Success _ ->
+                            ( True, span [] [ text "Received" ] )
+
+                        Failure _ ->
+                            ( False, span [] [ text "Error - try again later." ] )
     in
     footer
         [ classList
@@ -611,13 +674,20 @@ viewFooter model state question =
         [ button
             [ onClick ClickedFlag
             , tailwind [ "mx-1" ]
+            , classList
+                [ ( "border-2 border-blue-500 hover:bg-blue-500 hover:text-white", not isFlagDisabled )
+                , ( "text-gray-600 cursor-auto uppercase text-bold", isFlagDisabled )
+                ]
             , type_ "button"
             , classList [ ( "hidden", Session.isGuest model.session ) ]
+            , disabled isFlagDisabled
             ]
-            [ span [ class "material-icons" ] [ text "flag" ] ]
+            [ flagContents ]
         , button
             [ onClick ClickedLike
             , tailwind [ "mx-1", "flex", "items-center" ]
+            , class likeStyles
+            , disabled (not canLike)
             , type_ "button"
             , classList
                 [ ( "cursor-auto text-gray-600", Session.isGuest model.session || Maybe.withDefault True question.liked )
@@ -708,7 +778,7 @@ viewChoiceRead total state choice =
                     , classList
                         [ ( "bg-red-500 text-white border-2 border-red-500", not choice.isCorrect && opened )
                         , ( "bg-green-500 text-white border-2 border-green-500", choice.isCorrect )
-                        , ( "bg-gray-200 text-gray-700 border-2 border-gray-200", not choice.isCorrect && not opened )
+                        , ( "bg-gray-300 text-gray-700 border-2 border-gray-300", not choice.isCorrect && not opened )
                         ]
                     , tailwind
                         [ "flex"
@@ -803,6 +873,14 @@ viewQuestionComments model state question =
 
                         False ->
                             "incorrect-bg"
+
+                submitText =
+                    case answeredData.commentResponse of
+                        Loading ->
+                            "Loading"
+
+                        _ ->
+                            "Submit"
             in
             article [ id "comments" ]
                 [ section []
@@ -837,6 +915,6 @@ viewQuestionComments model state question =
                             ]
                         , classList [ ( "hidden", Session.isGuest model.session ) ]
                         ]
-                        [ text "Submit" ]
+                        [ text submitText ]
                     ]
                 ]

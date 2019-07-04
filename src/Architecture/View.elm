@@ -129,10 +129,14 @@ viewSingleMessage string =
             , "md:rounded"
             , "md:mb-4"
             , "cursor-pointer"
+            , "flex"
+            , "justify-between"
             ]
         , onClick <| ClickedMessage string
         ]
-        (Markdown.toHtml Nothing string)
+        [ div [] (Markdown.toHtml Nothing string)
+        , div [ class "material-icons" ] [ text "clear" ]
+        ]
 
 
 {-| View the list of all messages in a session |
@@ -144,7 +148,7 @@ viewMessage session =
             section
                 [ class "message-list"
                 , tailwind
-                    [ "fixed", "right-0", "top-0", "md:p-2", "md:w-1/4", "z-50" ]
+                    [ "fixed", "right-0", "top-0", "md:p-2", "md:w-1/4", "z-50", "w-full" ]
                 ]
                 (List.map viewSingleMessage stringList)
 
@@ -166,7 +170,7 @@ wrapBody model body =
                     user.username
 
                 Guest ->
-                    "Log In"
+                    "Info"
 
         hideNav =
             case model of
