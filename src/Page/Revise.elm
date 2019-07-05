@@ -9,6 +9,7 @@ import Html.Events exposing (..)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Maybe.Extra exposing (isJust, isNothing)
+import Page.Elements as Elements
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Choice as Choice
 import Types.Comment as Comment
@@ -362,26 +363,19 @@ viewBody model =
                 _ ->
                     "Start"
     in
-    [ main_
-        [ tailwind
-            [ "min-h-screen"
-            , "flex"
-            , "justify-center"
-            , "items-center"
-            , "w-full"
-            , "overflow-auto"
-            ]
-        ]
+    [ Elements.safeCenter
         [ section
             [ tailwind [ "container", "flex", "justify-center", "items-center" ] ]
             [ article
                 [ tailwind
                     [ "bg-white"
-                    , "shadow-lg"
+                    , "md:shadow-lg"
                     , "rounded"
                     , "flex"
                     , "flex-col"
                     , "h-full"
+                    , "w-full"
+                    , "md:w-auto"
                     ]
                 ]
                 [ header
@@ -404,26 +398,27 @@ viewBody model =
                         ]
                     ]
                     [ div [ class "field" ]
-                        [ label [] [ text "Specialty" ]
+                        [ Elements.label "Specialty" "specialty"
                         , specialtySelect
                         ]
                     , div [ class "field" ]
-                        [ label [] [ text "Topic" ]
+                        [ Elements.label "Topic" "topic"
                         , topicSelect
                         ]
                     , div [ class "field" ]
-                        [ label [] [ text "Year Level" ]
+                        [ Elements.label "Year Level" "year-level"
                         , yearLevelSelect
                         ]
                     , div [ class "field" ]
-                        [ label [] [ text "Domain" ]
+                        [ Elements.label "Domain" "domain"
                         , domainSelect
                         ]
                     , div [ class "field" ]
-                        [ label [] [ text "Quantity" ]
+                        [ Elements.label "Quantity" "quantity"
                         , input
                             [ type_ "number"
                             , value (String.fromInt model.quantity)
+                            , id "quantity"
                             , onInput ChangedQuantity
                             , Html.Attributes.min "1"
                             , Html.Attributes.max "100"

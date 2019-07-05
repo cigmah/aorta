@@ -13,6 +13,7 @@ import Json.Encode as Encode
 import List.Extra exposing (getAt, setAt)
 import Markdown
 import Maybe.Extra
+import Page.Elements as Elements
 import Random
 import Random.List exposing (choose)
 import RemoteData exposing (RemoteData(..), WebData)
@@ -478,23 +479,8 @@ view model =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    [ main_
-        [ tailwind
-            [ "h-screen"
-            , "bg-grey-200"
-            , "mx-auto"
-            , "overflow-auto"
-            , "md:p-4"
-            , "md:pt-10"
-            ]
-        ]
-        [ section
-            [ tailwind
-                [ "md:flex"
-                , "container"
-                , "mx-auto"
-                ]
-            ]
+    [ Elements.safeMain
+        [ Elements.container
             [ viewHeader model model.webDataNote
             , section
                 [ tailwind
@@ -735,7 +721,7 @@ viewContent model dataNoteWebData =
                     , "flex-grow"
                     , "bg-white"
                     , "rounded"
-                    , "shadow-lg"
+                    , "md:shadow-lg"
                     , "pb-16"
                     , "min-h-screen"
                     , "md:min-h-0"
@@ -778,6 +764,15 @@ viewContent model dataNoteWebData =
                             viewNote data.content
 
                         Community ->
+                            let
+                                commentView =
+                                    case data.comments of
+                                        [] ->
+                                            [ p [] [ text "There aren't any public contributions yet." ] ]
+
+                                        _ ->
+                                            List.map viewComment data.comments
+                            in
                             [ div
                                 [ tailwind [ "mb-4", "w-full", "border-b", "border-gray-400", "pb-8" ]
                                 , classList [ ( "hidden", Session.isGuest model.session ) ]
@@ -802,10 +797,8 @@ viewContent model dataNoteWebData =
                                 ]
                             , div
                                 [ id "comments"
-                                , tailwind
-                                    []
                                 ]
-                                (List.map viewComment data.comments)
+                                commentView
                             ]
             in
             wrap

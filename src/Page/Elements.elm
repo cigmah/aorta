@@ -2,6 +2,7 @@ module Page.Elements exposing
     ( SearchBarData
     , container
     , errorMessage
+    , label
     , loadingGrid
     , messages
     , navBar
@@ -60,13 +61,14 @@ navLink isRight data =
             , "hover:bg-gray-200"
             , "bg-white"
             , "hover:text-gray-700"
-            , "text-sm"
+            , "text-xs"
             , "uppercase"
             , "outline-none"
             , "focus:bg-gray-300"
+            , "font-bold"
             ]
         , classList
-            [ ( "text-blue-500 font-bold", data.active )
+            [ ( "text-blue-500", data.active )
             , ( "md:ml-auto", isRight )
             , ( "hidden", data.hideOnMobile )
             , ( "flex", not data.hideOnMobile )
@@ -80,7 +82,7 @@ navLink isRight data =
                 [ "md:pr-2" ]
             ]
             [ text data.icon ]
-        , label
+        , Html.label
             [ tailwind
                 [ "cursor-pointer"
                 , "md:pr-2"
@@ -102,8 +104,10 @@ navBar hideNav navLinksLeft searchBarData navLinksRight =
             , "md:bottom-auto"
             , "text-sm"
             , "md:text-base"
-            , "items-center"
+            , "items-stretch"
             , "z-30"
+            , "border-b"
+            , "border-gray-300"
             , "text-gray-500"
             , "bg-white"
             ]
@@ -113,14 +117,16 @@ navBar hideNav navLinksLeft searchBarData navLinksRight =
         (div
             [ tailwind
                 [ "hidden"
-                , "md:block"
                 , "ml-8"
                 , "mr-6"
                 , "text-xl"
                 , "font-light"
+                , "text-blue-500"
+                , "md:flex"
+                , "items-center"
                 ]
             ]
-            [ text "aorta" ]
+            [ div [] [ text "aorta" ] ]
             :: List.map (navLink False) navLinksLeft
             ++ [ searchBar searchBarData ]
             ++ List.map (navLink True) navLinksRight
@@ -270,11 +276,12 @@ safeMain : List (Html msg) -> Html msg
 safeMain =
     main_
         [ tailwind
-            [ "p-4"
+            [ "p-2"
+            , "md:p-4"
             , "pb-16"
             , "md:pb-4"
             , "md:min-h-screen"
-            , "md:pt-8"
+            , "md:pt-16"
             , "h-screen"
             , "overflow-auto"
             , "md:h-auto"
@@ -296,7 +303,7 @@ safeCenter =
             , "items-center"
             , "overflow-auto"
             , "md:pb-4"
-            , "md:pt-8"
+            , "md:pt-16"
             ]
         ]
 
@@ -308,6 +315,7 @@ container =
             [ "container"
             , "mx-auto"
             , "min-h-full"
+            , "md:flex"
             ]
         ]
 
@@ -569,3 +577,21 @@ loadingGrid =
                     |> List.map (\f -> List.map f (List.range 0 (List.length Specialty.list - 1)))
                     |> List.concat
                )
+
+
+
+-- Forms
+
+
+label : String -> String -> Html msg
+label labelText forId =
+    Html.label
+        [ tailwind
+            [ "font-bold"
+            , "text-gray-600"
+            , "text-xs"
+            , "uppercase"
+            ]
+        , for forId
+        ]
+        [ text labelText ]
