@@ -1,6 +1,8 @@
 port module Types.Session exposing
     ( Session
     , addMessage
+    , changeSearch
+    , changeSearchResult
     , clearMessage
     , decoder
     , default
@@ -16,6 +18,7 @@ import RemoteData exposing (RemoteData(..), WebData)
 import Types.Credentials as Credentials exposing (..)
 import Types.Domain as Domain exposing (Domain)
 import Types.Note as Note
+import Types.Request as Request
 import Types.Specialty as Specialty exposing (Specialty)
 import Types.Test as Test exposing (Test)
 import Types.Topic as Topic exposing (Topic)
@@ -26,6 +29,8 @@ type alias Session =
     { message : Maybe (List String)
     , auth : Auth
     , key : Key
+    , searchInput : String
+    , searchResults : WebData (List Note.ListData)
     , webDataNoteList : WebData (List Note.ListData)
     , reviseTopic : Maybe Topic
     , reviseSpecialty : Maybe Specialty
@@ -40,6 +45,8 @@ fillKey auth topic specialty yearLevel domain key =
     { message = Nothing
     , auth = auth
     , key = key
+    , searchInput = ""
+    , searchResults = NotAsked
     , webDataNoteList = Loading
     , reviseTopic = topic
     , reviseSpecialty = specialty
@@ -54,6 +61,8 @@ default key =
     { message = Nothing
     , auth = Guest
     , key = key
+    , searchInput = ""
+    , searchResults = NotAsked
     , webDataNoteList = Loading
     , reviseTopic = Nothing
     , reviseSpecialty = Nothing
@@ -61,6 +70,10 @@ default key =
     , reviseDomain = Nothing
     , test = Nothing
     }
+
+
+
+-- Authentication
 
 
 isGuest : Session -> Bool
@@ -71,6 +84,10 @@ isGuest session =
 
         User _ ->
             False
+
+
+
+-- Messages
 
 
 addMessage : Session -> String -> Session
@@ -95,6 +112,24 @@ clearMessage message session =
 
         Nothing ->
             { session | message = Nothing }
+
+
+
+-- Search
+
+
+changeSearch : String -> Session -> Session
+changeSearch string session =
+    { session | searchInput = string }
+
+
+changeSearchResult : WebData (List Note.ListData) -> Session -> Session
+changeSearchResult webData session =
+    { session | searchResults = webData }
+
+
+
+-- Encoding/Decoding
 
 
 encodeMaybe : (a -> Value) -> Maybe a -> Value

@@ -9,6 +9,8 @@ import Page.Note as Note
 import Page.Profile as Profile
 import Page.Question as Question
 import Page.Revise as Revise
+import RemoteData exposing (RemoteData(..), WebData)
+import Types.Note
 import Url exposing (Url)
 
 
@@ -17,6 +19,8 @@ type Msg
     | UrlChanged Url
     | RouteChanged Route
     | ClickedMessage String
+    | ChangedSearchInput String
+    | GotSearchResults (WebData (List Types.Note.ListData))
     | GotHomeMsg Home.Msg
     | GotNotFoundMsg NotFound.Msg
     | GotProfileMsg Profile.Msg

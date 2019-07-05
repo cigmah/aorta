@@ -7,6 +7,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http exposing (Error(..))
+import Page.Elements as Elements
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Credentials as Credentials exposing (Auth(..))
 import Types.Note as Note
@@ -25,8 +26,6 @@ import Url.Builder as Builder
 
 type alias Model =
     { session : Session
-    , filter : String
-    , results : WebData (List Note.ListData)
     }
 
 
@@ -38,8 +37,7 @@ type Msg
     = NoOp
     | GotNoteList (WebData (List Note.ListData))
     | ChangedFilter String
-    | ClearedFilter
-    | GotResults (WebData (List Note.ListData))
+    | GotSearchResults (WebData (List Note.ListData))
 
 
 
@@ -51,8 +49,6 @@ init session =
     let
         initialModel =
             { session = session
-            , filter = ""
-            , results = NotAsked
             }
     in
     ( initialModel
@@ -121,13 +117,20 @@ update msg ({ session } as model) =
                     else
                         NotAsked
             in
-            ( { model | filter = string, results = results }, cmd )
+            ( { model
+                | session =
+                    { session
+                        | searchInput = string
+                        , searchResults = results
+                    }
+              }
+            , cmd
+            )
 
-        ClearedFilter ->
-            ( { model | filter = "", results = NotAsked }, Cmd.none )
-
-        GotResults results ->
-            ( { model | results = results }, Cmd.none )
+        GotSearchResults results ->
+            ( { model | session = { session | searchResults = results } }
+            , Cmd.none
+            )
 
 
 
@@ -148,7 +151,7 @@ getFilteredNoteList : Model -> String -> Request.GetRequest (List Note.ListData)
 getFilteredNoteList model string =
     { auth = model.session.auth
     , endpoint = Request.GetNoteList
-    , callback = GotResults
+    , callback = GotSearchResults
     , returnDecoder = Note.decoderList
     , queryList = [ Builder.string "search" string ]
     }
@@ -160,54 +163,29 @@ getFilteredNoteList model string =
 
 view : Model -> Document Msg
 view model =
-    { title = "AORTA - Grid"
+    { title = "AORTA - Home"
     , body = viewBody model
     }
 
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    [ main_
-        [ tailwind
-            [ "pb-16"
-            , "md:pb-0"
-            ]
-        ]
-        [ section
-            [ tailwind
-                [ "w-full"
-                , "md:flex"
-                , "md:flex-col"
-                , "md:pt-24"
-                , "p-2"
-                ]
-            ]
-            [ section [ tailwind [ "md:w-1/2", "mx-auto", "z-10", "hidden" ] ]
-                [ input
-                    [ value model.filter
-                    , onInput ChangedFilter
-                    , placeholder "Search matrix item titles here."
-                    , tailwind [ "w-full", "text-lg", "p-2", "mx-auto" ]
-                    ]
-                    []
-                , viewResults model.results
-                ]
-            , article
-                [ tailwind
-                    [ "md:container"
-                    , "w-full"
-                    , "md:mt-4"
-                    ]
-                ]
-                [ section
-                    [ tailwind
-                        [ "flex"
-                        , "relative"
-                        ]
-                    ]
-                    [ viewGrid model.session.webDataNoteList ]
-                ]
-            ]
+    let
+        searchBarData =
+            { webDataResponse = model.session.searchResults
+            , responseDataToResult = Note.toSearchResult
+            , forMobile = True
+            , inputData =
+                { value = model.session.searchInput
+                , onInput = ChangedFilter
+                , placeholder = "Search notes..."
+                , type_ = "search"
+                }
+            }
+    in
+    [ Elements.safeCenter
+        [ viewGrid model.session.webDataNoteList
+        , Elements.searchBar searchBarData
         ]
     ]
 
@@ -216,223 +194,22 @@ viewGrid : WebData (List Note.ListData) -> Html Msg
 viewGrid webData =
     case webData of
         NotAsked ->
-            div [ tailwind [ "flex", "justify-center", "items-center", "flex-grow", "h-full" ] ]
-                [ text "This is an error that shouldn't happen. If you see it, let us know!" ]
+            Elements.errorMessage <|
+                p []
+                    [ text "The request wasn't made - try refreshing." ]
 
         Loading ->
-            div [ tailwind [ "flex", "flex-col", "md:grid", "mx-auto" ] ]
-                (gridRowHeaders True
-                    ++ gridColumnHeaders True
-                    ++ (List.map viewLoadingItem (List.range 0 (List.length Topic.list - 1))
-                            |> List.map (\f -> List.map f (List.range 0 (List.length Specialty.list - 1)))
-                            |> List.concat
-                       )
-                )
+            Elements.loadingGrid
 
         Failure e ->
-            div [ tailwind [ "flex", "justify-center", "items-center", "flex-grow", "h-full" ] ]
-                [ text "Hm, it seems like there was an issue. Try refreshing - if it persists, let us know!" ]
+            Elements.wrapError e
 
         Success listData ->
             case listData of
                 [] ->
-                    div [ tailwind [ "flex", "justify-center", "items-center", "flex-grow", "h-full" ] ]
-                        [ text "There don't appear to be any notes." ]
+                    Elements.errorMessage <|
+                        p []
+                            [ text "There weren't any notes on the server to show." ]
 
                 nonEmptyData ->
-                    div
-                        [ tailwind
-                            [ "flex"
-                            , "flex-col"
-                            , "md:grid"
-                            , "mx-auto"
-                            ]
-                        ]
-                        (gridRowHeaders False ++ gridColumnHeaders False ++ List.map viewGridItem nonEmptyData)
-
-
-gridRowHeaders : Bool -> List (Html Msg)
-gridRowHeaders loading =
-    let
-        showHeader row specialty =
-            div
-                [ style "grid-column" "1"
-                , style "grid-row" (String.fromInt <| row + 2)
-                , tailwind
-                    [ "text-xs"
-                    , "text-gray-700"
-                    , "text-right"
-                    , "pr-3"
-                    , "md:flex"
-                    , "items-center"
-                    , "justify-end"
-                    , "hidden"
-                    , "transition"
-                    ]
-                , classList [ ( "opacity-25", loading ) ]
-                ]
-                [ text (Specialty.toString specialty) ]
-    in
-    List.indexedMap showHeader Specialty.list
-
-
-gridColumnHeaders : Bool -> List (Html Msg)
-gridColumnHeaders loading =
-    let
-        showHeader column topic =
-            div
-                [ style "grid-column" (String.fromInt <| column + 2)
-                , style "grid-row" "1"
-                , tailwind
-                    [ "text-xs"
-                    , "text-gray-700"
-                    , "w-8"
-                    , "leading-tight"
-                    , "md:flex"
-                    , "items-center"
-                    , "hidden"
-                    , "pb-4"
-                    , "transition"
-                    ]
-                , classList [ ( "opacity-25", loading ) ]
-                ]
-                [ div
-                    [ tailwind [ "rotate-90", "min-w-0", "text-left" ] ]
-                    [ text (Topic.toBrief topic) ]
-                ]
-    in
-    List.indexedMap showHeader Topic.list
-
-
-noteTailwind : Attribute Msg
-noteTailwind =
-    tailwind
-        [ "md:w-6"
-        , "md:h-6"
-        , "lg:w-8"
-        , "lg:h-8"
-        , "my-px"
-        , "w-full"
-        , "md:m-px"
-        , "rounded"
-        , "relative"
-        , "p-2"
-        , "md:p-0"
-        , "transition"
-        ]
-
-
-viewLoadingItem : Int -> Int -> Html Msg
-viewLoadingItem column row =
-    a
-        [ noteTailwind
-        , tailwind [ "fadeinout", "bg-gray-100" ]
-        , style "grid-column" (String.fromInt <| column + 2)
-        , style "grid-row" (String.fromInt <| row + 2)
-        ]
-        []
-
-
-viewGridItem : Note.ListData -> Html Msg
-viewGridItem note =
-    let
-        bg =
-            case ( note.numDue, note.numKnown ) of
-                ( Just due, Just known ) ->
-                    if note.numQuestions > 0 then
-                        if due > 0 then
-                            Color.hsl 0 (toFloat due / toFloat note.numQuestions / 2) 0.5
-
-                        else
-                            Color.hsl 0.35 (toFloat known / toFloat note.numQuestions / 2) 0.5
-
-                    else
-                        Color.white
-
-                _ ->
-                    if note.numQuestions > 0 then
-                        Color.rgb255 74 85 104
-
-                    else
-                        Color.white
-
-        border =
-            if note.numQuestions > 0 then
-                bg
-
-            else
-                Color.lightGray
-
-        textColor =
-            if bg == Color.white then
-                Color.rgb255 74 85 104
-
-            else
-                Color.white
-    in
-    a
-        [ class "note"
-        , noteTailwind
-        , style "background" (Color.toCssString bg)
-        , style "border" ("1px solid " ++ Color.toCssString border)
-        , Route.toHref (Route.Note note.id)
-        , attribute "data-tooltip" note.title
-        , style "grid-column" (String.fromInt (Topic.toInt note.topic + 2))
-        , style "grid-row" (String.fromInt (Specialty.toInt note.specialty + 2))
-        ]
-        [ div
-            [ tailwind
-                [ "flex", "md:hidden" ]
-            ]
-            [ h1
-                [ tailwind
-                    [ "font-bold"
-                    , "text-sm"
-                    ]
-                , style "color" (Color.toCssString textColor)
-                ]
-                [ text note.title ]
-            ]
-        ]
-
-
-viewResults : WebData (List Note.ListData) -> Html Msg
-viewResults webData =
-    let
-        viewResult : Note.ListData -> Html Msg
-        viewResult note =
-            article
-                []
-                [ text note.title ]
-    in
-    case webData of
-        Success notes ->
-            case notes of
-                [] ->
-                    section
-                        [ tailwind
-                            [ "bg-white", "p-2", "rounded-b", "absolute" ]
-                        ]
-                        [ article [] [ text "There are no results." ] ]
-
-                _ ->
-                    section
-                        [ tailwind
-                            [ "bg-white", "p-2", "rounded-b", "absolute" ]
-                        ]
-                        (List.map viewResult notes)
-
-        Loading ->
-            section
-                [ tailwind
-                    [ "bg-white", "p-2", "rounded-b", "absolute" ]
-                ]
-                [ article [] [ text "Loading" ] ]
-
-        Failure e ->
-            section
-                [ tailwind [ "bg-white", "p-2", "rounded-b" ] ]
-                [ article [] [ text "There was an error" ] ]
-
-        NotAsked ->
-            section [] []
+                    Elements.noteGrid nonEmptyData

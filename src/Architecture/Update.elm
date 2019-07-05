@@ -14,12 +14,20 @@ import Page.Note as Note
 import Page.Profile as Profile
 import Page.Question as Question
 import Page.Revise as Revise
+import RemoteData exposing (RemoteData(..), WebData)
+import Types.Note
+import Types.Request as Request
 import Types.Session as Session exposing (Session)
 import Url
+import Url.Builder as Builder
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        ignore =
+            ( model, Cmd.none )
+    in
     case ( msg, model ) of
         ( RouteChanged route, _ ) ->
             reroute route model
@@ -44,6 +52,32 @@ update msg model =
         ( UrlChanged url, _ ) ->
             eject model
                 |> Init.fromRoute (Parser.fromUrl url)
+
+        ( ChangedSearchInput string, _ ) ->
+            let
+                newSession =
+                    eject model
+                        |> Session.changeSearch string
+
+                trimmed =
+                    String.trim string
+            in
+            if (trimmed |> String.length) > 3 then
+                newSession
+                    |> Session.changeSearchResult Loading
+                    |> inject model
+                    |> addCmdMsg
+                        (Request.get (getFilteredNoteList newSession))
+
+            else
+                newSession
+                    |> Session.changeSearchResult NotAsked
+                    |> inject model
+
+        ( GotSearchResults webData, _ ) ->
+            eject model
+                |> Session.changeSearchResult webData
+                |> inject model
 
         ( ClickedMessage string, _ ) ->
             eject model
@@ -79,7 +113,7 @@ update msg model =
                 |> extractWith Finish GotFinishMsg
 
         _ ->
-            ( model, Cmd.none )
+            ignore
 
 
 eject : Model -> Session
@@ -155,3 +189,17 @@ reroute route model =
 addCmdMsg : Cmd Msg -> ( a, Cmd Msg ) -> ( a, Cmd Msg )
 addCmdMsg extraCmd ( a, cmds ) =
     ( a, Cmd.batch [ cmds, extraCmd ] )
+
+
+
+-- Search
+
+
+getFilteredNoteList : Session -> Request.GetRequest (List Types.Note.ListData) Msg
+getFilteredNoteList session =
+    { auth = session.auth
+    , endpoint = Request.GetNoteList
+    , callback = GotSearchResults
+    , returnDecoder = Types.Note.decoderList
+    , queryList = [ Builder.string "search" session.searchInput ]
+    }
