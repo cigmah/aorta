@@ -51,6 +51,7 @@ update msg model =
 
         ( UrlChanged url, _ ) ->
             eject model
+                |> Session.changeSearchResult NotAsked
                 |> Init.fromRoute (Parser.fromUrl url)
 
         ( ChangedSearchInput string, _ ) ->
@@ -183,6 +184,7 @@ inject page session =
 reroute : Route -> Model -> ( Model, Cmd Msg )
 reroute route model =
     eject model
+        |> Session.changeSearchResult NotAsked
         |> Init.fromRoute route
 
 
