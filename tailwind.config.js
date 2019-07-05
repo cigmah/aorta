@@ -4,6 +4,7 @@ module.exports = {
   },
   variants: {
     borderWidth: ['responsive', 'focus'],
+    borderColor: ['responsive', 'focus']
   },
   plugins: []
 }

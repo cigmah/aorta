@@ -64,7 +64,7 @@ navLink isRight data =
             , "text-xs"
             , "uppercase"
             , "outline-none"
-            , "focus:bg-gray-300"
+            , "focus:text-blue-600"
             , "font-bold"
             ]
         , classList

@@ -83,3 +83,9 @@ Then finally, switch back to develop:
 ```sh
 git checkout develop
 ```
+
+## TODOs
+
+- [ ] Refactor all HTML elements out of pages and into either `Page/Elements.elm`
+  or a different type module. Currently in progress.
+- [ ] Simplify update functions for each page - a lot are unwieldy at the moment.
