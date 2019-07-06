@@ -21,7 +21,7 @@ parser =
         , map Route.Revise <| s "revise"
         , map Route.Finish <| s "finish"
         , map Route.Question <| s "questions" </> int
-        , map Route.Info <| s "info"
+        , map Route.Info <| s "information"
         ]
 
 

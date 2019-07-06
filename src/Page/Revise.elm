@@ -375,7 +375,8 @@ viewBody model =
                     , "flex-col"
                     , "h-full"
                     , "w-full"
-                    , "md:w-auto"
+                    , "md:w-3/4"
+                    , "lg:w-1/2"
                     ]
                 ]
                 [ header

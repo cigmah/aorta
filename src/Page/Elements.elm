@@ -1,7 +1,10 @@
 module Page.Elements exposing
     ( SearchBarData
+    , articleCard
+    , button
     , container
     , errorMessage
+    , field
     , label
     , loadingGrid
     , messages
@@ -10,6 +13,7 @@ module Page.Elements exposing
     , safeCenter
     , safeMain
     , searchBar
+    , textArea
     , textInput
     , wrapError
     )
@@ -229,11 +233,14 @@ singleMessage clickedMessage string =
             , "p-4"
             , "fadein"
             , "shadow-lg"
-            , "md:rounded"
+            , "md:rounded-b"
             , "md:mb-4"
             , "cursor-pointer"
             , "flex"
             , "justify-between"
+            , "md:hover:bg-gray-100"
+            , "md:border-t-4"
+            , "md:border-blue-500"
             ]
         , onClick <| clickedMessage string
         ]
@@ -329,6 +336,8 @@ type alias TextInputData msg =
     , onInput : String -> msg
     , placeholder : String
     , type_ : String
+    , id : String
+    , required : Bool
     }
 
 
@@ -339,6 +348,24 @@ textInput data =
         , value data.value
         , onInput data.onInput
         , placeholder data.placeholder
+        , id data.id
+        , required data.required
+        , tailwind
+            [ "outline-none"
+            ]
+        ]
+        []
+
+
+textArea : TextInputData msg -> Html msg
+textArea data =
+    textarea
+        [ value data.value
+        , onInput data.onInput
+        , placeholder data.placeholder
+        , id data.id
+        , required data.required
+        , rows 6
         , tailwind
             [ "outline-none"
             ]
@@ -595,3 +622,117 @@ label labelText forId =
         , for forId
         ]
         [ text labelText ]
+
+
+field : List (Html msg) -> Html msg
+field =
+    div [ class "field" ]
+
+
+
+-- Buttons
+
+
+tailwindButton =
+    tailwind
+        [ "border-2"
+        , "bg-white"
+        , "hover:bg-blue-500"
+        , "hover:text-white"
+        , "border-blue-500"
+        , "text-sm"
+        , "uppercase"
+        , "font-bold"
+        , "mx-2"
+        ]
+
+
+type alias ButtonData msg =
+    { text : String
+    , type_ : String
+    , onClick : msg
+    , loading : Bool
+    }
+
+
+button : ButtonData msg -> Html msg
+button data =
+    Html.button
+        [ type_ data.type_
+        , onClick data.onClick
+        , classList
+            [ ( "bg-gray-300 text-gray-700 border-gray-300 cursor-wait", data.loading )
+            , ( "bg-white hover:bg-blue-500 text-blue-500 hover:text-white border-blue-500", not data.loading )
+            ]
+        , tailwind
+            [ "border-2"
+            , "text-sm"
+            , "uppercase"
+            , "font-bold"
+            , "mx-2"
+            , "p-2"
+            , "outline-none"
+            , "focus:underline"
+            ]
+        , disabled data.loading
+        ]
+        [ text data.text ]
+
+
+
+-- Article
+
+
+articleCard : { header : Html msg, body : Html msg, footer : Maybe (Html msg) } -> Html msg
+articleCard data =
+    let
+        footerHtml =
+            case data.footer of
+                Just html ->
+                    footer
+                        [ tailwind
+                            [ "uppercase"
+                            , "text-blue-500"
+                            , "font-bold"
+                            , "text-sm"
+                            , "p-2"
+                            , "border-t"
+                            , "border-blue-300"
+                            , "bg-white"
+                            , "flex"
+                            , "justify-end"
+                            ]
+                        ]
+                        [ html ]
+
+                Nothing ->
+                    div [] []
+    in
+    article
+        [ tailwind
+            [ "flex"
+            , "flex-col"
+            , "rounded"
+            , "shadow"
+            , "m-2"
+            ]
+        ]
+        [ header
+            [ tailwind
+                [ "uppercase"
+                , "text-blue-500"
+                , "font-bold"
+                , "text-sm"
+                , "p-2"
+                , "border-b"
+                , "border-blue-300"
+                , "bg-white"
+                , ""
+                ]
+            ]
+            [ data.header ]
+        , section
+            [ tailwind [ "flex-grow", "p-4" ] ]
+            [ data.body ]
+        , footerHtml
+        ]

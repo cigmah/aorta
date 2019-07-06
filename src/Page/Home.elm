@@ -180,6 +180,8 @@ viewBody model =
                 , onInput = ChangedFilter
                 , placeholder = "Search notes..."
                 , type_ = "search"
+                , id = "search"
+                , required = False
                 }
             }
     in

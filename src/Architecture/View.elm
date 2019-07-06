@@ -91,7 +91,7 @@ wrapBody model body =
                     user.username
 
                 Guest ->
-                    "Info"
+                    "Login"
 
         hideNav =
             case model of
@@ -110,6 +110,8 @@ wrapBody model body =
                 , onInput = ChangedSearchInput
                 , placeholder = "Search notes..."
                 , type_ = "search"
+                , id = "search"
+                , required = False
                 }
             }
     in
