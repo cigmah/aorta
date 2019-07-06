@@ -18,6 +18,7 @@ type Route
     | Revise
     | Note Int
     | Question Int
+    | Info
     | Finish
 
 
@@ -67,6 +68,11 @@ toString route =
         Finish ->
             Builder.absolute
                 [ "finish" ]
+                []
+
+        Info ->
+            Builder.absolute
+                [ "information" ]
                 []
 
 

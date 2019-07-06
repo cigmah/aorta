@@ -772,6 +772,22 @@ viewContent model dataNoteWebData =
 
                                         _ ->
                                             List.map viewComment data.comments
+
+                                submitText =
+                                    case model.webDataComment of
+                                        Loading ->
+                                            "Loading"
+
+                                        _ ->
+                                            "Submit"
+
+                                disabledSubmit =
+                                    case model.webDataComment of
+                                        Loading ->
+                                            True
+
+                                        _ ->
+                                            False
                             in
                             [ div
                                 [ tailwind [ "mb-4", "w-full", "border-b", "border-gray-400", "pb-8" ]
@@ -791,8 +807,9 @@ viewContent model dataNoteWebData =
                                         [ onClick ClickedSubmitComment
                                         , tailwindButton
                                         , tailwind [ "justify-center" ]
+                                        , disabled disabledSubmit
                                         ]
-                                        [ text "Submit" ]
+                                        [ text submitText ]
                                     ]
                                 ]
                             , div
@@ -950,7 +967,29 @@ viewModalAddQuestion addQuestionData =
                     [ i [ class "material-icons" ] [ text "close" ] ]
                 ]
             , section []
-                [ div [ class "field" ]
+                [ div [ tailwind [ "md:flex", "w-full" ] ]
+                    [ div [ class "field", tailwind [ "flex-grow", "md:mr-2" ] ]
+                        [ label [ for "year_level", labelTailwind ] [ text "Year Level" ]
+                        , select
+                            [ onInput (AddQuestionMsg << ChangedYearLevel)
+                            , tailwind [ "mb-2" ]
+                            , value (addQuestionData.question.yearLevel |> YearLevel.toInt |> String.fromInt)
+                            , id "year_level"
+                            ]
+                            (List.map (YearLevel.option (Just addQuestionData.question.yearLevel)) YearLevel.list)
+                        ]
+                    , div [ class "field", tailwind [ "flex-grow", "md:ml-2" ] ]
+                        [ label [ for "domain", labelTailwind ] [ text "Domain" ]
+                        , select
+                            [ onInput (AddQuestionMsg << ChangedDomain)
+                            , tailwind [ "mb-2" ]
+                            , value (addQuestionData.question.domain |> Domain.toInt |> String.fromInt)
+                            , id "domain"
+                            ]
+                            (List.map (Domain.option (Just addQuestionData.question.domain)) Domain.list)
+                        ]
+                    ]
+                , div [ class "field" ]
                     [ label [ for "stem", labelTailwind ] [ text "Question Stem" ]
                     , textarea
                         [ value addQuestionData.question.stem
@@ -960,26 +999,6 @@ viewModalAddQuestion addQuestionData =
                         , required True
                         ]
                         []
-                    ]
-                , div [ class "field" ]
-                    [ label [ for "domain", labelTailwind ] [ text "Domain" ]
-                    , select
-                        [ onInput (AddQuestionMsg << ChangedDomain)
-                        , tailwind [ "mb-2" ]
-                        , value (addQuestionData.question.domain |> Domain.toInt |> String.fromInt)
-                        , id "domain"
-                        ]
-                        (List.map (Domain.option (Just addQuestionData.question.domain)) Domain.list)
-                    ]
-                , div [ class "field" ]
-                    [ label [ for "year_level", labelTailwind ] [ text "Year Level" ]
-                    , select
-                        [ onInput (AddQuestionMsg << ChangedYearLevel)
-                        , tailwind [ "mb-2" ]
-                        , value (addQuestionData.question.yearLevel |> YearLevel.toInt |> String.fromInt)
-                        , id "year_level"
-                        ]
-                        (List.map (YearLevel.option (Just addQuestionData.question.yearLevel)) YearLevel.list)
                     ]
                 , div []
                     (List.indexedMap

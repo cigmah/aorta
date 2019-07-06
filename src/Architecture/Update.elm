@@ -9,6 +9,7 @@ import Browser
 import Browser.Navigation as Navigation
 import Page.Finish as Finish
 import Page.Home as Home
+import Page.Info as Info
 import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
@@ -113,6 +114,10 @@ update msg model =
             Finish.update subMsg subModel
                 |> extractWith Finish GotFinishMsg
 
+        ( GotInfoMsg subMsg, Info subModel ) ->
+            Info.update subMsg subModel
+                |> extractWith Info GotInfoMsg
+
         _ ->
             ignore
 
@@ -140,6 +145,9 @@ eject page =
 
         Finish model ->
             Finish.eject model
+
+        Info model ->
+            Info.eject model
 
 
 inject : Model -> Session -> ( Model, Cmd Msg )
@@ -179,6 +187,11 @@ inject page session =
             session
                 |> Finish.inject model
                 |> extractWith Finish GotFinishMsg
+
+        Info model ->
+            session
+                |> Info.inject model
+                |> extractWith Info GotInfoMsg
 
 
 reroute : Route -> Model -> ( Model, Cmd Msg )

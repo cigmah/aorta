@@ -4,6 +4,7 @@ import Architecture.Model exposing (..)
 import Architecture.Msg exposing (..)
 import Page.Finish as Finish
 import Page.Home as Home
+import Page.Info as Info
 import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
@@ -34,3 +35,6 @@ subscriptions model =
 
         Finish subModel ->
             Sub.map GotFinishMsg (Finish.subscriptions subModel)
+
+        Info subModel ->
+            Sub.map GotInfoMsg (Info.subscriptions subModel)

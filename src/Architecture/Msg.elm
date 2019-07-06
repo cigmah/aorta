@@ -4,6 +4,7 @@ import Architecture.Route as Route exposing (Route)
 import Browser exposing (UrlRequest)
 import Page.Finish as Finish
 import Page.Home as Home
+import Page.Info as Info
 import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
@@ -28,3 +29,4 @@ type Msg
     | GotReviseMsg Revise.Msg
     | GotQuestionMsg Question.Msg
     | GotFinishMsg Finish.Msg
+    | GotInfoMsg Info.Msg

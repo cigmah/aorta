@@ -13,6 +13,7 @@ import Markdown
 import Page.Elements as Elements
 import Page.Finish as Finish
 import Page.Home as Home
+import Page.Info as Info
 import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
@@ -58,6 +59,10 @@ view model =
         Finish subModel ->
             Finish.view subModel
                 |> viewPage model GotFinishMsg
+
+        Info subModel ->
+            Info.view subModel
+                |> viewPage model GotInfoMsg
 
 
 {-| Wrap each page's individual view function |
@@ -132,7 +137,14 @@ wrapBody model body =
           }
         ]
         searchBarData
-        [ { name = profileText
+        [ { name = "Info"
+          , active = Parser.isEqual Route.Info model
+          , route = Route.Info
+          , icon = "info"
+          , hideOnMobile = False
+          , hideOnDesktop = False
+          }
+        , { name = profileText
           , active = Parser.isEqual Route.Profile model
           , route = Route.Profile
           , icon = "person"
