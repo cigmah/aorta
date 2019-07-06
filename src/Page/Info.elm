@@ -306,6 +306,6 @@ Public License v3.0. Both the [frontend](https://github.com/cigmah/aorta) and
 from our [GitHub organisation](https://github.com/cigmah). We welcome pull
 requests.
 
-This tool is on **version 0.1**. 
+This tool is on **version 0.1**.
 
 """

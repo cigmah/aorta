@@ -796,7 +796,7 @@ viewContent model dataNoteWebData =
                                 [ div
                                     [ tailwind [ "w-full" ] ]
                                     [ textarea
-                                        [ placeholder "Contribute public comments, queries, requests, mnemonics or extra notes here."
+                                        [ placeholder "Contribute public comments, queries, requests, mnemonics or extra notes here. You can use markdown to format your contribution e.g. *italicised text*, **bolded text**, [link text](https://url.com), ![image mouseover](https://image-url.com), # Heading, ## Subheading etc."
                                         , value model.comment
                                         , required True
                                         , onInput ChangedComment
@@ -967,7 +967,9 @@ viewModalAddQuestion addQuestionData =
                     [ i [ class "material-icons" ] [ text "close" ] ]
                 ]
             , section []
-                [ div [ tailwind [ "md:flex", "w-full" ] ]
+                [ p [ tailwind [ "p-2", "bg-yellow-100", "text-yellow-800", "rounded", "mb-4" ] ]
+                    [ text "By submitting this question, you agree that your submission is of your own, original writing and not taken from copyrighted works, including books, past exam papers or proprietary question banks. Any questions found to be in breach of copyright will be removed and offending users may be banned." ]
+                , div [ tailwind [ "md:flex", "w-full" ] ]
                     [ div [ class "field", tailwind [ "flex-grow", "md:mr-2" ] ]
                         [ label [ for "year_level", labelTailwind ] [ text "Year Level" ]
                         , select
@@ -993,10 +995,11 @@ viewModalAddQuestion addQuestionData =
                     [ label [ for "stem", labelTailwind ] [ text "Question Stem" ]
                     , textarea
                         [ value addQuestionData.question.stem
-                        , placeholder "Question stem"
+                        , placeholder "Write your question here. You can format your question with markdown e.g. *italicised text*, **bolded text**, [link text](http://url.com), ![image mouseover](http://image-url.com)"
                         , onInput (AddQuestionMsg << ChangedStem)
                         , id "stem"
                         , required True
+                        , rows 5
                         ]
                         []
                     ]

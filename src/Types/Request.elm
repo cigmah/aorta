@@ -116,6 +116,7 @@ type Endpoint
     | GetNote Id
     | GetRandomQuestion
     | GetRandomList
+    | GetQuestionResponseHistory
     | PostRegister
     | PostLike
     | PostFlag
@@ -139,6 +140,9 @@ endpointToUrl endpoint =
 
         GetRandomQuestion ->
             [ "questions", "random" ]
+
+        GetQuestionResponseHistory ->
+            [ "questions", "response_list" ]
 
         PostFlag ->
             [ "questions", "flags" ]

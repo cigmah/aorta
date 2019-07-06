@@ -77,8 +77,12 @@ toBgColor note =
     case ( note.numDue, note.numKnown ) of
         ( Just due, Just known ) ->
             if note.numQuestions > 0 then
-                if due > 0 then
-                    Color.hsl 0 (toFloat due / toFloat note.numQuestions / 2) 0.5
+                let
+                    unseen =
+                        note.numQuestions - (due + known)
+                in
+                if unseen > 0 then
+                    Color.hsl 0 (toFloat (due + unseen) / toFloat note.numQuestions / 2) 0.5
 
                 else
                     Color.hsl 0.35 (toFloat known / toFloat note.numQuestions / 2) 0.5

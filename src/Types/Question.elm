@@ -2,8 +2,10 @@ module Types.Question exposing
     ( CreationData
     , ListData
     , ReadData
+    , ResponseListData
     , decoder
     , decoderList
+    , decoderResponseList
     , encode
     , new
     )
@@ -16,6 +18,8 @@ import Time exposing (Posix)
 import Types.Choice as Choice
 import Types.Comment as Comment
 import Types.Domain as Domain exposing (Domain)
+import Types.Specialty as Specialty exposing (Specialty)
+import Types.Topic as Topic exposing (Topic)
 import Types.User as User exposing (User)
 import Types.YearLevel as YearLevel exposing (YearLevel)
 
@@ -40,6 +44,19 @@ type alias ReadData =
     , liked : Maybe Bool
     , numSeen : Maybe Int
     , modifiedAt : Posix
+    }
+
+
+type alias ResponseListData =
+    { questionId : Int
+    , answeredDatetime : Posix
+    , stem : String
+    , specialty : Specialty
+    , topic : Topic
+    , yearLevel : YearLevel
+    , domain : Domain
+    , wasCorrect : Bool
+    , nextDueDatetime : Posix
     }
 
 
@@ -91,3 +108,17 @@ decoderList : Decoder ListData
 decoderList =
     Decode.map ListData
         (Decode.field "id" Decode.int)
+
+
+decoderResponseList : Decoder ResponseListData
+decoderResponseList =
+    Decode.succeed ResponseListData
+        |> required "question_id" Decode.int
+        |> required "created_at" Iso8601.decoder
+        |> required "question_stem" Decode.string
+        |> required "question_specialty" Specialty.decoder
+        |> required "question_topic" Topic.decoder
+        |> required "question_year_level" YearLevel.decoder
+        |> required "question_domain" Domain.decoder
+        |> required "was_correct" Decode.bool
+        |> required "next_due_datetime" Iso8601.decoder

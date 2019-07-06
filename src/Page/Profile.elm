@@ -1,19 +1,27 @@
 module Page.Profile exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
+import Architecture.Route as Route exposing (Route)
 import Browser exposing (Document)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http exposing (Error(..))
+import Json.Decode as Decode
 import Page.Elements as Elements
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Contact as Contact
 import Types.Credentials as Credentials exposing (Auth(..), Credentials)
+import Types.Datetime as Datetime
+import Types.Domain as Domain exposing (Domain)
 import Types.Login as Login
+import Types.Question as Question
 import Types.Register as Register
 import Types.Request as Request
 import Types.Session as Session exposing (Session)
+import Types.Specialty as Specialty exposing (Specialty)
 import Types.Styles exposing (tailwind)
+import Types.Topic as Topic exposing (Topic)
+import Types.YearLevel as YearLevel exposing (YearLevel)
 import Version exposing (version)
 
 
@@ -42,7 +50,7 @@ type alias RegisterScreenData =
 type alias ProfileScreenData =
     { responseBySpecialty : WebData ()
     , responseByTopic : WebData ()
-    , responseResponses : WebData ()
+    , responseResponses : WebData (List Question.ResponseListData)
     , responseQuestions : WebData ()
     }
 
@@ -92,6 +100,7 @@ type LoginSubMsg
 
 type ProfileSubMsg
     = ClickedLogout
+    | ProfileGotResponseHistory (WebData (List Question.ResponseListData))
 
 
 init : Session -> ( Model, Cmd Msg )
@@ -108,7 +117,7 @@ init session =
             ( { session = session
               , screen = Profile initialProfile
               }
-            , Cmd.none
+            , Request.get (getQuestionResponseHistory session)
             )
 
 
@@ -205,7 +214,10 @@ updateRegister msg screenData ({ session } as model) =
                 ignore
 
             else if String.trim data.username == "" then
-                ( { model | session = Session.addMessage session "You can't have a blank username." }, Cmd.none )
+                ( { model | screen = Register { screenData | response = Failure (Http.BadStatus 400) } }, Cmd.none )
+
+            else if String.contains " " data.username then
+                ( { model | screen = Register { screenData | response = Failure (Http.BadStatus 400) } }, Cmd.none )
 
             else
                 ( { model | screen = Register { screenData | response = Loading } }
@@ -226,26 +238,10 @@ updateRegister msg screenData ({ session } as model) =
                     , Session.save newSession
                     )
 
-                Failure error ->
-                    let
-                        wrapError errorMessage =
-                            ( { model
-                                | session = Session.addMessage session errorMessage
-                                , screen = Register { screenData | response = responseRegisterWebData }
-                              }
-                            , Cmd.none
-                            )
-                    in
-                    case error of
-                        Http.BadStatus 500 ->
-                            -- TODO Change the response code to something that isn't 500...and update both frontend and backend.
-                            wrapError "Someone with that username and/or email already exists. Please try another username. If the problem persists, let us know."
-
-                        _ ->
-                            wrapError "There was an error with registration. We apologise for the inconvenience. Try again later or get in touch with us."
-
                 _ ->
-                    ignore
+                    ( { model | screen = Register { screenData | response = responseRegisterWebData } }
+                    , Cmd.none
+                    )
 
 
 updateLogin : LoginSubMsg -> LoginScreenData -> Model -> ( Model, Cmd Msg )
@@ -272,7 +268,8 @@ updateLogin msg screenData ({ session } as model) =
                 ignore
 
             else if String.trim data.username == "" || String.trim data.password == "" then
-                ( { model | session = Session.addMessage session "You need to fill in both your username and password." }, Cmd.none )
+                ( { model | screen = Login { screenData | response = Failure (Http.BadStatus 400) } }, Cmd.none )
+                -- Very rudimentary validation - backend will validate again and reject if not conforming
 
             else
                 ( { model | screen = Login { screenData | response = Loading } }
@@ -294,11 +291,7 @@ updateLogin msg screenData ({ session } as model) =
                     )
 
                 Failure error ->
-                    -- TODO handle network errors etc. separately
-                    ( { model
-                        | session = Session.addMessage session "That login didn't work. If you think it should have, please get in touch with us."
-                        , screen = Login { screenData | response = responseLoginWebData }
-                      }
+                    ( { model | screen = Login { screenData | response = responseLoginWebData } }
                     , Cmd.none
                     )
 
@@ -311,6 +304,9 @@ updateProfile msg screenData ({ session } as model) =
     let
         ignore =
             ( model, Cmd.none )
+
+        wrap newData =
+            ( { model | screen = Profile newData }, Cmd.none )
     in
     case msg of
         ClickedLogout ->
@@ -318,7 +314,10 @@ updateProfile msg screenData ({ session } as model) =
                 newSession =
                     { session | auth = Guest }
             in
-            ( { model | session = newSession }, Session.save newSession )
+            ( { model | session = newSession, screen = Logout }, Session.save newSession )
+
+        ProfileGotResponseHistory webData ->
+            wrap { screenData | responseResponses = webData }
 
 
 
@@ -347,6 +346,16 @@ postRegisterData model data =
     }
 
 
+getQuestionResponseHistory : Session -> Request.GetRequest (List Question.ResponseListData) Msg
+getQuestionResponseHistory session =
+    { endpoint = Request.GetQuestionResponseHistory
+    , returnDecoder = Decode.field "results" (Decode.list Question.decoderResponseList)
+    , callback = ProfileMsg << ProfileGotResponseHistory
+    , auth = session.auth
+    , queryList = []
+    }
+
+
 
 -- View
 
@@ -371,7 +380,18 @@ viewBody model =
             viewProfileScreen model screenData
 
         Logout ->
-            [ div [] [] ]
+            [ Elements.safeCenter
+                [ Elements.articleCard
+                    { header = text "Logged Out"
+                    , body =
+                        div [ class "markdown" ]
+                            [ p [] [ text "Thank you for using AORTA. You have successfully logged out." ]
+                            , p [] [ a [ Route.toHref Route.Home ] [ text "Click here to return home." ] ]
+                            ]
+                    , footer = Nothing
+                    }
+                ]
+            ]
 
 
 viewLoginScreen : Model -> LoginScreenData -> List (Html Msg)
@@ -384,59 +404,150 @@ viewLoginScreen model screenData =
 
                 _ ->
                     False
+
+        isSuccessful =
+            case screenData.response of
+                Success _ ->
+                    True
+
+                _ ->
+                    False
+
+        loginButtonText =
+            if loading then
+                "Loading"
+
+            else
+                "Login"
+
+        footer =
+            if isSuccessful then
+                Nothing
+
+            else
+                Just <|
+                    div [ tailwind [ "flex" ] ]
+                        [ maybeMessage
+                        , Elements.button
+                            { text = loginButtonText
+                            , type_ = "submit"
+                            , onClick = LoginMsg LoginClickedSubmit
+                            , loading = loading
+                            }
+                        ]
+
+        successfulInfo =
+            case screenData.response of
+                Success data ->
+                    div
+                        []
+                        [ p []
+                            [ text "You have successfully logged in as "
+                            , strong []
+                                [ text data.username
+                                , text "."
+                                ]
+                            ]
+                        , p [ class "markdown", tailwind [ "my-4", "text-center", "font-bold", "px-4" ] ]
+                            [ text "Now that you're registered and logged in, head over to the "
+                            , a [ Route.toHref Route.Home ] [ text "grid of notes" ]
+                            , text " or "
+                            , a [ Route.toHref Route.Revise ] [ text "start an EMQ test." ]
+                            ]
+                        ]
+
+                _ ->
+                    div [] []
+
+        maybeMessage =
+            case screenData.response of
+                Failure e ->
+                    let
+                        wrap message =
+                            div
+                                [ tailwind
+                                    [ "text-red-600"
+                                    , "bg-red-200"
+                                    , "rounded"
+                                    , "px-2"
+                                    , "py-1"
+                                    , "text-sm"
+                                    , "font-bold"
+                                    , "normal-case"
+                                    ]
+                                ]
+                                [ text message ]
+                    in
+                    case e of
+                        Http.BadStatus 500 ->
+                            wrap <| "There was an error with status code 500. This shouldn't happen - please let us know!"
+
+                        Http.BadStatus code ->
+                            wrap <| "That username and password didn't match our records. If you're having trouble, you can contact us on the Info tab."
+
+                        Http.NetworkError ->
+                            wrap "There was a network error. Please try again later."
+
+                        _ ->
+                            wrap "There was an error. Please try again later."
+
+                _ ->
+                    div [] []
     in
     [ Elements.safeCenter
-        [ Elements.articleCard
-            { header = text "Login"
-            , body =
-                Html.form [ onSubmit <| LoginMsg LoginClickedSubmit ]
-                    [ div
-                        [ tailwind
-                            [ "text-blue-700"
-                            , "cursor-pointer"
-                            , "hover:text-blue-500"
-                            , "text-sm"
-                            , "text-center"
-                            , "mb-4"
-                            , "flex"
-                            , "items-center"
+        [ section [ tailwind [ "md:w-1/2", "xl:w-1/3" ] ]
+            [ Elements.articleCard
+                { header = text "Login"
+                , body =
+                    div []
+                        [ Html.form
+                            [ onSubmit <| LoginMsg LoginClickedSubmit
+                            , classList [ ( "hidden", isSuccessful ) ]
                             ]
-                        , onClick ToggledLoginRegister
+                            [ div
+                                [ tailwind
+                                    [ "text-blue-700"
+                                    , "cursor-pointer"
+                                    , "hover:text-blue-500"
+                                    , "text-sm"
+                                    , "text-center"
+                                    , "mb-4"
+                                    , "flex"
+                                    , "items-center"
+                                    , "justify-center"
+                                    ]
+                                , onClick ToggledLoginRegister
+                                ]
+                                [ text "Not registered? Click here to register."
+                                ]
+                            , Elements.field
+                                [ Elements.label "Username" "username"
+                                , Elements.textInput
+                                    { value = screenData.data.username
+                                    , onInput = LoginMsg << LoginChangedUsername
+                                    , placeholder = "Username"
+                                    , type_ = "text"
+                                    , id = "username"
+                                    , required = True
+                                    }
+                                ]
+                            , Elements.field
+                                [ Elements.label "Password" "password"
+                                , Elements.textInput
+                                    { value = screenData.data.password
+                                    , onInput = LoginMsg << LoginChangedPassword
+                                    , placeholder = "Password"
+                                    , type_ = "password"
+                                    , id = "password"
+                                    , required = True
+                                    }
+                                ]
+                            ]
+                        , successfulInfo
                         ]
-                        [ text "Not registered? Click here to register."
-                        ]
-                    , Elements.field
-                        [ Elements.label "Username" "username"
-                        , Elements.textInput
-                            { value = screenData.data.username
-                            , onInput = LoginMsg << LoginChangedUsername
-                            , placeholder = "Username"
-                            , type_ = "text"
-                            , id = "username"
-                            , required = True
-                            }
-                        ]
-                    , Elements.field
-                        [ Elements.label "Password" "password"
-                        , Elements.textInput
-                            { value = screenData.data.password
-                            , onInput = LoginMsg << LoginChangedPassword
-                            , placeholder = "Password"
-                            , type_ = "password"
-                            , id = "password"
-                            , required = True
-                            }
-                        ]
-                    ]
-            , footer =
-                Just <|
-                    Elements.button
-                        { text = "Login"
-                        , type_ = "submit"
-                        , onClick = NoOp
-                        , loading = loading
-                        }
-            }
+                , footer = footer
+                }
+            ]
         ]
     ]
 
@@ -451,384 +562,290 @@ viewRegisterScreen model screenData =
 
                 _ ->
                     False
+
+        registerButtonText =
+            if loading then
+                "Loading"
+
+            else
+                "Register"
+
+        isSuccessful =
+            case screenData.response of
+                Success _ ->
+                    True
+
+                _ ->
+                    False
+
+        footer =
+            if isSuccessful then
+                Nothing
+
+            else
+                Just <|
+                    div [ tailwind [ "flex" ] ]
+                        [ maybeMessage
+                        , Elements.button
+                            { text = registerButtonText
+                            , type_ = "submit"
+                            , onClick = RegisterMsg RegisterClickedSubmit
+                            , loading = loading
+                            }
+                        ]
+
+        successfulInfo =
+            case screenData.response of
+                Success data ->
+                    div
+                        []
+                        [ p [] [ text "Your registration was successful. Here are your details:" ]
+                        , div [ tailwind [ "w-auto", "mx-auto", "block", "my-2" ] ]
+                            [ div [ tailwind [ "flex", "items-center" ] ]
+                                [ div [ tailwind [ "uppercase", "text-gray-700", "text-sm", "font-bold", "mr-4" ] ] [ text "username:" ]
+                                , div [ tailwind [ "font-bold" ] ] [ text data.username ]
+                                ]
+                            , div [ tailwind [ "flex", "items-center" ] ]
+                                [ div [ tailwind [ "uppercase", "text-gray-700", "text-sm", "font-bold", "mr-4" ] ] [ text "password:" ]
+                                , div [ tailwind [ "font-bold" ] ] [ text data.password ]
+                                ]
+                            ]
+                        , p [] [ text "You are now logged in for the first time. Please store this password for future logins." ]
+                        , p [ class "markdown", tailwind [ "my-4", "text-center", "font-bold", "px-4" ] ]
+                            [ text "Now that you're registered and logged in, head over to the "
+                            , a [ Route.toHref Route.Home ] [ text "grid of notes" ]
+                            , text " or "
+                            , a [ Route.toHref Route.Revise ] [ text "start an EMQ test." ]
+                            ]
+                        ]
+
+                _ ->
+                    div [] []
+
+        maybeMessage =
+            case screenData.response of
+                Failure e ->
+                    let
+                        wrap message =
+                            div
+                                [ tailwind
+                                    [ "text-red-600"
+                                    , "bg-red-200"
+                                    , "rounded"
+                                    , "px-2"
+                                    , "py-1"
+                                    , "text-sm"
+                                    , "font-bold"
+                                    , "normal-case"
+                                    ]
+                                ]
+                                [ text message ]
+                    in
+                    case e of
+                        Http.BadStatus 409 ->
+                            wrap "That username or email was taken. Try changing your username - or maybe you've registered before?"
+
+                        Http.BadStatus 400 ->
+                            wrap "Your username or email was invalid - try using only alphanumeric characters (no spaces) in your username."
+
+                        Http.BadStatus code ->
+                            wrap <| "There was an error with status code " ++ String.fromInt code ++ ". Please try again later."
+
+                        Http.NetworkError ->
+                            wrap "There was a network error. Please try again later."
+
+                        _ ->
+                            wrap "There was an error. Please try again later."
+
+                _ ->
+                    div [] []
     in
     [ Elements.safeCenter
-        [ Elements.articleCard
-            { header = text "Register"
-            , body =
-                Html.form [ onSubmit <| RegisterMsg RegisterClickedSubmit ]
-                    [ div
-                        [ tailwind
-                            [ "text-blue-700"
-                            , "cursor-pointer"
-                            , "hover:text-blue-500"
-                            , "text-sm"
-                            , "text-center"
-                            , "mb-4"
-                            , "flex"
-                            , "items-center"
+        [ section [ tailwind [ "md:w-2/3", "xl:w-1/2" ] ]
+            [ Elements.articleCard
+                { header = text "Register"
+                , body =
+                    div []
+                        [ Html.form
+                            [ onSubmit <|
+                                RegisterMsg RegisterClickedSubmit
+                            , classList
+                                [ ( "hidden", isSuccessful ) ]
                             ]
-                        , onClick ToggledLoginRegister
+                            [ div
+                                [ tailwind
+                                    [ "text-blue-700"
+                                    , "cursor-pointer"
+                                    , "hover:text-blue-500"
+                                    , "text-sm"
+                                    , "text-center"
+                                    , "mb-4"
+                                    , "flex"
+                                    , "items-center"
+                                    , "justify-center"
+                                    ]
+                                , onClick ToggledLoginRegister
+                                ]
+                                [ text "Already registered? Click here to login."
+                                ]
+                            , p [ tailwind [ "mb-4", "text-gray-800" ] ]
+                                [ text "Choose a username - we will generate a random password for you and show it to you on screen. Please store this password for future logins. If you think you may lose your password, you can optionally provide an email address so we can reset it." ]
+                            , Elements.field
+                                [ Elements.label "Username (required)" "username"
+                                , Elements.textInput
+                                    { value = screenData.data.username
+                                    , onInput = RegisterMsg << RegisterChangedUsername
+                                    , placeholder = "Username"
+                                    , type_ = "text"
+                                    , id = "username"
+                                    , required = True
+                                    }
+                                ]
+                            , Elements.field
+                                [ Elements.label "Email (optional)" "email"
+                                , Elements.textInput
+                                    { value = screenData.data.email
+                                    , onInput = RegisterMsg << RegisterChangedEmail
+                                    , placeholder = "Email"
+                                    , type_ = "email"
+                                    , id = "email"
+                                    , required = False
+                                    }
+                                ]
+                            ]
+                        , successfulInfo
                         ]
-                        [ text "Already registered? Click here to login."
-                        ]
-                    , Elements.field
-                        [ Elements.label "Username (required)" "username"
-                        , Elements.textInput
-                            { value = screenData.data.username
-                            , onInput = RegisterMsg << RegisterChangedUsername
-                            , placeholder = "Username"
-                            , type_ = "text"
-                            , id = "username"
-                            , required = True
-                            }
-                        ]
-                    , Elements.field
-                        [ Elements.label "Email (optional)" "email"
-                        , Elements.textInput
-                            { value = screenData.data.email
-                            , onInput = RegisterMsg << RegisterChangedEmail
-                            , placeholder = "Email"
-                            , type_ = "email"
-                            , id = "email"
-                            , required = False
-                            }
-                        ]
-                    ]
-            , footer =
-                Just <|
-                    Elements.button
-                        { text = "Register"
-                        , type_ = "submit"
-                        , onClick = NoOp
-                        , loading = loading
-                        }
-            }
+                , footer = footer
+                }
+            ]
         ]
     ]
 
 
 viewProfileScreen : Model -> ProfileScreenData -> List (Html Msg)
 viewProfileScreen model screenData =
-    [ Elements.container
-        [ Elements.articleCard
-            { header = text "Logout"
-            , body =
-                Elements.button
-                    { text = "Logout"
-                    , type_ = "button"
-                    , onClick = ProfileMsg ClickedLogout
-                    , loading = False
-                    }
-            , footer = Nothing
-            }
+    let
+        responseTable =
+            case screenData.responseResponses of
+                Success data ->
+                    div []
+                        [ table
+                            [ tailwind
+                                [ "text-sm"
+                                , "text-gray-700"
+                                , "w-full"
+                                ]
+                            ]
+                            (tr [ tailwind [ "bg-gray-200", "text-gray-700" ] ]
+                                [ th [ tailwind [ "border-2", "border-white" ] ] [ text "Question ID" ]
+                                , th [ tailwind [ "border-2", "border-white" ] ] [ text "Timestamp" ]
+                                , th [ tailwind [ "border-2", "border-white" ] ] [ text "Specialty" ]
+                                , th [ tailwind [ "border-2", "border-white" ] ] [ text "Topic" ]
+                                , th [ tailwind [ "border-2", "border-white" ] ] [ text "Year Level" ]
+                                , th [ tailwind [ "border-2", "border-white" ] ] [ text "Domain" ]
+                                , th [ tailwind [ "border-2", "border-white" ] ] [ text "Mark" ]
+                                ]
+                                :: List.map viewQuestionResponse data
+                            )
+                        ]
+
+                Loading ->
+                    div
+                        [ tailwind [ "flex", "h-64", "justify-center", "items-center" ]
+                        ]
+                        [ div [ class "loading" ] [] ]
+
+                Failure e ->
+                    Elements.wrapError e
+
+                NotAsked ->
+                    div [] []
+    in
+    [ Elements.safeMain
+        [ Elements.container
+            [ div [ tailwind [ "flex", "flex-col-reverse", "md:flex-row", "w-full" ] ]
+                [ div [ tailwind [ "flex-grow", "w-full" ] ]
+                    [ Elements.articleCard
+                        { header = text "Response History"
+                        , body =
+                            responseTable
+                        , footer = Nothing
+                        }
+                    ]
+                , div [ tailwind [] ]
+                    [ Elements.articleCard
+                        { header = text "Logout"
+                        , body =
+                            Elements.button
+                                { text = "Logout"
+                                , type_ = "button"
+                                , onClick = ProfileMsg ClickedLogout
+                                , loading = False
+                                }
+                        , footer = Nothing
+                        }
+                    ]
+                ]
+            ]
         ]
     ]
 
 
+viewQuestionResponse : Question.ResponseListData -> Html Msg
+viewQuestionResponse data =
+    let
+        toMarkDiv =
+            if data.wasCorrect then
+                div
+                    [ tailwind
+                        [ "rounded-full"
+                        , "w-5"
+                        , "h-5"
+                        , "bg-green-200"
+                        , "text-green-600"
+                        , "font-bold"
+                        , "text-xs"
+                        , "flex"
+                        , "justify-center"
+                        , "items-center"
+                        ]
+                    ]
+                    [ i
+                        [ class "material-icons"
+                        , tailwind [ "text-sm", "font-bold" ]
+                        ]
+                        [ text "check" ]
+                    ]
 
--- Cards
-{-
-    cardIntro : Html Msg
-   cardIntro =
-   article
-   [][ header [] [ h1 [] [ text "About" ] ]
-   , section [ class "markdown" ]
-   [ p []
-   [ strong [] [ text "AORTA " ]
-   , text " is "
-   , strong [] [ text "an open revision tool for assessments" ]
-   , text ". It is a project of "
-   , a [ href "https://cigmah.github.io/" ] [ text "CIGMAH" ]
-   , text ", the Coding Interest Group in Medicine and Healthcare. We are medical students with an interest in computer programming and are based at Monash University."
-   ]
-   , p []
-   [ text "This tool is a free and open source project under the "
-   , a [ rel "license", href "https://www.gnu.org/licenses/gpl-3.0.en.html" ] [ text "GNU General Public License v3.0" ]
-   , text ". Both the "
-   , a [ href "https://github.com/cigmah/aorta" ] [ text "frontend" ]
-   , text " and "
-   , a [ href "https://github.com/cigmah/aorticroot" ] [ text "backend" ]
-   , text " code are available from our "
-   , a [ href "https://github.com/cigmah" ] [ text " GitHub organisation" ]
-   , text ". We welcome pull requests. "
-   ]
-   , p []
-   [ text "Content on this website is written by users and volunteers"
-   ]
-   ]
-   ]
-
-   tailwindButton =
-   tailwind
-   [ "border-2"
-   , "bg-white"
-   , "hover:bg-blue-500"
-   , "hover:text-white"
-   , "border-blue-500"
-   , "text-sm"
-   , "uppercase"
-   , "font-bold"
-   , "mx-2"
-   ]
-
-   tailwindLabel : Attribute msg
-   tailwindLabel =
-   tailwind
-   [ "uppercase"
-   , "text-xs"
-   , "font-bold"
-   , "text-gray-700"
-   ]
-
-   cardVersion : Html Msg
-   cardVersion =
-   article [][ header [] [ h1 [] [ text "Version" ] ]
-   , section []
-   [ p []
-   [ text "This tool is currently on "
-   , strong [] [ text "version 0.1" ]
-   , text "."
-   ]
-   ]
-   ]
-
-   cardUser : Model -> Html Msg
-   cardUser model =
-   case model.session.auth of
-   Guest ->
-   article [][ header [] [ h1 [] [ text "User" ] ]
-   , section [] [ p [] [ text "You are not logged in." ] ]
-   , footer []
-   [ button [ tailwindButton, onClick ClickedOpenRegisterscreen ] [ text "Register" ]
-   , button [ tailwindButton, onClick ClickedOpenLoginscreen ] [ text "Login" ]
-   ]
-   ]
-
-           User credentials ->
-               article []
-                   [ header [] [ h1 [] [ text "User" ] ]
-                   , section []
-                       [ p []
-                           [ text "You are logged in as "
-                           , strong [] [ text credentials.username ]
-                           , text "."
-                           ]
-                       ]
-                   , footer []
-                       [ button [ tailwindButton, onClick ClickedLogout ] [ text "Logout" ] ]
-                   ]
-
-   -- screens
-   -- Register screen
-
-   viewRegisterData : Register.Data -> Html RegisterSubMsg
-   viewRegisterData data =
-   section [ class "markdown" ]
-   [ section [ class "explanation" ]
-   [ p [] [ text "To register, we only require you to provide a username. \\n This username may be shown publicly on leaderboards or content you contribute, so we ask you to keep it appropriate and recommend you do not use your email as your username." ]
-   , p [] [ text "When you click register, you will be given a randomly-generated password on screen for future use.\\n It is your responsibility to remember or safely store this password.\\n This password is hashed in our database.\\n For further security, we do not let users choose their own passwords." ]
-   , p [][ text "Providing an email address is optional; we give you this choice so you can provide as little information as you would like. Providing an email address allows us to generate a new random password for you to use if you forget or lose yours. If you do not provide an email address and lose your password, you will have to make a new account. We do not share or use your email for any other purpose." ]
-   ]
-   , section [ class "controls", tailwind [ "mt-4" ] ][ div [ class "field" ]
-   [ label [ tailwindLabel, for "register-username" ] [ text "Username" ]
-   , input
-   [ type_ "text"
-   , name "register-username"
-   , id "register-username"
-   , placeholder "Username"
-   , required True
-   , value data.username
-   , onInput RegisterChangedUsername
-   ]
-   []
-   ]
-   , div [ class "field" ]
-   [ label [ tailwindLabel, for "register-email" ] [ text "Email" ]
-   , input
-   [ type_ "email"
-   , name "register-email"
-   , id "register-email"
-   , placeholder "Email"
-   , required False
-   , value data.email
-   , onInput RegisterChangedEmail
-   ]
-   []
-   ]
-   ]
-   ]
-
-   viewRegisterResponse : Register.Response -> Html Msg
-   viewRegisterResponse data =
-   section [][ p []
-   [ text "Thank you for registering, "
-   , strong [] [ text data.username ]
-   , text ". Your randomly generated password is "
-   , strong [] [ text data.password ]
-   , text ". Please keep this password safe for future logins."
-   ]
-   ]
-
-   hideRegisterSubmit : Model -> Bool
-   hideRegisterSubmit model =
-   case model.screen of
-   Register \_ ->
-   False
-
-           _ ->
-               True
-
-   screenRegister : Model -> Html Msg
-   screenRegister model =
-   let
-   body =
-   case model.screen of
-   Register data ->
-   viewRegisterData data |> Html.map RegisterMsg
-
-                   RegisterResponse data ->
-                       viewRegisterResponse data
-
-                   _ ->
-                       div [] []
-
-           submitButtonContent =
-               case model.screen of
-                   Register data ->
-                       if data.loading then
-                           text "Loading"
-
-                       else
-                           text "Submit"
-
-                   _ ->
-                       div [] []
-       in
-       section
-           [ class "screen"
-           , classList [ ( "hidden", hideRegister model ) ]
-           ]
-           [ article []
-               [ header []
-                   [ h1 [] [ text "Register" ]
-                   , button [ onClick ClickedClosescreen ]
-                       [ i [ class "material-icons" ] [ text "close" ] ]
-                   ]
-               , body
-               , footer []
-                   [ button
-                       [ type_ "submit"
-                       , classList [ ( "hidden", hideRegisterSubmit model ) ]
-                       , tailwindButton
-                       , onClick (RegisterMsg RegisterClickedSubmit)
-                       ]
-                       [ submitButtonContent ]
-                   ]
-               ]
-           ]
-
-   -- Login screen
-
-   viewLoginData : Login.Data -> Html LoginSubMsg
-   viewLoginData data =
-   section []
-   [ section [ class "explanation" ]
-   [ p [][ text "To login, please enter your username and the random password you were given when you registered." ]
-   , p [] [ text "If you have forgotten your password and provided an email when you registered, please contact us through\\n the contact form with your username and we will generate and email a new password to you." ]
-   , p [][ text "If you have forgotten your password and did not provide an email when you registered, you will have to make a new account." ]
-   ]
-   , section [ class "controls", tailwind [ "mt-4" ] ][ div [ class "field" ]
-   [ label [ tailwindLabel, for "login-username" ] [ text "Username" ]
-   , input
-   [ type_ "text"
-   , name "login-username"
-   , id "login-username"
-   , placeholder "Username"
-   , required True
-   , onInput LoginChangedUsername
-   , value data.username
-   ]
-   []
-   ]
-   , div [ class "field" ]
-   [ label [ tailwindLabel, for "login-password" ] [ text "Password" ]
-   , input
-   [ type_ "password"
-   , name "login-password"
-   , id "login-password"
-   , placeholder "Password"
-   , required True
-   , value data.password
-   , onInput LoginChangedPassword
-   ]
-   []
-   ]
-   ]
-   ]
-
-   viewLoginResponse : Credentials -> Html Msg
-   viewLoginResponse data =
-   section [][ p []
-   [ text "Thank you for logging in. You can now close this screen." ]
-   ]
-
-   hideLoginSubmit : Model -> Bool
-   hideLoginSubmit model =
-   case model.screen of
-   Login \_ ->
-   False
-
-           _ ->
-               True
-
-   screenLogin : Model -> Html Msg
-   screenLogin model =
-   let
-   body =
-   case model.screen of
-   Login data ->
-   viewLoginData data |> Html.map LoginMsg
-
-                   LoginResponse data ->
-                       viewLoginResponse data
-
-                   _ ->
-                       div [] []
-
-           submitButtonContent =
-               case model.screen of
-                   Login data ->
-                       if data.loading then
-                           text "Loading"
-
-                       else
-                           text "Submit"
-
-                   _ ->
-                       div [] []
-       in
-       section
-           [ class "screen"
-           , classList [ ( "hidden", hideLogin model ) ]
-           ]
-           [ article []
-               [ header []
-                   [ h1 [] [ text "Login" ]
-                   , button [ onClick ClickedClosescreen ]
-                       [ i [ class "material-icons" ] [ text "close" ] ]
-                   ]
-               , body
-               , footer []
-                   [ button
-                       [ type_ "submit"
-                       , classList [ ( "hidden", hideLoginSubmit model ) ]
-                       , tailwindButton
-                       , onClick (LoginMsg LoginClickedSubmit)
-                       ]
-                       [ submitButtonContent ]
-                   ]
-               ]
-           ]
-
--}
+            else
+                div
+                    [ tailwind
+                        [ "rounded-full"
+                        , "w-5"
+                        , "h-5"
+                        , "bg-red-200"
+                        , "text-red-600"
+                        , "font-bold"
+                        , "text-xs"
+                        , "flex"
+                        , "justify-center"
+                        , "items-center"
+                        ]
+                    ]
+                    [ i
+                        [ class "material-icons"
+                        , tailwind [ "text-sm", "font-bold" ]
+                        ]
+                        [ text "clear" ]
+                    ]
+    in
+    tr
+        [ tailwind [] ]
+        [ td [ tailwind [ "py-1", "px-2", "markdown" ] ] [ a [ Route.toHref (Route.Question data.questionId) ] [ text ("ID " ++ String.fromInt data.questionId) ] ]
+        , td [ tailwind [ "px-1" ] ] [ text (data.answeredDatetime |> Datetime.posixToString) ]
+        , td [ tailwind [ "px-1" ] ] [ text (data.specialty |> Specialty.toString) ]
+        , td [ tailwind [ "px-1" ] ] [ text (data.topic |> Topic.toBrief) ]
+        , td [ tailwind [ "px-1" ] ] [ text (data.yearLevel |> YearLevel.toString) ]
+        , td [ tailwind [ "px-1" ] ] [ text (data.domain |> Domain.toString) ]
+        , td [ tailwind [ "flex", "justify-center", "items-center", "py-2", "px-2" ] ] [ toMarkDiv ]
+        ]
