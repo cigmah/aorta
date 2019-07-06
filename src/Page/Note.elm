@@ -13,6 +13,7 @@ import Json.Encode as Encode
 import List.Extra exposing (getAt, setAt)
 import Markdown
 import Maybe.Extra
+import Page.Elements as Elements
 import Random
 import Random.List exposing (choose)
 import RemoteData exposing (RemoteData(..), WebData)
@@ -478,23 +479,8 @@ view model =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    [ main_
-        [ tailwind
-            [ "h-screen"
-            , "bg-grey-200"
-            , "mx-auto"
-            , "overflow-auto"
-            , "md:p-4"
-            , "md:pt-10"
-            ]
-        ]
-        [ section
-            [ tailwind
-                [ "md:flex"
-                , "container"
-                , "mx-auto"
-                ]
-            ]
+    [ Elements.safeMain
+        [ Elements.container
             [ viewHeader model model.webDataNote
             , section
                 [ tailwind
@@ -735,7 +721,7 @@ viewContent model dataNoteWebData =
                     , "flex-grow"
                     , "bg-white"
                     , "rounded"
-                    , "shadow-lg"
+                    , "md:shadow-lg"
                     , "pb-16"
                     , "min-h-screen"
                     , "md:min-h-0"
@@ -778,6 +764,31 @@ viewContent model dataNoteWebData =
                             viewNote data.content
 
                         Community ->
+                            let
+                                commentView =
+                                    case data.comments of
+                                        [] ->
+                                            [ p [] [ text "There aren't any public contributions yet." ] ]
+
+                                        _ ->
+                                            List.map viewComment data.comments
+
+                                submitText =
+                                    case model.webDataComment of
+                                        Loading ->
+                                            "Loading"
+
+                                        _ ->
+                                            "Submit"
+
+                                disabledSubmit =
+                                    case model.webDataComment of
+                                        Loading ->
+                                            True
+
+                                        _ ->
+                                            False
+                            in
                             [ div
                                 [ tailwind [ "mb-4", "w-full", "border-b", "border-gray-400", "pb-8" ]
                                 , classList [ ( "hidden", Session.isGuest model.session ) ]
@@ -785,7 +796,7 @@ viewContent model dataNoteWebData =
                                 [ div
                                     [ tailwind [ "w-full" ] ]
                                     [ textarea
-                                        [ placeholder "Contribute public comments, queries, requests, mnemonics or extra notes here."
+                                        [ placeholder "Contribute public comments, queries, requests, mnemonics or extra notes here. You can use markdown to format your contribution e.g. *italicised text*, **bolded text**, [link text](https://url.com), ![image mouseover](https://image-url.com), # Heading, ## Subheading etc."
                                         , value model.comment
                                         , required True
                                         , onInput ChangedComment
@@ -796,16 +807,15 @@ viewContent model dataNoteWebData =
                                         [ onClick ClickedSubmitComment
                                         , tailwindButton
                                         , tailwind [ "justify-center" ]
+                                        , disabled disabledSubmit
                                         ]
-                                        [ text "Submit" ]
+                                        [ text submitText ]
                                     ]
                                 ]
                             , div
                                 [ id "comments"
-                                , tailwind
-                                    []
                                 ]
-                                (List.map viewComment data.comments)
+                                commentView
                             ]
             in
             wrap
@@ -957,36 +967,41 @@ viewModalAddQuestion addQuestionData =
                     [ i [ class "material-icons" ] [ text "close" ] ]
                 ]
             , section []
-                [ div [ class "field" ]
+                [ p [ tailwind [ "p-2", "bg-yellow-100", "text-yellow-800", "rounded", "mb-4" ] ]
+                    [ text "By submitting this question, you agree that your submission is of your own, original writing and not taken from copyrighted works, including books, past exam papers or proprietary question banks. Any questions found to be in breach of copyright will be removed and offending users may be banned." ]
+                , div [ tailwind [ "md:flex", "w-full" ] ]
+                    [ div [ class "field", tailwind [ "flex-grow", "md:mr-2" ] ]
+                        [ label [ for "year_level", labelTailwind ] [ text "Year Level" ]
+                        , select
+                            [ onInput (AddQuestionMsg << ChangedYearLevel)
+                            , tailwind [ "mb-2" ]
+                            , value (addQuestionData.question.yearLevel |> YearLevel.toInt |> String.fromInt)
+                            , id "year_level"
+                            ]
+                            (List.map (YearLevel.option (Just addQuestionData.question.yearLevel)) YearLevel.list)
+                        ]
+                    , div [ class "field", tailwind [ "flex-grow", "md:ml-2" ] ]
+                        [ label [ for "domain", labelTailwind ] [ text "Domain" ]
+                        , select
+                            [ onInput (AddQuestionMsg << ChangedDomain)
+                            , tailwind [ "mb-2" ]
+                            , value (addQuestionData.question.domain |> Domain.toInt |> String.fromInt)
+                            , id "domain"
+                            ]
+                            (List.map (Domain.option (Just addQuestionData.question.domain)) Domain.list)
+                        ]
+                    ]
+                , div [ class "field" ]
                     [ label [ for "stem", labelTailwind ] [ text "Question Stem" ]
                     , textarea
                         [ value addQuestionData.question.stem
-                        , placeholder "Question stem"
+                        , placeholder "Write your question here. You can format your question with markdown e.g. *italicised text*, **bolded text**, [link text](http://url.com), ![image mouseover](http://image-url.com)"
                         , onInput (AddQuestionMsg << ChangedStem)
                         , id "stem"
                         , required True
+                        , rows 5
                         ]
                         []
-                    ]
-                , div [ class "field" ]
-                    [ label [ for "domain", labelTailwind ] [ text "Domain" ]
-                    , select
-                        [ onInput (AddQuestionMsg << ChangedDomain)
-                        , tailwind [ "mb-2" ]
-                        , value (addQuestionData.question.domain |> Domain.toInt |> String.fromInt)
-                        , id "domain"
-                        ]
-                        (List.map (Domain.option (Just addQuestionData.question.domain)) Domain.list)
-                    ]
-                , div [ class "field" ]
-                    [ label [ for "year_level", labelTailwind ] [ text "Year Level" ]
-                    , select
-                        [ onInput (AddQuestionMsg << ChangedYearLevel)
-                        , tailwind [ "mb-2" ]
-                        , value (addQuestionData.question.yearLevel |> YearLevel.toInt |> String.fromInt)
-                        , id "year_level"
-                        ]
-                        (List.map (YearLevel.option (Just addQuestionData.question.yearLevel)) YearLevel.list)
                     ]
                 , div []
                     (List.indexedMap

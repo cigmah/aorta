@@ -10,14 +10,17 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Markdown
+import Page.Elements as Elements
 import Page.Finish as Finish
 import Page.Home as Home
+import Page.Info as Info
 import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
 import Page.Question as Question
 import Page.Revise as Revise
 import Types.Credentials exposing (Auth(..))
+import Types.Note
 import Types.Session as Session exposing (Session)
 import Types.Styles exposing (tailwind)
 
@@ -57,6 +60,10 @@ view model =
             Finish.view subModel
                 |> viewPage model GotFinishMsg
 
+        Info subModel ->
+            Info.view subModel
+                |> viewPage model GotInfoMsg
+
 
 {-| Wrap each page's individual view function |
 -}
@@ -68,92 +75,6 @@ viewPage model toMsg page =
             |> List.map (Html.map toMsg)
             |> wrapBody model
     }
-
-
-{-| View ech navigation link |
--}
-viewNavLink : { name : String, active : Bool, route : Route, icon : String, right : Bool } -> Html Msg
-viewNavLink data =
-    a
-        [ Route.toHref data.route
-        , tailwind
-            [ "flex"
-            , "flex-col"
-            , "p-2"
-            , "px-4"
-            , "flex-grow"
-            , "items-center"
-            , "md:flex-none"
-            , "md:flex-row"
-            , "justify-center"
-            , "cursor-pointer"
-            , "hover:bg-gray-200"
-            , "bg-white"
-            , "hover:text-gray-700"
-            , "text-sm"
-            , "uppercase"
-            ]
-        , classList
-            [ ( "text-blue-500 font-bold", data.active )
-            , ( "md:ml-auto", data.right )
-            ]
-        ]
-        [ i
-            [ class "material-icons"
-            , tailwind
-                [ "md:pr-2" ]
-            ]
-            [ text data.icon ]
-        , label
-            [ tailwind
-                [ "cursor-pointer"
-                , "md:pr-2"
-                ]
-            ]
-            [ text data.name ]
-        ]
-
-
-{-| View a single message |
--}
-viewSingleMessage : String -> Html Msg
-viewSingleMessage string =
-    article
-        [ class "message"
-        , tailwind
-            [ "bg-white"
-            , "text-gray-800"
-            , "p-4"
-            , "fadein"
-            , "shadow-lg"
-            , "md:rounded"
-            , "md:mb-4"
-            , "cursor-pointer"
-            , "flex"
-            , "justify-between"
-            ]
-        , onClick <| ClickedMessage string
-        ]
-        [ div [] (Markdown.toHtml Nothing string)
-        , div [ class "material-icons" ] [ text "clear" ]
-        ]
-
-
-{-| View the list of all messages in a session |
--}
-viewMessage : Session -> Html Msg
-viewMessage session =
-    case session.message of
-        Just stringList ->
-            section
-                [ class "message-list"
-                , tailwind
-                    [ "fixed", "right-0", "top-0", "md:p-2", "md:w-1/4", "z-50", "w-full" ]
-                ]
-                (List.map viewSingleMessage stringList)
-
-        Nothing ->
-            section [ class "hidden" ] []
 
 
 {-| Wrap each page's individual body with a nav bar and messages |
@@ -170,7 +91,7 @@ wrapBody model body =
                     user.username
 
                 Guest ->
-                    "Info"
+                    "Login"
 
         hideNav =
             case model of
@@ -179,58 +100,59 @@ wrapBody model body =
 
                 _ ->
                     False
+
+        searchBarData =
+            { webDataResponse = session.searchResults
+            , responseDataToResult = Types.Note.toSearchResult
+            , forMobile = False
+            , inputData =
+                { value = session.searchInput
+                , onInput = ChangedSearchInput
+                , placeholder = "Search notes..."
+                , type_ = "search"
+                , id = "search"
+                , required = False
+                }
+            }
     in
-    [ nav
-        [ tailwind
-            [ "w-full"
-            , "flex"
-            , "fixed"
-            , "bottom-0"
-            , "md:top-0"
-            , "md:bottom-auto"
-            , "text-sm"
-            , "md:text-base"
-            , "items-center"
-            , "z-30"
-            , "text-gray-500"
-            , "bg-white"
-            ]
-        , classList
-            [ ( "hidden", hideNav ) ]
+    Elements.navBar hideNav
+        [ { name = "Grid"
+          , active = Parser.isEqual Route.Home model
+          , route = Route.Home
+          , icon = "notes"
+          , hideOnMobile = True
+          , hideOnDesktop = False
+          }
+        , { name = "Search"
+          , active = Parser.isEqual Route.Home model
+          , route = Route.Home
+          , icon = "search"
+          , hideOnMobile = False
+          , hideOnDesktop = True
+          }
+        , { name = "Test"
+          , active = Parser.isEqual Route.Revise model
+          , route = Route.Revise
+          , icon = "check"
+          , hideOnMobile = False
+          , hideOnDesktop = False
+          }
         ]
-        [ div
-            [ tailwind
-                [ "hidden"
-                , "md:block"
-                , "ml-8"
-                , "mr-6"
-                , "text-xl"
-                , "font-light"
-                ]
-            ]
-            [ text "aorta" ]
-        , viewNavLink
-            { name = "Grid"
-            , active = Parser.isEqual Route.Home model
-            , route = Route.Home
-            , icon = "notes"
-            , right = False
-            }
-        , viewNavLink
-            { name = "Revise"
-            , active = Parser.isEqual Route.Revise model
-            , route = Route.Revise
-            , icon = "check"
-            , right = False
-            }
-        , viewNavLink
-            { name = profileText
-            , active = Parser.isEqual Route.Profile model
-            , route = Route.Profile
-            , icon = "person"
-            , right = True
-            }
+        searchBarData
+        [ { name = "Info"
+          , active = Parser.isEqual Route.Info model
+          , route = Route.Info
+          , icon = "info"
+          , hideOnMobile = False
+          , hideOnDesktop = False
+          }
+        , { name = profileText
+          , active = Parser.isEqual Route.Profile model
+          , route = Route.Profile
+          , icon = "person"
+          , hideOnMobile = False
+          , hideOnDesktop = False
+          }
         ]
-    ]
-        ++ body
-        ++ [ viewMessage (eject model) ]
+        :: Elements.messages session ClickedMessage
+        :: body

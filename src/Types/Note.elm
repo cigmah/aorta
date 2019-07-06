@@ -3,8 +3,16 @@ module Types.Note exposing
     , ListData
     , decoder
     , decoderList
+    , toBgColor
+    , toBorderColor
+    , toSearchResult
+    , toTextColor
     )
 
+import Architecture.Route as Route
+import Color exposing (Color)
+import Html exposing (Html)
+import Html.Attributes as Attributes
 import Iso8601
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Decode.Pipeline as Pipeline exposing (optional, required)
@@ -14,6 +22,7 @@ import Types.Comment as Comment
 import Types.Domain as Domain exposing (Domain)
 import Types.Question as Question
 import Types.Specialty as Specialty exposing (Specialty)
+import Types.Styles exposing (tailwind)
 import Types.Topic as Topic exposing (Topic)
 import Types.User as User exposing (User)
 import Types.YearLevel as YearLevel exposing (YearLevel)
@@ -61,6 +70,74 @@ type alias Data =
     , dueIds : Maybe (List Question.ListData)
     , knownIds : Maybe (List Question.ListData)
     }
+
+
+toBgColor : ListData -> Color
+toBgColor note =
+    case ( note.numDue, note.numKnown ) of
+        ( Just due, Just known ) ->
+            if note.numQuestions > 0 then
+                let
+                    unseen =
+                        note.numQuestions - (due + known)
+                in
+                if unseen > 0 then
+                    Color.hsl 0 (toFloat (due + unseen) / toFloat note.numQuestions / 2) 0.5
+
+                else
+                    Color.hsl 0.35 (toFloat known / toFloat note.numQuestions / 2) 0.5
+
+            else
+                Color.white
+
+        _ ->
+            if note.numQuestions > 0 then
+                Color.rgb255 74 85 104
+
+            else
+                Color.white
+
+
+toBorderColor : ListData -> Color
+toBorderColor note =
+    let
+        bg =
+            toBgColor note
+    in
+    if note.numQuestions > 0 then
+        bg
+
+    else
+        Color.lightGray
+
+
+toTextColor : ListData -> Color
+toTextColor note =
+    let
+        bg =
+            toBgColor note
+    in
+    if bg == Color.white then
+        Color.rgb255 74 85 104
+
+    else
+        Color.white
+
+
+toSearchResult : ListData -> Html msg
+toSearchResult note =
+    Html.a
+        [ Route.toHref (Route.Note note.id)
+        ]
+        [ Html.article
+            [ tailwind
+                [ "p-2"
+                , "hover:text-blue-500"
+                , "hover:bg-gray-100"
+                ]
+            ]
+            [ Html.text note.title ]
+        ]
 
 
 decoder : Decoder Data

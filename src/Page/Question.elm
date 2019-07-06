@@ -592,7 +592,7 @@ viewHeader model state =
         [ tailwind
             [ "items-center", "flex", "bg-white" ]
         ]
-        [ div [ tailwind [ "flex-grow", "flex-wrap", "flex", "overflow-auto" ] ]
+        [ div [ tailwind [ "flex-grow", "flex-wrap", "flex", "overflow-auto", "normal-case" ] ]
             progress
         , button [ onClick ClickedClose, tailwind [ "hover:text-blue-800", "focus:text-blue-200" ] ]
             [ i [ class "material-icons" ] [ text "close" ] ]

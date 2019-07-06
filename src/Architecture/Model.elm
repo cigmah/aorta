@@ -2,6 +2,7 @@ module Architecture.Model exposing (Model(..))
 
 import Page.Finish as Finish
 import Page.Home as Home
+import Page.Info as Info
 import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
@@ -17,3 +18,4 @@ type Model
     | Revise Revise.Model
     | Question Question.Model
     | Finish Finish.Model
+    | Info Info.Model

@@ -21,6 +21,7 @@ parser =
         , map Route.Revise <| s "revise"
         , map Route.Finish <| s "finish"
         , map Route.Question <| s "questions" </> int
+        , map Route.Info <| s "information"
         ]
 
 
@@ -66,6 +67,9 @@ isEqual route model =
             True
 
         ( Route.Finish, Model.Finish _ ) ->
+            True
+
+        ( Route.Info, Model.Info _ ) ->
             True
 
         _ ->

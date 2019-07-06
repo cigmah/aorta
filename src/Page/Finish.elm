@@ -19,7 +19,9 @@ import Types.Test as Test exposing (Test)
 
 
 type alias Model =
-    { session : Session }
+    { session : Session
+    , lastTest : Maybe Test
+    }
 
 
 
@@ -29,7 +31,6 @@ type alias Model =
 type Msg
     = NoOp
     | ClickedFinish
-    | ClickedQuestion Int
 
 
 
@@ -38,7 +39,15 @@ type Msg
 
 init : Session -> ( Model, Cmd Msg )
 init session =
-    ( { session = session }, Cmd.none )
+    let
+        newSession =
+            { session | test = Nothing }
+    in
+    ( { session = newSession
+      , lastTest = session.test
+      }
+    , Cmd.none
+    )
 
 
 
@@ -73,15 +82,15 @@ subscriptions model =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ session } as model) =
+update msg ({ session, lastTest } as model) =
     case msg of
         NoOp ->
             ( model, Cmd.none )
 
         ClickedFinish ->
-            case session.test of
+            case lastTest of
                 Just test ->
-                    ( { model | session = { session | test = Nothing } }
+                    ( model
                     , Navigation.pushUrl
                         session.key
                         test.back
@@ -93,20 +102,6 @@ update msg ({ session } as model) =
                         session.key
                         (Route.toString Route.Home)
                     )
-
-        ClickedQuestion id ->
-            let
-                destination =
-                    Navigation.pushUrl session.key (Route.toString (Route.Question id))
-            in
-            case session.test of
-                Just test ->
-                    ( { model | session = { session | test = Nothing } }
-                    , destination
-                    )
-
-                Nothing ->
-                    ( model, destination )
 
 
 
@@ -142,7 +137,7 @@ tailwindButton =
 
 viewTestResults : Model -> Html Msg
 viewTestResults model =
-    case model.session.test of
+    case model.lastTest of
         Just test ->
             case test.future of
                 [] ->
@@ -221,7 +216,7 @@ viewContentBody test =
                         , span [ class "material-icons", tailwind [ "mr-2" ] ] [ text "clear" ]
                         )
             in
-            button
+            a
                 [ tailwind
                     [ "flex"
                     , "items-center"
@@ -235,7 +230,7 @@ viewContentBody test =
                     , "hover:text-white"
                     ]
                 , tailwindStyles
-                , onClick <| ClickedQuestion item.id
+                , Route.toHref (Route.Question item.id)
                 ]
                 [ icon
                 , text <| "Question ID " ++ String.fromInt item.id
@@ -275,7 +270,8 @@ viewContentBody test =
                 , "pt-2"
                 ]
             ]
-            [ text "Jump to a Question" ]
-        , div [ tailwind [ "flex", "flex-wrap", "mt-4", "justify-center" ] ]
+            [ text "Seen Questions" ]
+        , p [ tailwind [ "my-2", "text-gray-700", "text-left", "px-2" ] ] [ text "If you would like to review these questions, open them in a new tab. Your test session will be restarted once you leave this page." ]
+        , div [ tailwind [ "flex", "flex-wrap", "mt-2" ] ]
             (List.map viewCompleted test.completed)
         ]

@@ -8,6 +8,7 @@ import Browser.Navigation as Navigation exposing (Key)
 import Json.Decode as Decode exposing (Value)
 import Page.Finish as Finish
 import Page.Home as Home
+import Page.Info as Info
 import Page.NotFound as NotFound
 import Page.Note as Note
 import Page.Profile as Profile
@@ -63,3 +64,7 @@ fromRoute route session =
         Route.Finish ->
             Finish.init session
                 |> extractWith Finish GotFinishMsg
+
+        Route.Info ->
+            Info.init session
+                |> extractWith Info GotInfoMsg

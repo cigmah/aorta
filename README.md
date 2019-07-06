@@ -24,7 +24,7 @@ Here's a quick rundown:
 Adding a page requires some boilerplate.
 
 1. Copy `template.elm` into a new file in the `Page/` directory.
-2. Add the route to `Route.elm` as part of the `Route` union type and add a fragment path to the parser, and a string form to the `toString` function.
+2. Add the route to `Route.elm` as part of the `Route` union type and add a string form to the `toString` function.
 3. Import the page and add a model mapper to `Model.elm` as part of the `Model` union type.
 4. Import the page and add a message mapper to `Msg.elm` as part of the `Msg` union type.
 5. Import the page and add the `init` function to `Init.elm` under the `fromRoute` function.
@@ -83,3 +83,11 @@ Then finally, switch back to develop:
 ```sh
 git checkout develop
 ```
+
+## TODOs
+
+- [ ] Refactor all HTML elements out of pages and into either `Page/Elements.elm`
+  or a different type module. Currently in progress.
+- [ ] Simplify update functions for each page - a lot are unwieldy at the moment.
+- [ ] Pagination for response history
+- [ ] Per-specialty, per-topic statistics on profile page
