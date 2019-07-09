@@ -23,7 +23,6 @@ import Types.Styles exposing (tailwind)
 import Types.Topic as Topic exposing (Topic)
 import Types.YearLevel as YearLevel exposing (YearLevel)
 import Url.Builder as Builder
-import Views.Question exposing (..)
 
 
 
@@ -35,11 +34,6 @@ type alias Model =
     , response : WebData (List Int)
     , quantity : Int
     }
-
-
-type Modal
-    = ModalNone
-    | ModalQuestion ModalQuestionData
 
 
 

@@ -4,6 +4,7 @@ import Browser exposing (Document)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Page.Elements as Elements
 import Types.Session exposing (Session)
 
 
@@ -51,4 +52,5 @@ view model =
 
 viewBody : Model -> Html Msg
 viewBody model =
-    div [] []
+    Elements.safeCenter
+        [ Elements.errorMessage (text "This page doesn't exist!") ]

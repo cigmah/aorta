@@ -210,9 +210,14 @@ update msg ({ session } as model) =
                     ignore
 
                 _ ->
-                    ( { model | webDataComment = Loading }
-                    , Request.post (postComment model.session model.noteId model.comment)
-                    )
+                    case String.trim model.comment of
+                        "" ->
+                            ( { model | session = Session.addMessage session "You need to type a comment first!" }, Cmd.none )
+
+                        _ ->
+                            ( { model | webDataComment = Loading }
+                            , Request.post (postComment model.session model.noteId model.comment)
+                            )
 
         ( GotSubmitCommentResponse webData, Success noteData ) ->
             case webData of
@@ -222,6 +227,14 @@ update msg ({ session } as model) =
                         | webDataComment = webData
                         , comment = ""
                         , webDataNote = Success { noteData | comments = noteData.comments ++ [ comment ] }
+                      }
+                    , Cmd.none
+                    )
+
+                Failure e ->
+                    ( { model
+                        | webDataComment = webData
+                        , session = Session.addMessage session "There was an error with submitting your comment. We apologise - please let us know if it persists!"
                       }
                     , Cmd.none
                     )
@@ -527,14 +540,6 @@ tailwindButton =
 viewHeader : Model -> WebData Note.Data -> Html Msg
 viewHeader model dataNoteWebData =
     let
-        headerColor =
-            case dataNoteWebData of
-                Success data ->
-                    "slategray"
-
-                _ ->
-                    "slategray"
-
         makeStudyButton studyButtonText =
             button
                 [ onClick ClickedStudy
@@ -595,7 +600,35 @@ viewHeader model dataNoteWebData =
                 _ ->
                     div [] []
 
-        wrap title specialty allIds loading =
+        wrap title maybeSpecialty allIds loading =
+            let
+                tile =
+                    case maybeSpecialty of
+                        Nothing ->
+                            div [ tailwind [ "md:h-40", "lg:h-56" ] ] []
+
+                        Just specialty ->
+                            div
+                                [ tailwind
+                                    [ "hidden"
+                                    , "md:block"
+                                    , "relative"
+                                    ]
+                                ]
+                                [ div [ tailwind [] ] [ Specialty.toIcon specialty ]
+                                , div
+                                    [ tailwind
+                                        [ "bg-blue-400"
+                                        , "text-white"
+                                        , "p-2"
+                                        , "text-xs"
+                                        , "font-bold"
+                                        , "w-full"
+                                        ]
+                                    ]
+                                    [ text title ]
+                                ]
+            in
             section
                 [ tailwind
                     [ "flex"
@@ -607,16 +640,17 @@ viewHeader model dataNoteWebData =
                     ]
                 ]
                 [ div
-                    [ Html.Attributes.style "background" headerColor
-                    , tailwind
+                    [ tailwind
                         [ "w-full"
                         , "md:w-40"
-                        , "md:h-40"
+                        , "bg-blue-500"
+                        , "md:bg-white"
+                        , "md:border-2"
+                        , "md:border-blue-400"
                         , "lg:w-56"
-                        , "lg:h-56"
-                        , "md:rounded-lg"
                         , "p-2"
-                        , "lg:p-4"
+                        , "md:p-0"
+                        , "md:rounded-lg"
                         , "transition"
                         , "mx-auto"
                         , "md:mb-2"
@@ -625,14 +659,15 @@ viewHeader model dataNoteWebData =
                         , "items-center"
                         ]
                     ]
-                    [ a
+                    [ tile
+                    , a
                         [ Route.toHref Route.Home
                         , tailwind [ "md:hidden", "text-white", "mr-4", "flex", "items-center" ]
                         ]
                         [ i [ class "material-icons" ] [ text "arrow_back" ] ]
                     , div
                         [ tailwind
-                            [ "text-sm", "text-white", "text-center", "uppercase", "flex", "items-center" ]
+                            [ "text-sm", "text-white", "md:text-center", "uppercase", "flex", "items-center", "md:hidden" ]
                         ]
                         [ text title ]
                     ]
@@ -684,28 +719,28 @@ viewHeader model dataNoteWebData =
         Loading ->
             wrap
                 "Loading"
-                ""
+                Nothing
                 []
                 True
 
         NotAsked ->
             wrap
                 "Not Asked"
-                ""
+                Nothing
                 []
                 False
 
         Failure e ->
             wrap
                 "There was an error."
-                ""
+                Nothing
                 []
                 False
 
         Success data ->
             wrap
                 data.title
-                (Specialty.toString data.specialty)
+                (Just data.specialty)
                 data.allIds
                 False
 
@@ -754,7 +789,7 @@ viewContent model dataNoteWebData =
             wrap [ text "Not asked" ]
 
         Failure e ->
-            wrap [ div [ tailwind [ "h-full", "flex", "items-center", "justify-center", "p-4" ] ] [ text "It seems like there was an error. We're sorry. Let us know, or try again later." ] ]
+            Elements.wrapError e
 
         Success data ->
             let

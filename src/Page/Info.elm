@@ -176,7 +176,7 @@ postContactData model =
 
 view : Model -> Document Msg
 view model =
-    { title = ""
+    { title = "AORTA - FAQ"
     , body = viewBody model
     }
 
@@ -185,8 +185,8 @@ viewBody : Model -> List (Html Msg)
 viewBody model =
     [ Elements.safeMain
         [ Elements.container
-            [ section [ tailwind [] ] [ cardInformation ]
-            , section [ tailwind [] ] [ cardContact model |> Html.map ContactMsg ]
+            [ section [ tailwind [ "m-4", "md:m-0" ] ] [ cardInformation ]
+            , section [ tailwind [ "m-2", "md:m-0" ] ] [ cardContact model |> Html.map ContactMsg ]
             ]
         ]
     ]
@@ -307,5 +307,7 @@ from our [GitHub organisation](https://github.com/cigmah). We welcome pull
 requests.
 
 This tool is on **version 0.1**.
+
+More information will be added to this FAQ soon, so stay tuned.
 
 """

@@ -288,7 +288,7 @@ div.loading {
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
-    min-width: 300%;
+    min-width: 500%;
   }
 
   .note:hover {

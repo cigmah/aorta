@@ -26,6 +26,7 @@ import Html.Events exposing (..)
 import Http exposing (Error(..))
 import Markdown
 import RemoteData exposing (RemoteData(..), WebData)
+import Types.Icon as Icon
 import Types.Note as Note
 import Types.Session as Session exposing (Session)
 import Types.Specialty as Specialty
@@ -130,7 +131,11 @@ navBar hideNav navLinksLeft searchBarData navLinksRight =
                 , "items-center"
                 ]
             ]
-            [ div [] [ text "aorta" ] ]
+            [ div [ tailwind [ "flex", "items-center" ] ]
+                [ div [ tailwind [ "h-6", "w-6", "mr-2" ] ] [ Icon.aortaAlt ]
+                , text "aorta"
+                ]
+            ]
             :: List.map (navLink False) navLinksLeft
             ++ [ searchBar searchBarData ]
             ++ List.map (navLink True) navLinksRight
@@ -283,7 +288,7 @@ safeMain : List (Html msg) -> Html msg
 safeMain =
     main_
         [ tailwind
-            [ "p-2"
+            [ "md:p-2"
             , "md:p-4"
             , "pb-16"
             , "md:pb-4"
@@ -713,8 +718,8 @@ articleCard data =
             [ "flex"
             , "flex-col"
             , "rounded"
-            , "shadow"
-            , "m-2"
+            , "md:shadow"
+            , "md:m-2"
             ]
         ]
         [ header

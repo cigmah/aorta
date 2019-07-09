@@ -22,6 +22,7 @@ import Http exposing (Error(..))
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Markdown
+import Page.Elements as Elements
 import Random
 import Random.List
 import RemoteData exposing (RemoteData(..), WebData)
@@ -232,11 +233,20 @@ update msg ({ session } as model) =
                     )
 
                 Nothing ->
-                    ( model
-                    , Navigation.pushUrl
-                        session.key
-                        (Route.toString Route.Home)
-                    )
+                    case session.auth of
+                        Guest ->
+                            ( model
+                            , Navigation.pushUrl
+                                session.key
+                                (Route.toString Route.Home)
+                            )
+
+                        User _ ->
+                            ( model
+                            , Navigation.pushUrl
+                                session.key
+                                (Route.toString Route.Profile)
+                            )
     in
     case model.webQuestion of
         LoadingQuestion ->
@@ -491,8 +501,8 @@ viewBody model =
             loading
 
         FailureQuestion errorHttp ->
-            [ section [ class "modal" ]
-                [ text "Failure" ]
+            [ section [ class "modal question-modal" ]
+                [ Elements.wrapError errorHttp ]
             ]
 
         SuccessQuestion question state ->
