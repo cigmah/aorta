@@ -7,9 +7,11 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http exposing (Error(..))
+import Markdown
 import Page.Elements as Elements
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Credentials as Credentials exposing (Auth(..))
+import Types.Icon as Icon
 import Types.Note as Note
 import Types.Request as Request
 import Types.Session as Session exposing (Session)
@@ -188,6 +190,9 @@ viewBody model =
     [ Elements.safeCenter
         [ viewGrid model.session.webDataNoteList
         , Elements.searchBar searchBarData
+        , section
+            [ tailwind [ "md:hidden", "text-gray-600", "p-4" ], class "markdown" ]
+            (Markdown.toHtml Nothing "We're still in the process of adding questions and notes, so there might not be much to find yet - but you can try searching systems like **Cardiovascular**, or topics like **Medications** and see if anything comes up!")
         ]
     ]
 

@@ -6,6 +6,7 @@ module Types.Specialty exposing
     , fromInt
     , list
     , option
+    , toIcon
     , toInt
     , toString
     )
@@ -15,6 +16,8 @@ import Html exposing (Html)
 import Html.Attributes as Attributes
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
+import Svg exposing (Svg)
+import Types.Icon as Icon
 
 
 {-| Based on backend API definitions. It's verbose, but was easy to script,
@@ -230,3 +233,49 @@ decoder : Decoder Specialty
 decoder =
     Decode.int
         |> Decode.map fromInt
+
+
+toIcon : Specialty -> Svg msg
+toIcon specialty =
+    case specialty of
+        Principles ->
+            Icon.principles
+
+        Cardiovascular ->
+            Icon.cardio
+
+        Respiratory ->
+            Icon.resp
+
+        Gastrointestinal ->
+            Icon.gastro
+
+        RenalAndUrological ->
+            Icon.renal
+
+        MusculoskeletalAndRheumatological ->
+            Icon.msk
+
+        Neurological ->
+            Icon.neuro
+
+        Haematological ->
+            Icon.haem
+
+        Endocrine ->
+            Icon.endo
+
+        MentalAndBehavioural ->
+            Icon.psych
+
+        ObstetricAndGynaecological ->
+            Icon.obgyn
+
+        Otolaryngological ->
+            Icon.ent
+
+        Ophthalmological ->
+            Icon.ophthal
+
+        Dermatological ->
+            Icon.derm
