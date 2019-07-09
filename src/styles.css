@@ -171,6 +171,16 @@ div.loading {
   border-left: 2px solid slategrey;
 }
 
+.markdown table {
+    @apply border-t border-b border-gray-300 my-2; 
+    display: block;
+    margin: auto;
+}
+
+.markdown td, .markdown th {
+    @apply p-2;
+}
+
 .markdown pre {
   font-size: 0.9em;
 }
