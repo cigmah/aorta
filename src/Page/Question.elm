@@ -526,7 +526,17 @@ viewQuestion model state question =
     in
     article [ id "question" ]
         [ viewHeader model state
-        , section []
+        , section
+            [ tailwind
+                [ "mb-20"
+                , "mt-12"
+                , "md:mt-0"
+                , "md:pb-4"
+                , "md:mb-0"
+                , "min-h-screen"
+                , "md:min-h-0"
+                ]
+            ]
             [ div
                 [ tailwind
                     [ "mb-4" ]
@@ -553,7 +563,12 @@ viewHeader model state =
         viewComplete : { id : Int, wasCorrect : Bool } -> Html Msg
         viewComplete { id, wasCorrect } =
             div
-                [ tailwind [ "h-4", "w-4", "m-px", "rounded" ]
+                [ tailwind
+                    [ "h-4"
+                    , "w-4"
+                    , "m-px"
+                    , "rounded"
+                    ]
                 , classList
                     [ ( "bg-green-500", wasCorrect )
                     , ( "bg-red-500", not wasCorrect )
@@ -600,7 +615,14 @@ viewHeader model state =
     in
     header
         [ tailwind
-            [ "items-center", "flex", "bg-white" ]
+            [ "items-center"
+            , "flex"
+            , "bg-white"
+            , "fixed"
+            , "top-0"
+            , "w-full"
+            , "md:relative"
+            ]
         ]
         [ div [ tailwind [ "flex-grow", "flex-wrap", "flex", "overflow-auto", "normal-case" ] ]
             progress
@@ -674,12 +696,22 @@ viewFooter model state question =
     in
     footer
         [ classList
-            [ ( "opacity-0", state == Unanswered )
+            [ ( "opacity-0 invisible", state == Unanswered )
             , ( "correct-bg", isCorrect )
             , ( "incorrect-bg", isIncorrect )
             ]
         , tailwind
-            [ "transition", "opacity-1" ]
+            [ "transition"
+            , "opacity-1"
+            , "fixed"
+            , "w-full"
+            , "bottom-0"
+            , "md:relative"
+            , "bg-white"
+            , "border-t"
+            , "border-blue-300"
+            , "md:p-0"
+            ]
         ]
         [ button
             [ onClick ClickedFlag

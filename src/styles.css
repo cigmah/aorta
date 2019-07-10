@@ -172,7 +172,7 @@ div.loading {
 }
 
 .markdown table {
-    @apply border-t border-b border-gray-300 my-2; 
+    @apply border-t border-b border-gray-300 my-2;
     display: block;
     margin: auto;
 }
@@ -230,11 +230,6 @@ div.loading {
 
 .modal {
   @apply bg-gray-100;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
   z-index: 40;
 }
 
@@ -309,6 +304,11 @@ div.loading {
 
 
   .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;

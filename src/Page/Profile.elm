@@ -229,7 +229,10 @@ updateRegister msg screenData ({ session } as model) =
                 Success responseData ->
                     let
                         newSession =
-                            { session | auth = User { username = responseData.username, token = responseData.token } }
+                            { session
+                                | auth = User { username = responseData.username, token = responseData.token }
+                                , webDataNoteList = Loading
+                            }
                     in
                     ( { model
                         | screen = Register { screenData | response = responseRegisterWebData }
@@ -281,7 +284,10 @@ updateLogin msg screenData ({ session } as model) =
                 Success responseData ->
                     let
                         newSession =
-                            { session | auth = User responseData }
+                            { session
+                                | auth = User responseData
+                                , webDataNoteList = Loading
+                            }
                     in
                     ( { model
                         | screen = Login { screenData | response = responseLoginWebData }
@@ -312,7 +318,7 @@ updateProfile msg screenData ({ session } as model) =
         ClickedLogout ->
             let
                 newSession =
-                    { session | auth = Guest }
+                    { session | auth = Guest, webDataNoteList = Loading }
             in
             ( { model | session = newSession, screen = Logout }, Session.save newSession )
 
