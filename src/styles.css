@@ -233,6 +233,14 @@ div.loading {
   z-index: 40;
 }
 
+.full-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
 .modal.hidden {
   display: none;
 }

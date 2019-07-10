@@ -482,8 +482,10 @@ viewBody : Model -> List (Html Msg)
 viewBody model =
     let
         loading =
-            [ section [ class "modal question-modal" ]
-                [ article [ id "question" ]
+            [ section
+                [ class "modal question-modal"
+                ]
+                [ article [ id "question", tailwind [ "min-h-screen", "md:min-h-0" ] ]
                     [ viewHeader model Unanswered
                     , section [ tailwind [ "flex", "justify-center", "items-center" ] ]
                         [ div [ class "loading" ] []
@@ -524,7 +526,9 @@ viewQuestion model state question =
             List.map (\choice -> choice.numChosen) question.choices
                 |> List.sum
     in
-    article [ id "question" ]
+    article
+        [ id "question"
+        ]
         [ viewHeader model state
         , section
             [ tailwind
@@ -533,8 +537,6 @@ viewQuestion model state question =
                 , "md:mt-0"
                 , "md:pb-4"
                 , "md:mb-0"
-                , "min-h-screen"
-                , "md:min-h-0"
                 ]
             ]
             [ div

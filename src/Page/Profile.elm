@@ -769,7 +769,7 @@ viewProfileScreen model screenData =
     in
     [ Elements.safeMain
         [ Elements.container
-            [ div [ tailwind [ "flex", "flex-col-reverse", "md:flex-row", "w-full" ] ]
+            [ div [ tailwind [ "flex", "flex-col-reverse", "md:flex-row", "w-full", "p-2", "md:p-0" ] ]
                 [ div [ tailwind [ "flex-grow", "w-full" ] ]
                     [ Elements.articleCard
                         { header = text "Response History"

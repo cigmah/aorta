@@ -987,7 +987,7 @@ viewModalAddQuestion addQuestionData =
                 _ ->
                     div [] []
     in
-    section [ class "modal" ]
+    section [ class "modal full-modal" ]
         [ article []
             [ header
                 [ tailwind

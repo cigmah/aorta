@@ -117,7 +117,7 @@ view model =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    [ section [ class "modal" ]
+    [ section [ class "modal full-modal" ]
         [ viewTestResults model ]
     ]
 
@@ -146,7 +146,12 @@ viewTestResults model =
                         [ header [] [ div [ tailwind [ "text-center", "w-full", "text-lg", "py-4" ] ] [ text "DONE!" ] ]
                         , viewContentBody test
                         , footer []
-                            [ button [ onClick ClickedFinish, tailwindButton ] [ text "Finish" ] ]
+                            [ button
+                                [ onClick ClickedFinish
+                                , tailwindButton
+                                ]
+                                [ text "Finish" ]
+                            ]
                         ]
 
                 _ ->
