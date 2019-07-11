@@ -278,11 +278,11 @@ div.loading {
     height: 0;
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
-    border-bottom-style: solid;
-    border-bottom-width: 10px;
+    border-top-style: solid;
+    border-top-width: 10px;
     content: ' ';
     position: absolute;
-    top: 100%;
+    bottom: 100%;
     left: 20%;
   }
 
@@ -290,11 +290,12 @@ div.loading {
     @apply p-2 text-xs bg-gray-800 text-gray-100 rounded shadow-lg;
     content: attr(data-tooltip);
     position: absolute;
-    top: 125%;
+    bottom: 125%;
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
     min-width: 500%;
+    pointer-events: none;
   }
 
   .note:hover {
