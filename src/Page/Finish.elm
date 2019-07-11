@@ -117,7 +117,7 @@ view model =
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    [ section [ class "modal full-modal" ]
+    [ section [ class "modal" ]
         [ viewTestResults model ]
     ]
 
@@ -142,10 +142,21 @@ viewTestResults model =
             case test.future of
                 [] ->
                     article
-                        []
-                        [ header [] [ div [ tailwind [ "text-center", "w-full", "text-lg", "py-4" ] ] [ text "DONE!" ] ]
+                        [ tailwind [ "min-h-screen", "md:min-h-0" ] ]
+                        [ header [] [ div [ tailwind [ "text-center", "w-full", "text-lg" ] ] [ text "DONE!" ] ]
                         , viewContentBody test
-                        , footer []
+                        , footer
+                            [ tailwind
+                                [ "fixed"
+                                , "bottom-0"
+                                , "left-0"
+                                , "w-full"
+                                , "bg-white"
+                                , "border-blue-300"
+                                , "border-t"
+                                , "md:relative"
+                                ]
+                            ]
                             [ button
                                 [ onClick ClickedFinish
                                 , tailwindButton
@@ -168,7 +179,7 @@ viewTestResults model =
 
         Nothing ->
             article
-                []
+                [ tailwind [ "min-h-screen", "md:min-h-0" ] ]
                 [ section [] [ text "It doesn't seem like you were doing a test! Go home?" ]
                 , footer []
                     [ button
@@ -241,7 +252,7 @@ viewContentBody test =
                 , text <| "Question ID " ++ String.fromInt item.id
                 ]
     in
-    section [ tailwind [ "flex", "flex-col", "items-center", "justify-start" ] ]
+    section [ tailwind [ "flex", "flex-col", "items-center", "justify-start", "mb-16", "md:mb-0" ] ]
         [ div
             [ tailwind
                 [ "mx-auto"
