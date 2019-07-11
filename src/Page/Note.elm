@@ -704,8 +704,8 @@ viewHeader model dataNoteWebData =
                         , tailwindButton
                         , tailwind [ "mr-2", "ml-1", "my-2", "md:ml-0", "md:mr-0" ]
                         , classList
-                            [ ( "hidden", Session.isGuest model.session )
-                            , ( "hidden", loading )
+                            [ ( "hidden", Session.isGuest model.session || loading )
+                            , ( "hidden md:flex", not (Session.isGuest model.session || loading) )
                             ]
                         ]
                         [ i [ class "material-icons" ] [ text "add" ]

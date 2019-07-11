@@ -98,6 +98,9 @@ wrapBody model body =
                 Question _ ->
                     True
 
+                Finish _ ->
+                    True
+
                 _ ->
                     False
 
