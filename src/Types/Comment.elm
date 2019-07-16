@@ -34,6 +34,6 @@ encode data =
 decoder : Decoder ReadData
 decoder =
     Decode.succeed ReadData
-        |> required "author" User.decoder
+        |> optional "author" User.decoder User.anonymous
         |> required "content" Decode.string
         |> required "created_at" Iso8601.decoder

@@ -1,4 +1,4 @@
-module Types.User exposing (Stats, User, decoder)
+module Types.User exposing (Stats, User, anonymous, decoder)
 
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Decode.Pipeline as Pipeline exposing (optional, required)
@@ -18,3 +18,8 @@ decoder =
 
 type alias Stats =
     { answer : Int }
+
+
+anonymous : User
+anonymous =
+    { id = -1, username = "Anonymous" }

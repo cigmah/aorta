@@ -96,7 +96,7 @@ decoder =
         |> required "domain" Domain.decoder
         |> required "year_level" YearLevel.decoder
         |> required "choices" (Decode.list Choice.decoder)
-        |> required "contributor" User.decoder
+        |> optional "contributor" User.decoder User.anonymous
         |> required "comments" (Decode.list Comment.decoder)
         |> required "num_likes" (Decode.maybe Decode.int)
         |> required "liked" (Decode.maybe Decode.bool)
