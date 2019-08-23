@@ -16,6 +16,7 @@ parser : Parser (Route -> a) a
 parser =
     oneOf
         [ map Route.Home top
+        , map Route.Home <| s "index.html"
         , map Route.Profile <| s "profile"
         , map Route.Note <| s "notes" </> int
         , map Route.Revise <| s "revise"
