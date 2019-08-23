@@ -550,7 +550,7 @@ viewQuestion model state question =
                     [ "flex", "flex-col" ]
                 ]
                 (List.map (viewChoiceRead totalChosen state) question.choices)
-            , div [ tailwind [ "text-gray-500", "text-sm", "text-right", "w-full", "mt-4" ] ]
+            , div [ tailwind [ "text-gray-500", "text-sm", "text-right", "w-full", "my-4" ] ]
                 [ text "Contributed by "
                 , span [ tailwind [ "font-bold" ] ] [ text question.contributor.username ]
                 ]
@@ -782,6 +782,7 @@ viewChoiceRead total state choice =
                     [ "my-1"
                     , "flex"
                     , "justify-start"
+                    , "text-left"
                     , "border-2"
                     , "border-blue-500"
                     , "hover:bg-blue-500"
@@ -830,10 +831,11 @@ viewChoiceRead total state choice =
                         , "rounded"
                         , "items-center"
                         , "font-semibold"
+                        , "cursor-pointer"
                         ]
                     ]
                     [ span [] [ text choice.content ]
-                    , span [ tailwind [ "ml-auto", "font-normal" ] ] [ text (String.fromInt percentChosen ++ "%") ]
+                    , span [ tailwind [ "ml-auto", "font-normal", "pl-1" ] ] [ text (String.fromInt percentChosen ++ "%") ]
                     ]
                 , div
                     [ class "markdown"

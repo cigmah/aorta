@@ -881,7 +881,8 @@ viewContent model dataNoteWebData =
                 , article
                     [ id "note"
                     , tailwind
-                        [ "p-8"
+                        [ "p-4"
+                        , "md:p-8"
                         ]
                     ]
                     dataContent
