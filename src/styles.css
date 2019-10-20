@@ -170,7 +170,7 @@ div.loading {
 .markdown blockquote {
   margin-left: 0.5em;
   border-left: 2px solid slategrey;
-  padding-bottom: 2rem;
+  margin-bottom: 2rem;
 }
 
 .markdown table {
