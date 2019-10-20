@@ -882,7 +882,10 @@ viewContent model dataNoteWebData =
                     [ id "note"
                     , tailwind
                         [ "p-4"
-                        , "md:p-8"
+                        , "md:p-12"
+                        , "lg:p-16"
+                        , "xl:py-16"
+                        , "xl:px-20"
                         ]
                     ]
                     dataContent

@@ -185,6 +185,12 @@ div.loading {
 .markdown pre {
   font-size: 0.8em;
   line-height: 1;
+  overflow: auto;
+}
+
+#question .markdown pre {
+  font-size: 0.9em;
+  line-height: 1.25;
 }
 
 .markdown pre code {
