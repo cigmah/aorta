@@ -183,7 +183,12 @@ div.loading {
 }
 
 .markdown pre {
-  font-size: 0.9em;
+  font-size: 0.8em;
+  line-height: 1;
+}
+
+.markdown pre code {
+  letter-spacing: -0.5px;
 }
 
 .markdown h1 {
