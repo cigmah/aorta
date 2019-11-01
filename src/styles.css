@@ -201,23 +201,22 @@ div.loading {
 }
 
 .markdown h1 {
-  @apply border-b border-gray-200 pb-2 mb-2 mt-16;
+  @apply border-b border-gray-500 pb-2 mb-2 mt-16 uppercase font-bold;
   font-size: 1.5em;
-  font-weight: bold;
 }
 
 .markdown h2 {
-  @apply border-b border-gray-200 pb-2 mb-2 mt-12;
+  @apply border-b border-gray-400 pb-2 mb-2 mt-12 uppercase font-bold;
   font-size: 1.25em;
 }
 
 .markdown h3 {
-  @apply border-b border-gray-200 pb-2 mb-2 mt-10;
+  @apply border-b border-gray-300 pb-2 mb-2 mt-10 font-bold;
   font-size: 1.1em;
 }
 
 .markdown h4 {
-  @apply border-b border-gray-200 pb-2 mb-2 mt-4;
+  @apply border-b border-gray-200 pb-2 mb-2 mt-4 font-bold;
   font-size: 1em;
 }
 
