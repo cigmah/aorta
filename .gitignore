@@ -16,4 +16,5 @@ node_modules
 # Ignore tailwindd output
 output.css
 
+# Ignore file with backend url
 Secret.elm
