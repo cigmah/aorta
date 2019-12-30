@@ -7,14 +7,14 @@ import List.Extra exposing (remove)
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Credentials as Credentials exposing (..)
 import Types.Request as Request
-import Types.Test as Test exposing (Test)
+import Types.Test as Test
 
 
 type alias Session =
     { message : Maybe (List String)
     , auth : Auth
     , key : Key
-    , test : Maybe Test
+    , test : Maybe Test.SessionData
     }
 
 
