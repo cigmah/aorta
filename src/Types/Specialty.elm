@@ -5,23 +5,31 @@ module Types.Specialty exposing
     , encode
     , fromInt
     , list
-    , option
+    , toBriefString
     , toIcon
     , toInt
     , toString
     )
 
-import Color
-import Html exposing (Html)
-import Html.Attributes as Attributes
+{-| Contains the Specialty type and operations relating to the Specialty type.
+
+The Specialty type represents a medical specialty, and is one of the
+categories used to classify objectives.
+
+-}
+
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
 import Svg exposing (Svg)
 import Types.Icon as Icon
 
 
-{-| Based on backend API definitions. It's verbose, but was easy to script,
-so we didn't have to write this manually. |
+{-| Represents a single medical specialty.
+
+These medical specialty types are enumerated both here and in the backend. In
+the database, they are stored as integer codes. It's important to ensure that
+the integer codes on the frontend and backend match.
+
 -}
 type Specialty
     = Principles
@@ -40,6 +48,8 @@ type Specialty
     | Dermatological
 
 
+{-| Converts a specialty to an integer code.
+-}
 toInt : Specialty -> Int
 toInt specialty =
     case specialty of
@@ -86,6 +96,11 @@ toInt specialty =
             13
 
 
+{-| Converts an integer code to a specialty.
+
+The default case is Principles.
+
+-}
 fromInt : Int -> Specialty
 fromInt int =
     case int of
@@ -135,8 +150,58 @@ fromInt int =
             Principles
 
 
+{-| Converts a specialty to a full string.
+-}
 toString : Specialty -> String
 toString specialty =
+    case specialty of
+        Principles ->
+            "Principles"
+
+        Cardiovascular ->
+            "Cardiology and Cardiothoracic Surgery"
+
+        Respiratory ->
+            "Respiratory Medicine"
+
+        Gastrointestinal ->
+            "Gastroenterology"
+
+        RenalAndUrological ->
+            "Renal Medicine and Urology"
+
+        MusculoskeletalAndRheumatological ->
+            "Orthopedics and Rheumatology"
+
+        Neurological ->
+            "Neurology and Neurosurgery"
+
+        Haematological ->
+            "Haematology"
+
+        Endocrine ->
+            "Endocrinology"
+
+        MentalAndBehavioural ->
+            "Psychiatry and Psychology"
+
+        ObstetricAndGynaecological ->
+            "Obstetrics and Gynaecology"
+
+        Otolaryngological ->
+            "Ear, Nose and Throat"
+
+        Ophthalmological ->
+            "Ophthalmology"
+
+        Dermatological ->
+            "Dermatology"
+
+
+{-| Converts a specialty to a brief string.
+-}
+toBriefString : Specialty -> String
+toBriefString specialty =
     case specialty of
         Principles ->
             "Principles"
@@ -181,6 +246,8 @@ toString specialty =
             "Derm"
 
 
+{-| A constant which enumerates the full list of specialties.
+-}
 list : List Specialty
 list =
     [ Principles
@@ -200,41 +267,31 @@ list =
     ]
 
 
+{-| A constant of the full count of specialties.
+-}
 count : Int
 count =
     List.length list
 
 
-option : Maybe Specialty -> Specialty -> Html msg
-option selectedMaybe specialty =
-    let
-        selected =
-            case selectedMaybe of
-                Just selectedValue ->
-                    selectedValue == specialty
-
-                Nothing ->
-                    False
-    in
-    Html.option
-        [ Attributes.value (specialty |> toInt |> String.fromInt)
-        , Attributes.selected selected
-        ]
-        [ Html.text (specialty |> toString) ]
-
-
+{-| Encodes a specialty as JSON.
+-}
 encode : Specialty -> Value
 encode specialty =
     toInt specialty
         |> Encode.int
 
 
+{-| A JSON decoder for a specialty.
+-}
 decoder : Decoder Specialty
 decoder =
     Decode.int
         |> Decode.map fromInt
 
 
+{-| Converts a specialty to an SVG icon from Types.Icon
+-}
 toIcon : Specialty -> Svg msg
 toIcon specialty =
     case specialty of

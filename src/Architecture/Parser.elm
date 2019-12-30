@@ -1,47 +1,52 @@
 module Architecture.Parser exposing
     ( fromUrl
     , isEqual
-    , parser
     )
+
+{-| Contains the basic URL parser for the application.
+
+When the application is navigated to, the URL contains information relating
+to which page should be loaded, and possibly some extra information for that
+page. The parser in this module is responsible for parsing the URL and
+mapping it to the correct variant of the `Route` discriminated union, which
+is then mapped to the proper page's initialisation function.
+
+-}
 
 import Architecture.Model as Model exposing (Model)
 import Architecture.Route as Route exposing (Route)
-import Maybe.Extra
 import Url exposing (Url)
-import Url.Parser exposing (..)
-import Url.Parser.Query as Query
+import Url.Parser exposing ((</>), Parser, int, map, oneOf, parse, s, top)
 
 
+{-| A Parser to map URL paths to a `Route`.
+
+Any possible URL for the application should be listed here with the `Route`
+that it maps to. Information that needs to be passed from the URL into the
+initialised model needs to be part of the `Route` variant, so the parser can
+pass that information straightaway to the `Route`.
+
+-}
 parser : Parser (Route -> a) a
 parser =
     oneOf
         [ map Route.Home top
         , map Route.Home <| s "index.html"
         , map Route.Profile <| s "profile"
-        , map Route.Note <| s "notes" </> int
-        , map Route.Revise <| s "revise"
-        , map Route.Finish <| s "finish"
+        , map Route.Objective <| s "objectives" </> int
+        , map Route.ObjectiveList <| s "objectives"
+        , map Route.Report <| s "report"
         , map Route.Question <| s "questions" </> int
-        , map Route.Info <| s "information"
         ]
 
 
-queryFuture : Query.Parser (List Int)
-queryFuture =
-    let
-        mapWithDefault f list =
-            List.map f list
-                |> Maybe.Extra.combine
-                |> Maybe.withDefault []
-    in
-    Query.custom "future" (mapWithDefault String.toInt)
+{-| Converts a URL to a `Route`, with a default `Route.NotFound`.
 
+When the application URL changes, this uses the `parser` function to map the
+URL into a new `Route` (which can then be mapped to a new model using the
+corresponding page's initialisation function).
 
-queryBack : Query.Parser (Maybe String)
-queryBack =
-    Query.string "back"
-
-
+-}
 fromUrl : Url -> Route
 fromUrl url =
     url
@@ -49,6 +54,12 @@ fromUrl url =
         |> Maybe.withDefault Route.NotFound
 
 
+{-| Checks whether `Model` is currently on a specified `Route`.
+
+This may be useful for links which should appear different if the user is
+already on the linked-to page.
+
+-}
 isEqual : Route -> Model -> Bool
 isEqual route model =
     case ( route, model ) of
@@ -58,19 +69,16 @@ isEqual route model =
         ( Route.Profile, Model.Profile _ ) ->
             True
 
-        ( Route.Note _, Model.Note _ ) ->
+        ( Route.Objective _, Model.Objective _ ) ->
             True
 
-        ( Route.Revise, Model.Revise _ ) ->
+        ( Route.ObjectiveList, Model.ObjectiveList _ ) ->
             True
 
         ( Route.Question _, Model.Question _ ) ->
             True
 
-        ( Route.Finish, Model.Finish _ ) ->
-            True
-
-        ( Route.Info, Model.Info _ ) ->
+        ( Route.Report, Model.Report _ ) ->
             True
 
         _ ->

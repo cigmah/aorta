@@ -1,28 +1,43 @@
 module Architecture.Update exposing (eject, update)
 
+{-| Contains the base `update` function for the application.
+
+The `update` function takes a message and a model, and returns the new model
+as well as any side effects that should be performed by the Elm runtime. All
+reactions to events must come through the `update` function.
+
+-}
+
 import Architecture.Init as Init exposing (extractWith)
-import Architecture.Model exposing (..)
-import Architecture.Msg exposing (..)
+import Architecture.Model exposing (Model(..))
+import Architecture.Msg exposing (Msg(..))
 import Architecture.Parser as Parser
 import Architecture.Route as Route exposing (Route)
 import Browser
 import Browser.Navigation as Navigation
-import Page.Finish as Finish
 import Page.Home as Home
-import Page.Info as Info
 import Page.NotFound as NotFound
-import Page.Note as Note
+import Page.Objective as Objective
+import Page.ObjectiveList as ObjectiveList
 import Page.Profile as Profile
 import Page.Question as Question
-import Page.Revise as Revise
-import RemoteData exposing (RemoteData(..), WebData)
-import Types.Note
-import Types.Request as Request
+import Page.Report as Report
+import RemoteData exposing (RemoteData(..))
 import Types.Session as Session exposing (Session)
 import Url
-import Url.Builder as Builder
 
 
+{-| The applications top-level `update` function.
+
+There are several top-level `Msg` variants, which are fed to the update
+function here to provide updates to the whole model, often by manipulating
+the shared `Session` object.
+
+All pages have their own individual Model-View-Update architecture, and this
+`update` function performs each page's update and subsequently extracts the
+result to the top-level application.
+
+-}
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
@@ -30,6 +45,8 @@ update msg model =
             ( model, Cmd.none )
     in
     case ( msg, model ) of
+        -- If the route is changed, then reroute the model and push the route's string to the URL.
+        -- TODO: Maybe this can be changed to the same as the UrlChanged message, rerouting may not be necessary
         ( RouteChanged route, _ ) ->
             reroute route model
                 |> addCmdMsg
@@ -38,8 +55,10 @@ update msg model =
                         (Route.toString route)
                     )
 
+        -- If a URL is requested, then navigate to the URL.
         ( UrlRequested urlRequest, _ ) ->
             case urlRequest of
+                -- An internal URL should not trigger a full page load; change the URL and UrlChanged will update the page
                 Browser.Internal internal ->
                     ( model
                     , Navigation.pushUrl
@@ -47,40 +66,16 @@ update msg model =
                         (Url.toString internal)
                     )
 
+                -- An external page load should trigger a load of the full external page
                 Browser.External external ->
                     ( model, Navigation.load external )
 
+        -- If the URL is changed, then eject the `Session` and initialise a page from the new URL
         ( UrlChanged url, _ ) ->
             eject model
-                |> Session.changeSearchResult NotAsked
                 |> Init.fromRoute (Parser.fromUrl url)
 
-        ( ChangedSearchInput string, _ ) ->
-            let
-                newSession =
-                    eject model
-                        |> Session.changeSearch string
-
-                trimmed =
-                    String.trim string
-            in
-            if (trimmed |> String.length) > 3 then
-                newSession
-                    |> Session.changeSearchResult Loading
-                    |> inject model
-                    |> addCmdMsg
-                        (Request.get (getFilteredNoteList newSession))
-
-            else
-                newSession
-                    |> Session.changeSearchResult NotAsked
-                    |> inject model
-
-        ( GotSearchResults webData, _ ) ->
-            eject model
-                |> Session.changeSearchResult webData
-                |> inject model
-
+        -- If a message is clicked, then clear that particular message from the messages
         ( ClickedMessage string, _ ) ->
             eject model
                 |> Session.clearMessage string
@@ -98,30 +93,36 @@ update msg model =
             Profile.update subMsg subModel
                 |> extractWith Profile GotProfileMsg
 
-        ( GotNoteMsg subMsg, Note subModel ) ->
-            Note.update subMsg subModel
-                |> extractWith Note GotNoteMsg
+        ( GotObjectiveMsg subMsg, Objective subModel ) ->
+            Objective.update subMsg subModel
+                |> extractWith Objective GotObjectiveMsg
 
-        ( GotReviseMsg subMsg, Revise subModel ) ->
-            Revise.update subMsg subModel
-                |> extractWith Revise GotReviseMsg
+        ( GotObjectiveListMsg subMsg, ObjectiveList subModel ) ->
+            ObjectiveList.update subMsg subModel
+                |> extractWith ObjectiveList GotObjectiveListMsg
 
         ( GotQuestionMsg subMsg, Question subModel ) ->
             Question.update subMsg subModel
                 |> extractWith Question GotQuestionMsg
 
-        ( GotFinishMsg subMsg, Finish subModel ) ->
-            Finish.update subMsg subModel
-                |> extractWith Finish GotFinishMsg
-
-        ( GotInfoMsg subMsg, Info subModel ) ->
-            Info.update subMsg subModel
-                |> extractWith Info GotInfoMsg
+        ( GotReportMsg subMsg, Report subModel ) ->
+            Report.update subMsg subModel
+                |> extractWith Report GotReportMsg
 
         _ ->
             ignore
 
 
+{-| Takes a `Model` and returns only the `Session` object.
+
+This function "ejects" the shared `Session` object out of each page, so that
+it can be fed to a new page initialisation function. This is vital to ensure
+that the `Session` persists across pages.
+
+`eject` is specified within each individual page (but is the same for each
+page) - this function simply maps it to the top-level application.
+
+-}
 eject : Model -> Session
 eject page =
     case page of
@@ -134,22 +135,30 @@ eject page =
         Profile model ->
             Profile.eject model
 
-        Note model ->
-            Note.eject model
+        Objective model ->
+            Objective.eject model
 
-        Revise model ->
-            Revise.eject model
+        ObjectiveList model ->
+            ObjectiveList.eject model
 
         Question model ->
             Question.eject model
 
-        Finish model ->
-            Finish.eject model
-
-        Info model ->
-            Info.eject model
+        Report model ->
+            Report.eject model
 
 
+{-| Injects a provided `Session` into a `Model`.
+
+This function "injects" a session into a `Model`, replacing whatever
+`Session` was inside that `Model` originally with the provided `Session`.
+This is useful for manipulating the `Session` object by first ejecting,
+modifying it, then re-injecting it into the original `Model`.
+
+`inject` is specified with each individual page (but is the same for each
+page) - this function simply maps it to the top-level application.
+
+-}
 inject : Model -> Session -> ( Model, Cmd Msg )
 inject page session =
     case page of
@@ -168,53 +177,47 @@ inject page session =
                 |> Profile.inject model
                 |> extractWith Profile GotProfileMsg
 
-        Note model ->
+        Objective model ->
             session
-                |> Note.inject model
-                |> extractWith Note GotNoteMsg
+                |> Objective.inject model
+                |> extractWith Objective GotObjectiveMsg
 
-        Revise model ->
+        ObjectiveList model ->
             session
-                |> Revise.inject model
-                |> extractWith Revise GotReviseMsg
+                |> ObjectiveList.inject model
+                |> extractWith ObjectiveList GotObjectiveListMsg
 
         Question model ->
             session
                 |> Question.inject model
                 |> extractWith Question GotQuestionMsg
 
-        Finish model ->
+        Report model ->
             session
-                |> Finish.inject model
-                |> extractWith Finish GotFinishMsg
-
-        Info model ->
-            session
-                |> Info.inject model
-                |> extractWith Info GotInfoMsg
+                |> Report.inject model
+                |> extractWith Report GotReportMsg
 
 
+{-| Reroutes the `Model` into a new `Page`, returning a new `Model`.
+
+This is a convenience function which navigates the `Model` into a new
+provided route, by ejecting the `Session` from the original page and piping
+it through to the initialisation function for the new page.
+
+-}
 reroute : Route -> Model -> ( Model, Cmd Msg )
 reroute route model =
     eject model
-        |> Session.changeSearchResult NotAsked
         |> Init.fromRoute route
 
 
+{-| Adds an extra `Cmd Msg` a tupled `Cmd Msg`.
+
+This is a convenience function for adding an extra `Cmd Msg` to a `Cmd Msg`
+within a tuple (such as the `(Model, Cmd Msg)` tuple in the `update`
+function).
+
+-}
 addCmdMsg : Cmd Msg -> ( a, Cmd Msg ) -> ( a, Cmd Msg )
 addCmdMsg extraCmd ( a, cmds ) =
     ( a, Cmd.batch [ cmds, extraCmd ] )
-
-
-
--- Search
-
-
-getFilteredNoteList : Session -> Request.GetRequest (List Types.Note.ListData) Msg
-getFilteredNoteList session =
-    { auth = session.auth
-    , endpoint = Request.GetNoteList
-    , callback = GotSearchResults
-    , returnDecoder = Types.Note.decoderList
-    , queryList = [ Builder.string "search" session.searchInput ]
-    }

@@ -1,29 +1,27 @@
-module Types.Comment exposing (CreationData, ReadData, decoder, encode)
+module Types.Comment exposing (GetData, PostData, decoder, encode)
 
 import Iso8601
 import Json.Decode as Decode exposing (Decoder, Value)
-import Json.Decode.Pipeline as Pipeline exposing (optional, required)
+import Json.Decode.Pipeline exposing (required)
 import Json.Encode as Encode
 import Time exposing (Posix)
-import Types.User as User exposing (User)
+import Types.User as User 
 
 
-type alias CreationData =
-    { noteId : Int, content : String }
+type alias PostData =
+    { noteId : Int
+    , content : String
+    }
 
 
-type alias ReadData =
-    { author : User
+type alias GetData =
+    { author : Maybe User.GetData
     , content : String
     , created_at : Posix
     }
 
 
-
--- Json
-
-
-encode : CreationData -> Value
+encode : PostData -> Value
 encode data =
     Encode.object
         [ ( "note", Encode.int data.noteId )
@@ -31,9 +29,9 @@ encode data =
         ]
 
 
-decoder : Decoder ReadData
+decoder : Decoder GetData
 decoder =
-    Decode.succeed ReadData
-        |> optional "author" User.decoder User.anonymous
+    Decode.succeed GetData
+        |> required "author" (Decode.maybe User.decoder)
         |> required "content" Decode.string
         |> required "created_at" Iso8601.decoder

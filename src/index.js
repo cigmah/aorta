@@ -1,4 +1,4 @@
-import './output.css';
+import './main.css';
 import { Elm } from './App.elm';
 import registerServiceWorker from './registerServiceWorker';
 
@@ -9,8 +9,10 @@ var app = Elm.App.init({
   flags: localStorage.getItem(storageKey)
 });
 
+/*
 app.ports.cache.subscribe(function(data) {
   localStorage.setItem(storageKey, JSON.stringify(data))
 })
+*/
 
 registerServiceWorker();

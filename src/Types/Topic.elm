@@ -5,19 +5,28 @@ module Types.Topic exposing
     , encode
     , fromInt
     , list
-    , option
-    , toBrief
+    , toBriefString
     , toInt
     , toString
     )
 
-import Color
-import Html exposing (Html)
-import Html.Attributes as Attributes
+{-| Contains the Topic type and operations relating to the Topic type.
+
+The Topic type represents a medical topic (such as Anatomy), and is one of
+the categories used to classify objectives.
+
+-}
+
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
 
 
+{-| Represents a single medical topic.
+
+These topics are enumerated in both the frontend and backend, and need to be
+kept in sync.
+
+-}
 type Topic
     = Overview
     | GlobalIssues
@@ -41,6 +50,8 @@ type Topic
     | MiscellaneousTopics
 
 
+{-| Converts a topic to an integer code.
+-}
 toInt : Topic -> Int
 toInt topic =
     case topic of
@@ -105,6 +116,11 @@ toInt topic =
             19
 
 
+{-| Converts an integer code to a topic.
+
+The default case is Overview.
+
+-}
 fromInt : Int -> Topic
 fromInt int =
     case int of
@@ -172,6 +188,8 @@ fromInt int =
             Overview
 
 
+{-| Converts a topic to a full string.
+-}
 toString : Topic -> String
 toString topic =
     case topic of
@@ -230,14 +248,16 @@ toString topic =
             "Disorders - Primary Care & Prevention"
 
         DisordersTraumaExternal ->
-            "Disorders - Trauma External"
+            "Disorders - Trauma & External Causes"
 
         MiscellaneousTopics ->
             "Miscellaneous Topics"
 
 
-toBrief : Topic -> String
-toBrief topic =
+{-| Converts a topic to a brief string.
+-}
+toBriefString : Topic -> String
+toBriefString topic =
     case topic of
         Overview ->
             "Overview"
@@ -300,6 +320,8 @@ toBrief topic =
             "Misc."
 
 
+{-| A list of all topics.
+-}
 list : List Topic
 list =
     [ Overview
@@ -325,35 +347,23 @@ list =
     ]
 
 
+{-| The number of topics available.
+-}
 count : Int
 count =
     List.length list
 
 
-option : Maybe Topic -> Topic -> Html msg
-option selectedMaybe topic =
-    let
-        selected =
-            case selectedMaybe of
-                Just selectedValue ->
-                    selectedValue == topic
-
-                Nothing ->
-                    False
-    in
-    Html.option
-        [ Attributes.value (topic |> toInt |> String.fromInt)
-        , Attributes.selected selected
-        ]
-        [ Html.text (topic |> toString) ]
-
-
+{-| Converts a topic to a JSON value
+-}
 encode : Topic -> Value
 encode topic =
     toInt topic
         |> Encode.int
 
 
+{-| A JSON Decoder for a topic.
+-}
 decoder : Decoder Topic
 decoder =
     Decode.int

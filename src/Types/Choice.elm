@@ -1,25 +1,26 @@
 module Types.Choice exposing
-    ( CreationData
-    , ReadData
+    ( GetData
+    , PostData
     , decoder
     , encode
     , newCorrect
     , newIncorrect
+    , withContent
+    , withExplanation
     )
 
 import Json.Decode as Decode exposing (Decoder, Value)
-import Json.Decode.Pipeline as Pipeline exposing (optional, required)
 import Json.Encode as Encode
 
 
-type alias CreationData =
+type alias PostData =
     { content : String
     , explanation : String
     , isCorrect : Bool
     }
 
 
-type alias ReadData =
+type alias GetData =
     { id : Int
     , content : String
     , explanation : String
@@ -28,7 +29,7 @@ type alias ReadData =
     }
 
 
-newCorrect : CreationData
+newCorrect : PostData
 newCorrect =
     { content = ""
     , explanation = ""
@@ -36,7 +37,7 @@ newCorrect =
     }
 
 
-newIncorrect : CreationData
+newIncorrect : PostData
 newIncorrect =
     { content = ""
     , explanation = ""
@@ -44,7 +45,17 @@ newIncorrect =
     }
 
 
-encode : CreationData -> Value
+withContent : String -> PostData -> PostData
+withContent content choice =
+    { choice | content = content }
+
+
+withExplanation : String -> PostData -> PostData
+withExplanation explanation choice =
+    { choice | explanation = explanation }
+
+
+encode : PostData -> Value
 encode data =
     Encode.object
         [ ( "content", Encode.string data.content )
@@ -53,9 +64,9 @@ encode data =
         ]
 
 
-decoder : Decoder ReadData
+decoder : Decoder GetData
 decoder =
-    Decode.map5 ReadData
+    Decode.map5 GetData
         (Decode.field "id" Decode.int)
         (Decode.field "content" Decode.string)
         (Decode.field "explanation" Decode.string)

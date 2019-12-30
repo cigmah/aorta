@@ -1,20 +1,26 @@
-module Types.Login exposing (Data, encode, init, responseDecoder)
+module Types.Login exposing (PostData, decoder, encode, init)
 
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
-import Types.Credentials as Credentials exposing (Credentials)
+import Types.Credentials exposing (Credentials)
 
 
-type alias Data =
-    { username : String, password : String, loading : Bool }
+type alias PostData =
+    { username : String
+    , password : String
+    , loading : Bool
+    }
 
 
-init : Data
+init : PostData
 init =
-    { username = "", password = "", loading = False }
+    { username = ""
+    , password = ""
+    , loading = False
+    }
 
 
-encode : Data -> Value
+encode : PostData -> Value
 encode v =
     Encode.object
         [ ( "username", Encode.string v.username )
@@ -22,8 +28,8 @@ encode v =
         ]
 
 
-responseDecoder : Decoder Credentials
-responseDecoder =
+decoder : Decoder Credentials
+decoder =
     Decode.map2 Credentials
         (Decode.field "token" Decode.string)
         (Decode.field "username" Decode.string)

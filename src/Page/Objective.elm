@@ -1,4 +1,4 @@
-module Page.Profile exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
+module Page.Objective exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
 import Browser exposing (Document)
 import Html exposing (..)
@@ -31,8 +31,8 @@ type Msg
 -- Init
 
 
-init : Session -> ( Model, Cmd Msg )
-init session =
+init : Session -> Int -> ( Model, Cmd Msg )
+init session objectiveId =
     ( { session = session }, Cmd.none )
 
 

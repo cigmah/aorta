@@ -1,25 +1,14 @@
 module Page.Home exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
-import Architecture.Route as Route
 import Browser exposing (Document)
-import Color
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Http exposing (Error(..))
-import Markdown
 import Page.Elements as Elements
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Credentials as Credentials exposing (Auth(..))
-import Types.Icon as Icon
-import Types.Note as Note
 import Types.Request as Request
 import Types.Session as Session exposing (Session)
-import Types.Specialty as Specialty exposing (Specialty)
-import Types.Styles exposing (tailwind)
-import Types.Topic as Topic exposing (Topic)
-import Types.YearLevel as YearLevel exposing (YearLevel)
-import Url.Builder as Builder
 
 
 
@@ -27,8 +16,7 @@ import Url.Builder as Builder
 
 
 type alias Model =
-    { session : Session
-    }
+    { session : Session }
 
 
 
@@ -37,9 +25,6 @@ type alias Model =
 
 type Msg
     = NoOp
-    | GotNoteList (WebData (List Note.ListData))
-    | ChangedFilter String
-    | GotSearchResults (WebData (List Note.ListData))
 
 
 
@@ -48,14 +33,7 @@ type Msg
 
 init : Session -> ( Model, Cmd Msg )
 init session =
-    let
-        initialModel =
-            { session = session
-            }
-    in
-    ( initialModel
-    , Request.get (getNoteList initialModel)
-    )
+    ( { session = session }, Cmd.none )
 
 
 
@@ -90,73 +68,10 @@ subscriptions model =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ session } as model) =
-    let
-        ignore =
-            ( model, Cmd.none )
-    in
+update msg model =
     case msg of
         NoOp ->
-            ignore
-
-        GotNoteList webData ->
-            ( { model | session = { session | webDataNoteList = webData } }, Cmd.none )
-
-        ChangedFilter string ->
-            -- At some point, may need to change this if it hits the backend too hard
-            let
-                cmd =
-                    if String.length string > 3 then
-                        Request.get (getFilteredNoteList model string)
-
-                    else
-                        Cmd.none
-
-                results =
-                    if String.length string > 3 then
-                        Loading
-
-                    else
-                        NotAsked
-            in
-            ( { model
-                | session =
-                    { session
-                        | searchInput = string
-                        , searchResults = results
-                    }
-              }
-            , cmd
-            )
-
-        GotSearchResults results ->
-            ( { model | session = { session | searchResults = results } }
-            , Cmd.none
-            )
-
-
-
--- Requests
-
-
-getNoteList : Model -> Request.GetRequest (List Note.ListData) Msg
-getNoteList model =
-    { auth = model.session.auth
-    , endpoint = Request.GetNoteList
-    , callback = GotNoteList
-    , returnDecoder = Note.decoderList
-    , queryList = []
-    }
-
-
-getFilteredNoteList : Model -> String -> Request.GetRequest (List Note.ListData) Msg
-getFilteredNoteList model string =
-    { auth = model.session.auth
-    , endpoint = Request.GetNoteList
-    , callback = GotSearchResults
-    , returnDecoder = Note.decoderList
-    , queryList = [ Builder.string "search" string ]
-    }
+            ( model, Cmd.none )
 
 
 
@@ -165,58 +80,11 @@ getFilteredNoteList model string =
 
 view : Model -> Document Msg
 view model =
-    { title = "AORTA - Home"
+    { title = ""
     , body = viewBody model
     }
 
 
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    let
-        searchBarData =
-            { webDataResponse = model.session.searchResults
-            , responseDataToResult = Note.toSearchResult
-            , forMobile = True
-            , inputData =
-                { value = model.session.searchInput
-                , onInput = ChangedFilter
-                , placeholder = "Search notes..."
-                , type_ = "search"
-                , id = "search"
-                , required = False
-                }
-            }
-    in
-    [ Elements.safeCenter
-        [ viewGrid model.session.webDataNoteList
-        , Elements.searchBar searchBarData
-        , section
-            [ tailwind [ "md:hidden", "text-gray-600", "p-4" ], class "markdown" ]
-            (Markdown.toHtml Nothing "We're still in the process of adding questions and notes, so there might not be much to find yet - but you can try searching systems like **Cardiovascular**, or topics like **Medications** and see if anything comes up!")
-        ]
-    ]
-
-
-viewGrid : WebData (List Note.ListData) -> Html Msg
-viewGrid webData =
-    case webData of
-        NotAsked ->
-            Elements.errorMessage <|
-                p []
-                    [ text "The request wasn't made - try refreshing." ]
-
-        Loading ->
-            Elements.loadingGrid
-
-        Failure e ->
-            Elements.wrapError e
-
-        Success listData ->
-            case listData of
-                [] ->
-                    Elements.errorMessage <|
-                        p []
-                            [ text "There weren't any notes on the server to show." ]
-
-                nonEmptyData ->
-                    Elements.noteGrid nonEmptyData
+    []

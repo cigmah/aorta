@@ -52,5 +52,4 @@ view model =
 
 viewBody : Model -> Html Msg
 viewBody model =
-    Elements.safeCenter
-        [ Elements.errorMessage (text "This page doesn't exist!") ]
+    div [] []

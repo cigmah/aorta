@@ -1,4 +1,4 @@
-module Page.Profile exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
+module Page.Report exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
 import Browser exposing (Document)
 import Html exposing (..)

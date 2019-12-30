@@ -1,17 +1,32 @@
 module Architecture.Subscriptions exposing (subscriptions)
 
-import Architecture.Model exposing (..)
-import Architecture.Msg exposing (..)
-import Page.Finish as Finish
+{-| Contains the subscriptions for the top-level application.
+
+Subscriptions are events invoked by the browser to send a message, such as at
+every time interval or frame.
+
+There are currently no top-level subscriptions, so this module simply maps
+page subscriptions into the top-level application.
+
+-}
+
+import Architecture.Model exposing (Model(..))
+import Architecture.Msg exposing (Msg(..))
 import Page.Home as Home
-import Page.Info as Info
 import Page.NotFound as NotFound
-import Page.Note as Note
+import Page.Objective as Objective
+import Page.ObjectiveList as ObjectiveList
 import Page.Profile as Profile
 import Page.Question as Question
-import Page.Revise as Revise
+import Page.Report as Report
 
 
+{-| Maps a `Model` into the correct page subscriptions.
+
+This function simply takes the `Model`, and returns the correct subscriptions
+for the page the `Model` is currently on.
+
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     case model of
@@ -24,17 +39,14 @@ subscriptions model =
         Profile subModel ->
             Sub.map GotProfileMsg (Profile.subscriptions subModel)
 
-        Note subModel ->
-            Sub.map GotNoteMsg (Note.subscriptions subModel)
+        Objective subModel ->
+            Sub.map GotObjectiveMsg (Objective.subscriptions subModel)
 
-        Revise subModel ->
-            Sub.map GotReviseMsg (Revise.subscriptions subModel)
+        ObjectiveList subModel ->
+            Sub.map GotObjectiveListMsg (ObjectiveList.subscriptions subModel)
 
         Question subModel ->
             Sub.map GotQuestionMsg (Question.subscriptions subModel)
 
-        Finish subModel ->
-            Sub.map GotFinishMsg (Finish.subscriptions subModel)
-
-        Info subModel ->
-            Sub.map GotInfoMsg (Info.subscriptions subModel)
+        Report subModel ->
+            Sub.map GotReportMsg (Report.subscriptions subModel)

@@ -1,34 +1,35 @@
 module Architecture.View exposing (view)
 
-import Architecture.Model exposing (..)
-import Architecture.Msg exposing (..)
-import Architecture.Parser as Parser
-import Architecture.Route as Route exposing (Route)
-import Architecture.Update exposing (eject)
+{-| Contains the top-level application `view` function.
+
+The `view` function takes an immutable "view" of the model, and outputs HTML
+that can emit events of the `Msg` type. All information that needs to be
+dynamically rendered _must_ be in the `Model` that is passed to the `view`
+function.
+
+-}
+
+import Architecture.Model exposing (Model(..))
+import Architecture.Msg exposing (Msg(..))
 import Browser exposing (Document)
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
-import Markdown
-import Page.Elements as Elements
-import Page.Finish as Finish
+import Html
 import Page.Home as Home
-import Page.Info as Info
 import Page.NotFound as NotFound
-import Page.Note as Note
+import Page.Objective as Objective
+import Page.ObjectiveList as ObjectiveList
 import Page.Profile as Profile
 import Page.Question as Question
-import Page.Revise as Revise
+import Page.Report as Report
 import Types.Credentials exposing (Auth(..))
-import Types.Note
-import Types.Session as Session exposing (Session)
-import Types.Styles exposing (tailwind)
 
 
+{-| The application top-level `view` function.
 
--- Major View Router
+Each page specifies it's own view as part of it's individual
+Model-View-Update architecture. This function simply maps those individual
+page views to the application top-level.
 
-
+-}
 view : Model -> Document Msg
 view model =
     case model of
@@ -44,118 +45,40 @@ view model =
             Profile.view subModel
                 |> viewPage model GotProfileMsg
 
-        Note subModel ->
-            Note.view subModel
-                |> viewPage model GotNoteMsg
+        Objective subModel ->
+            Objective.view subModel
+                |> viewPage model GotObjectiveMsg
 
-        Revise subModel ->
-            Revise.view subModel
-                |> viewPage model GotReviseMsg
+        ObjectiveList subModel ->
+            ObjectiveList.view subModel
+                |> viewPage model GotObjectiveListMsg
 
         Question subModel ->
             Question.view subModel
                 |> viewPage model GotQuestionMsg
 
-        Finish subModel ->
-            Finish.view subModel
-                |> viewPage model GotFinishMsg
-
-        Info subModel ->
-            Info.view subModel
-                |> viewPage model GotInfoMsg
+        Report subModel ->
+            Report.view subModel
+                |> viewPage model GotReportMsg
 
 
-{-| Wrap each page's individual view function |
+{-| Wraps a page's title and body.
+
+This function wraps a page's title and body into the top-level. If something
+should be applied to every page, such as a navigation bar, then it can be
+added into the pipeline here.
+
 -}
 viewPage : Model -> (subMsg -> Msg) -> Document subMsg -> Document Msg
-viewPage model toMsg page =
-    { title = page.title
-    , body =
-        page.body
-            |> List.map (Html.map toMsg)
-            |> wrapBody model
-    }
-
-
-{-| Wrap each page's individual body with a nav bar and messages |
--}
-wrapBody : Model -> List (Html Msg) -> List (Html Msg)
-wrapBody model body =
+viewPage _ toMsg page =
     let
-        session =
-            eject model
+        title =
+            page.title
 
-        profileText =
-            case session.auth of
-                User user ->
-                    user.username
-
-                Guest ->
-                    "Login"
-
-        hideNav =
-            case model of
-                Question _ ->
-                    True
-
-                Finish _ ->
-                    True
-
-                _ ->
-                    False
-
-        searchBarData =
-            { webDataResponse = session.searchResults
-            , responseDataToResult = Types.Note.toSearchResult
-            , forMobile = False
-            , inputData =
-                { value = session.searchInput
-                , onInput = ChangedSearchInput
-                , placeholder = "Search notes..."
-                , type_ = "search"
-                , id = "search"
-                , required = False
-                }
-            }
+        body =
+            page.body
+                |> List.map (Html.map toMsg)
     in
-    Elements.navBar hideNav
-        [ { name = "Grid"
-          , active = Parser.isEqual Route.Home model
-          , route = Route.Home
-          , icon = "notes"
-          , hideOnMobile = True
-          , hideOnDesktop = False
-          }
-        , { name = "Search"
-          , active = Parser.isEqual Route.Home model
-          , route = Route.Home
-          , icon = "search"
-          , hideOnMobile = False
-          , hideOnDesktop = True
-          }
-        , { name = "Test"
-          , active = Parser.isEqual Route.Revise model
-          , route = Route.Revise
-          , icon = "check"
-          , hideOnMobile = False
-          , hideOnDesktop = False
-          }
-        ]
-        searchBarData
-        [ { name = "Info"
-          , active = Parser.isEqual Route.Info model
-          , route = Route.Info
-          , icon = "info"
-          , hideOnMobile = False
-          , hideOnDesktop = False
-          }
-        , { name = profileText
-          , active = Parser.isEqual Route.Profile model
-          , route = Route.Profile
-          , icon = "person"
-          , hideOnMobile = False
-          , hideOnDesktop = False
-          }
-        ]
-        :: Elements.messages session ClickedMessage
-        :: body
+    { title = title
+    , body = body
+    }

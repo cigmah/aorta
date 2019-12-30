@@ -4,30 +4,46 @@ module Architecture.Route exposing
     , toString
     )
 
-import Browser.Navigation exposing (Key, replaceUrl)
+{-| Contains the basic `Route` type.
+
+The `Route` type is a discriminated union which enumerates all the possible
+routes of the application. It can be thought of as a "middleman" between the
+URL and the `Model` type, which allows some extra information from the URL to
+be added to each individual page's initialisation and ensures the routing
+logic is fairly straightforward.
+
+-}
+
 import Html exposing (Attribute)
 import Html.Attributes exposing (href)
-import Url exposing (Url)
 import Url.Builder as Builder
 
 
+{-| The basic application `Route` type.
+
+All possible pages of the application need to be enumerated here, with any
+extra information needed by a page's initialisation function appended to its
+variant. When a URL is parsed and mapped to a route, it can then pass the
+information straight to here, which can then be mapped to the page
+initialisation function.
+
+-}
 type Route
     = Home
     | NotFound
     | Profile
-    | Revise
-    | Note Int
+    | ObjectiveList
+    | Objective Int
     | Question Int
-    | Info
-    | Finish
+    | Report
 
 
-buildFuture : List Int -> List Builder.QueryParameter
-buildFuture future =
-    future
-        |> List.map (Builder.string "future" << String.fromInt)
+{-| Converts a `Route` into a string URL path. }
 
+This is useful for adding type-safe links to pages. These need to be the same
+as the strings listed in the `parser` to work.
 
+-}
 toString : Route -> String
 toString route =
     case route of
@@ -46,16 +62,16 @@ toString route =
                 [ "profile" ]
                 []
 
-        Note noteId ->
+        Objective objectiveId ->
             Builder.absolute
-                [ "notes"
-                , String.fromInt noteId
+                [ "objectives"
+                , String.fromInt objectiveId
                 ]
                 []
 
-        Revise ->
+        ObjectiveList ->
             Builder.absolute
-                [ "revise" ]
+                [ "objectives" ]
                 []
 
         Question questionId ->
@@ -65,17 +81,17 @@ toString route =
                 ]
                 []
 
-        Finish ->
+        Report ->
             Builder.absolute
-                [ "finish" ]
-                []
-
-        Info ->
-            Builder.absolute
-                [ "information" ]
+                [ "report" ]
                 []
 
 
+{-| Converts a `Route` to an HTML Attribute `href`.
+
+This can be used to create type-safe `href` attributes.
+
+-}
 toHref : Route -> Attribute msg
 toHref route =
     ""
