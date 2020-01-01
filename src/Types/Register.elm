@@ -1,16 +1,16 @@
-module Types.Register exposing (PostData, Response, encode, init, decoder)
+module Types.Register exposing (PostData, Response, decoder, encode, init)
 
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
 
 
 type alias PostData =
-    { username : String, email : String, loading : Bool }
+    { username : String, email : String }
 
 
 init : PostData
 init =
-    { username = "", email = "", loading = False }
+    { username = "", email = "" }
 
 
 encode : PostData -> Value

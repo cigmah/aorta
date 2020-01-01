@@ -17,7 +17,9 @@ import Page.ObjectiveList as ObjectiveList
 import Page.Profile as Profile
 import Page.Question as Question
 import Page.Report as Report
-import RemoteData exposing (RemoteData(..))
+import RemoteData exposing (WebData)
+import Types.Credentials exposing (Credentials)
+import Types.Register as Register
 import Url exposing (Url)
 
 
@@ -39,6 +41,21 @@ type Msg
     | UrlChanged Url
     | RouteChanged Route
     | ClickedMessage String
+      -- Logging in and Registering is done at the top-level application
+    | ToggledShowLogin
+    | ToggledAuthDialogType
+    | ClickedLogout
+      -- Login messages
+    | ChangedLoginUsername String
+    | ChangedLoginPassword String
+    | ClickedLogin
+    | GotLoginResponse (WebData Credentials)
+      -- Registration messages
+    | ChangedRegisterUsername String
+    | ChangedRegisterEmail String
+    | ClickedRegister
+    | GotRegisterResponse (WebData Register.Response)
+      -- Page messages
     | GotHomeMsg Home.Msg
     | GotNotFoundMsg NotFound.Msg
     | GotProfileMsg Profile.Msg

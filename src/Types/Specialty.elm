@@ -1,14 +1,7 @@
 module Types.Specialty exposing
     ( Specialty(..)
-    , count
-    , decoder
-    , encode
-    , fromInt
-    , list
-    , toBriefString
+    , enumerable
     , toIcon
-    , toInt
-    , toString
     )
 
 {-| Contains the Specialty type and operations relating to the Specialty type.
@@ -22,6 +15,7 @@ import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
 import Svg exposing (Svg)
 import Types.Icon as Icon
+import Types.Interface exposing (Enumerable)
 
 
 {-| Represents a single medical specialty.
@@ -46,6 +40,21 @@ type Specialty
     | Otolaryngological
     | Ophthalmological
     | Dermatological
+
+
+{-| Implementation of the enumerable interface for specialty.
+-}
+enumerable : Enumerable Specialty
+enumerable =
+    { list = list
+    , count = count
+    , toString = toString
+    , toBriefString = toBriefString
+    , toInt = toInt
+    , fromInt = fromInt
+    , encode = encode
+    , decoder = decoder
+    }
 
 
 {-| Converts a specialty to an integer code.

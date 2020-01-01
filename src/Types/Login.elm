@@ -8,7 +8,6 @@ import Types.Credentials exposing (Credentials)
 type alias PostData =
     { username : String
     , password : String
-    , loading : Bool
     }
 
 
@@ -16,7 +15,6 @@ init : PostData
 init =
     { username = ""
     , password = ""
-    , loading = False
     }
 
 

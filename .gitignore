@@ -17,4 +17,7 @@ node_modules
 Secret.elm
 
 # Ignore css output from sass
-Styles/*.css
+src/Styles/*.css
+
+# Ignore sketches
+sketches

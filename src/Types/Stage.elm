@@ -1,12 +1,6 @@
 module Types.Stage exposing
     ( Stage(..)
-    , count
-    , decoder
-    , encode
-    , fromInt
-    , list
-    , toInt
-    , toString
+    , enumerable
     )
 
 {-| Contains the Stage type and operations relating to the Stage type.
@@ -18,6 +12,7 @@ categories used to classify learning objectives.
 
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
+import Types.Interface exposing (Enumerable)
 
 
 {-| Represents a single medical training stage.
@@ -36,6 +31,21 @@ type Stage
     | Intern
     | Resident
     | Registrar
+
+
+{-| Implementation of the enumerable interface for stage.
+-}
+enumerable : Enumerable Stage
+enumerable =
+    { list = list
+    , count = count
+    , toString = toString
+    , toBriefString = toString
+    , toInt = toInt
+    , fromInt = fromInt
+    , encode = encode
+    , decoder = decoder
+    }
 
 
 {-| Converts a specialty to an integer code.
@@ -134,7 +144,11 @@ toString stage =
             "Registrar"
 
 
-{-| A constant which enumerates the full list of stages.
+{-| A constant which enumerates the list of stages.
+
+Intern, Resident and Registrar are excluded for now, as we should not expect
+questions for these stages yet.
+
 -}
 list : List Stage
 list =
@@ -143,9 +157,6 @@ list =
     , Year3B
     , Year4C
     , Year5D
-    , Intern
-    , Resident
-    , Registrar
     ]
 
 

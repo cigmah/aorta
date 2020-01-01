@@ -22,7 +22,8 @@ import Page.ObjectiveList as ObjectiveList
 import Page.Profile as Profile
 import Page.Question as Question
 import Page.Report as Report
-import RemoteData exposing (RemoteData(..))
+import RemoteData exposing (RemoteData(..), WebData)
+import Types.Request as Request
 import Types.Session as Session exposing (Session)
 import Url
 
@@ -40,10 +41,6 @@ result to the top-level application.
 -}
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    let
-        ignore =
-            ( model, Cmd.none )
-    in
     case ( msg, model ) of
         -- If the route is changed, then reroute the model and push the route's string to the URL.
         -- TODO: Maybe this can be changed to the same as the UrlChanged message, rerouting may not be necessary
@@ -73,13 +70,112 @@ update msg model =
         -- If the URL is changed, then eject the `Session` and initialise a page from the new URL
         ( UrlChanged url, _ ) ->
             eject model
+                |> Session.removeAuthDialog
                 |> Init.fromRoute (Parser.fromUrl url)
 
         -- If a message is clicked, then clear that particular message from the messages
         ( ClickedMessage string, _ ) ->
-            eject model
-                |> Session.clearMessage string
-                |> inject model
+            Session.clearMessage string
+                |> updateSession model
+
+        -- If the user toggles the login box, it should either be shown or not shown
+        ( ToggledShowLogin, _ ) ->
+            Session.toggleAuthDialog
+                |> updateSession model
+
+        -- If the user toggles the auth dialog type, then switch to Login or Register
+        ( ToggledAuthDialogType, _ ) ->
+            Session.toggleAuthDialogType
+                |> updateSession model
+
+        ( ClickedLogout, _ ) ->
+            let
+                session =
+                    eject model
+
+                ( newSession, cmd ) =
+                    Session.logout session
+
+                ( newModel, _ ) =
+                    inject model (Session.removeAuthDialog newSession)
+            in
+            ( newModel, cmd )
+
+        -- If the user changes their login username, then update
+        ( ChangedLoginUsername string, _ ) ->
+            Session.changeLoginUsername string
+                |> updateSession model
+
+        -- If the user changes their login password, then update
+        ( ChangedLoginPassword string, _ ) ->
+            Session.changeLoginPassword string
+                |> updateSession model
+
+        -- If the user clicks login, send the request
+        ( ClickedLogin, _ ) ->
+            let
+                session =
+                    eject model
+
+                ( newSession, cmd ) =
+                    Session.sendLogin GotLoginResponse session
+
+                ( newModel, _ ) =
+                    inject model newSession
+            in
+            ( newModel, cmd )
+
+        -- If a login response is received, save it
+        ( GotLoginResponse response, _ ) ->
+            let
+                session =
+                    eject model
+
+                ( newSession, cmd ) =
+                    Session.receiveLogin response session
+
+                ( newModel, _ ) =
+                    inject model newSession
+            in
+            ( newModel, cmd )
+
+        -- If the user changes their register username, then update
+        ( ChangedRegisterUsername string, _ ) ->
+            Session.changeRegisterUsername string
+                |> updateSession model
+
+        -- If the user changs their register email, then update
+        ( ChangedRegisterEmail string, _ ) ->
+            Session.changeRegisterEmail string
+                |> updateSession model
+
+        -- If the user clicks register, send the request
+        ( ClickedRegister, _ ) ->
+            let
+                session =
+                    eject model
+
+                ( newSession, cmd ) =
+                    Session.sendRegister GotRegisterResponse session
+
+                ( newModel, _ ) =
+                    inject model newSession
+            in
+            ( newModel, cmd )
+
+        -- If a register response is received, save it
+        ( GotRegisterResponse response, _ ) ->
+            let
+                session =
+                    eject model
+
+                ( newSession, cmd ) =
+                    Session.receiveRegister response session
+
+                ( newModel, _ ) =
+                    inject model newSession
+            in
+            ( newModel, cmd )
 
         ( GotHomeMsg subMsg, Home subModel ) ->
             Home.update subMsg subModel
@@ -110,7 +206,7 @@ update msg model =
                 |> extractWith Report GotReportMsg
 
         _ ->
-            ignore
+            ( model, Cmd.none )
 
 
 {-| Takes a `Model` and returns only the `Session` object.
@@ -196,6 +292,15 @@ inject page session =
             session
                 |> Report.inject model
                 |> extractWith Report GotReportMsg
+
+
+{-| Updates a session with an updater, then returns the model again.
+-}
+updateSession : Model -> (Session -> Session) -> ( Model, Cmd Msg )
+updateSession model updater =
+    eject model
+        |> updater
+        |> inject model
 
 
 {-| Reroutes the `Model` into a new `Page`, returning a new `Model`.

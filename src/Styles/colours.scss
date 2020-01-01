@@ -1,0 +1,47 @@
+// Colour variables for use with the rest of the stylesheets.
+// No colours should be specified in any stylesheet that doesn't come from here.
+
+$black: #000000;
+$white: #ffffff;
+
+$grey-100: #f7fafc;
+$grey-200: #edf2f7;
+$grey-300: #e2e8f0;
+$grey-400: #cbd5e0;
+$grey-500: #a0aec0;
+$grey-600: #718096;
+$grey-700: #4a5568;
+$grey-800: #2d3748;
+$grey-900: #1a202c;
+
+$green-100: #f0fff4;
+$green-200: #c6f6d5;
+$green-300: #9ae6b4;
+$green-400: #68d391;
+$green-500: #48bb78;
+$green-600: #38a169;
+$green-700: #2f855a;
+$green-800: #276749;
+$green-900: #22543d;
+
+$red-100: #fff5f5;
+$red-200: #fed7d7;
+$red-300: #feb2b2;
+$red-400: #fc8181;
+$red-500: #f56565;
+$red-600: #e53e3e;
+$red-700: #c53030;
+$red-800: #9b2c2c;
+$red-900: #742a2a;
+
+$blue-100: #ebf8ff;
+$blue-200: #bee3f8;
+$blue-300: #90cdf4;
+$blue-400: #63b3ed;
+$blue-500: #4299e1;
+$blue-600: #3182ce;
+$blue-700: #2b6cb0;
+$blue-800: #2c5282;
+$blue-900: #2a4365;
+
+$primary-gradient: linear-gradient(45deg, rgba(66, 153, 225, 1) 0%, rgba(76, 199, 228, 1) 100%);

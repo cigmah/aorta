@@ -16,7 +16,6 @@ import Browser exposing (Document)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Page.Elements as Elements
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Credentials as Credentials exposing (Auth(..))
 import Types.Request as Request
@@ -157,4 +156,3 @@ viewBody model =
 defaultErrors : Errors
 defaultErrors =
     {}
-

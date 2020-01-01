@@ -1,4 +1,4 @@
-module Types.Icon exposing (aorta, aortaAlt, cardio, derm, endo, ent, gastro, haem, msk, neuro, obgyn, ophthal, principles, psych, renal, resp)
+module Types.Icon exposing (..)
 
 import Svg exposing (circle, g, rect, svg)
 import Svg.Attributes exposing (..)
@@ -10,6 +10,10 @@ aorta =
 
 aortaAlt =
     svg [ width "100%", height "100%", viewBox "0 0 63.5 63.5" ] [ g [ strokeWidth "6.35", strokeLinecap "round" ] [ Svg.path [ d "M7.953 7.931h47.625v47.625H7.953z", fill "#fff", stroke "#fff", strokeLinejoin "round" ] [], Svg.path [ d "M7.953 7.931h47.625v47.625H7.953z", fill "none", stroke "#4299e1", strokeLinejoin "round" ] [], Svg.path [ d "M42.622 35.364v20.192", fill "none", stroke "#4299e1" ] [], Svg.path [ d "M20.9 26.903v-6.02h21.722v14.481H20.9v20.192", fill "none", stroke "#4299e1", strokeLinejoin "round" ] [], Svg.path [ d "M20.9 20.882L7.953 7.932M31.037 9.836v11.046M42.622 9.836v11.046", fill "none", stroke "#4299e1" ] [] ] ]
+
+
+aortaWhite =
+    svg [ width "100%", height "100%", viewBox "0 0 63.5 63.5" ] [ g [ fill "none", stroke "#fff", strokeWidth "8.95", strokeLinecap "round" ] [ Svg.path [ d "M48.427 36.878v19.23" ] [], Svg.path [ d "M17.81 24.952v-8.486h30.617v20.412H17.81v19.23", strokeLinejoin "round" ] [], Svg.path [ d "M17.81 16.466L8.512 7.908m23.586-.682v9.24m16.329-9.24v9.24" ] [] ] ]
 
 
 ent =

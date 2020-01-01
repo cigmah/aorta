@@ -1,13 +1,6 @@
 module Types.Topic exposing
     ( Topic(..)
-    , count
-    , decoder
-    , encode
-    , fromInt
-    , list
-    , toBriefString
-    , toInt
-    , toString
+    , enumerable
     )
 
 {-| Contains the Topic type and operations relating to the Topic type.
@@ -19,6 +12,7 @@ the categories used to classify objectives.
 
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
+import Types.Interface exposing (Enumerable)
 
 
 {-| Represents a single medical topic.
@@ -48,6 +42,21 @@ type Topic
     | DisordersPrimaryCarePrevention
     | DisordersTraumaExternal
     | MiscellaneousTopics
+
+
+{-| Implementation of the enumerable interface for topic.
+-}
+enumerable : Enumerable Topic
+enumerable =
+    { list = list
+    , count = count
+    , toString = toString
+    , toBriefString = toBriefString
+    , toInt = toInt
+    , fromInt = fromInt
+    , encode = encode
+    , decoder = decoder
+    }
 
 
 {-| Converts a topic to an integer code.

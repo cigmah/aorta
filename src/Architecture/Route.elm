@@ -14,6 +14,7 @@ logic is fairly straightforward.
 
 -}
 
+import Architecture.Model as Model exposing (Model(..))
 import Html exposing (Attribute)
 import Html.Attributes exposing (href)
 import Url.Builder as Builder
