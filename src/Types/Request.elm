@@ -14,7 +14,12 @@ import RemoteData.Http exposing (Config)
 import Secret exposing (apiBase)
 import Types.Credentials as Credentials exposing (..)
 import Types.Login as Login
+import Types.Objective as Objective
+import Types.Paginated as Paginated exposing (Paginated)
 import Types.Register as Register
+import Types.Specialty as Specialty exposing (Specialty)
+import Types.Stage as Stage exposing (Stage)
+import Types.Topic as Topic exposing (Topic)
 import Url.Builder as Builder
 
 
@@ -129,6 +134,9 @@ type alias Id =
 type Endpoint
     = PostRegister
     | PostLogin
+    | PostObjective
+    | GetObjectiveList
+    | GetObjective Id
 
 
 {-| Converts an endpoint to a list of paths.
@@ -141,6 +149,15 @@ endpointToUrl endpoint =
 
         PostLogin ->
             [ "users", "authenticate" ]
+
+        PostObjective ->
+            [ "objectives" ]
+
+        GetObjectiveList ->
+            [ "objectives" ]
+
+        GetObjective id ->
+            [ "objectives", String.fromInt id ]
 
 
 {-| Data required for registering.
@@ -186,4 +203,126 @@ postLogin request =
         , callback = request.callback
         , auth = request.auth
         , queryList = []
+        }
+
+
+{-| Data required to create a new objective.
+-}
+type alias PostObjectiveData msg =
+    { data : Objective.PostData
+    , auth : Auth
+    , callback : WebData Objective.GetData -> msg
+    }
+
+
+{-| A objective create POST request.
+-}
+postObjective : PostObjectiveData msg -> Cmd msg
+postObjective request =
+    post
+        { endpoint = PostObjective
+        , body = Objective.encode request.data
+        , returnDecoder = Objective.decoder
+        , callback = request.callback
+        , auth = request.auth
+        , queryList = []
+        }
+
+
+{-| Data required to get an objective.
+-}
+type alias GetObjectiveData msg =
+    { id : Id
+    , auth : Auth
+    , callback : WebData Objective.GetData -> msg
+    }
+
+
+{-| A single objective GET request.
+-}
+getObjective : GetObjectiveData msg -> Cmd msg
+getObjective request =
+    get
+        { auth = request.auth
+        , endpoint = GetObjective request.id
+        , callback = request.callback
+        , returnDecoder = Objective.decoder
+        , queryList = []
+        }
+
+
+{-| Data required to get a list of objectives.
+-}
+type alias GetObjectiveListData msg =
+    { auth : Auth
+    , specialtyFilters : List Int
+    , topicFilters : List Int
+    , stageFilters : List Int
+    , search : String
+    , page : Int
+    , callback : WebData (Paginated Objective.GetData) -> msg
+    }
+
+
+{-| Convers list of ints to specialty query string.
+-}
+toSpecialtyQueries : List Int -> List Builder.QueryParameter
+toSpecialtyQueries list =
+    if List.length list == Specialty.enumerable.count then
+        []
+
+    else
+        list
+            |> List.map (Builder.int "specialty")
+
+
+{-| Converts list of ints to topic query string.
+-}
+toTopicQueries : List Int -> List Builder.QueryParameter
+toTopicQueries list =
+    if List.length list == Topic.enumerable.count then
+        []
+
+    else
+        list
+            |> List.map (Builder.int "topic")
+
+
+{-| Converts list of ints to stage query string.
+-}
+toStageQueries : List Int -> List Builder.QueryParameter
+toStageQueries list =
+    if List.length list == Stage.enumerable.count then
+        []
+
+    else
+        list
+            |> List.map (Builder.int "stage")
+
+
+{-| A GET request for a list of objectives
+-}
+getObjectiveList : GetObjectiveListData msg -> Cmd msg
+getObjectiveList request =
+    let
+        searchQuery =
+            if request.search == "" then
+                []
+
+            else
+                [ Builder.string "search" request.search ]
+    in
+    get
+        { auth = request.auth
+        , endpoint = GetObjectiveList
+        , callback = request.callback
+        , returnDecoder = Paginated.decoder Objective.decoder
+        , queryList =
+            List.concat
+                [ toSpecialtyQueries request.specialtyFilters
+                , toTopicQueries request.topicFilters
+                , toStageQueries request.stageFilters
+                , searchQuery
+                , [ Builder.int "page" request.page ]
+                ]
         }

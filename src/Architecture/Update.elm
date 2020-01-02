@@ -90,11 +90,9 @@ update msg model =
 
         ( ClickedLogout, _ ) ->
             let
-                session =
-                    eject model
-
                 ( newSession, cmd ) =
-                    Session.logout session
+                    eject model
+                        |> Session.logout
 
                 ( newModel, _ ) =
                     inject model (Session.removeAuthDialog newSession)
@@ -114,11 +112,9 @@ update msg model =
         -- If the user clicks login, send the request
         ( ClickedLogin, _ ) ->
             let
-                session =
-                    eject model
-
                 ( newSession, cmd ) =
-                    Session.sendLogin GotLoginResponse session
+                    eject model
+                        |> Session.sendLogin GotLoginResponse
 
                 ( newModel, _ ) =
                     inject model newSession
@@ -128,11 +124,9 @@ update msg model =
         -- If a login response is received, save it
         ( GotLoginResponse response, _ ) ->
             let
-                session =
-                    eject model
-
                 ( newSession, cmd ) =
-                    Session.receiveLogin response session
+                    eject model
+                        |> Session.receiveLogin response
 
                 ( newModel, _ ) =
                     inject model newSession
@@ -152,11 +146,9 @@ update msg model =
         -- If the user clicks register, send the request
         ( ClickedRegister, _ ) ->
             let
-                session =
-                    eject model
-
                 ( newSession, cmd ) =
-                    Session.sendRegister GotRegisterResponse session
+                    eject model
+                        |> Session.sendRegister GotRegisterResponse
 
                 ( newModel, _ ) =
                     inject model newSession
@@ -166,11 +158,9 @@ update msg model =
         -- If a register response is received, save it
         ( GotRegisterResponse response, _ ) ->
             let
-                session =
-                    eject model
-
                 ( newSession, cmd ) =
-                    Session.receiveRegister response session
+                    eject model
+                        |> Session.receiveRegister response
 
                 ( newModel, _ ) =
                     inject model newSession

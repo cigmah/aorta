@@ -1,11 +1,24 @@
 module Types.Datetime exposing
-    ( monthToString
+    ( decoder
+    , encode
+    , monthToString
     , posixToMonth
     , posixToString
     )
 
+import Iso8601
 import Json.Decode as Decode
 import Time exposing (Month(..), Posix, millisToPosix, posixToMillis)
+
+
+{-| Reexport Iso8601 decoder and encoder
+-}
+decoder =
+    Iso8601.decoder
+
+
+encode =
+    Iso8601.encode
 
 
 posixToString : Posix -> String

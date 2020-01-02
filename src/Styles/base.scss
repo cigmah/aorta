@@ -94,6 +94,11 @@ button {
   cursor: pointer;
 }
 
+// Input inherit properties
+input {
+  font-family: inherit;
+}
+
 // ----------------------------------------------------------------------------
 // || BODY STYLING
 // Every page is contained within the same non-identified body.

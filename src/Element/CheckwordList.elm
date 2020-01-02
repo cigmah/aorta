@@ -10,6 +10,7 @@ import Dict as Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Types.Icon as Icon
 import Types.Interface exposing (Enumerable)
 
 
@@ -67,7 +68,7 @@ checkword data =
 defaultCheckwordFromEnumerable : Enumerable a -> (Int -> Bool -> msg) -> a -> CheckwordData msg
 defaultCheckwordFromEnumerable enumerable toMsg item =
     { word = enumerable.toBriefString item
-    , checked = True
+    , checked = False
     , value = enumerable.toInt item
     , onCheck = toMsg (enumerable.toInt item)
     }
@@ -128,12 +129,12 @@ element data =
                 [ class "checkword-list-select-all"
                 , onClick data.onSelectAll
                 ]
-                [ text "X" ]
+                [ Icon.selectAll ]
             , button
                 [ class "checkword-list-deselect-all"
                 , onClick data.onDeselectAll
                 ]
-                [ text "O" ]
+                [ Icon.deselectAll ]
             ]
         , ul
             [ class "checkword-list-list"
@@ -141,3 +142,33 @@ element data =
             ]
             (data.dict |> Dict.values |> List.sortBy .word |> List.map checkword)
         ]
+
+
+{-| Updates a checkword's `checked` value with a provided boolean.
+-}
+updateCheckword : Bool -> CheckwordData msg -> CheckwordData msg
+updateCheckword newBool data =
+    { data | checked = newBool }
+
+
+{-| Update all dict values to checked = True.
+-}
+selectAll : Dict Int (CheckwordData msg) -> Dict Int (CheckwordData msg)
+selectAll =
+    Dict.map (\_ value -> updateCheckword True value)
+
+
+{-| Update all dict values to checked = False.
+-}
+deselectAll : Dict Int (CheckwordData msg) -> Dict Int (CheckwordData msg)
+deselectAll =
+    Dict.map (\_ value -> updateCheckword False value)
+
+
+{-| Filters a dictionary of checkword data by checked values.
+-}
+filterChecked : Dict Int (CheckwordData msg) -> List Int
+filterChecked dict =
+    dict
+        |> Dict.filter (\key value -> .checked value)
+        |> Dict.keys

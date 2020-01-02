@@ -43,7 +43,7 @@ errors webData =
                                     "The requested resource wasn't found. Let us know, this shouldn't happen."
 
                                 _ ->
-                                    "There was a bad status with code " ++ String.fromInt int
+                                    "There was a bad status with code " ++ String.fromInt int ++ "."
 
                         BadBody string ->
                             "We had a decoding error. Let us know, this shouldn't happen."

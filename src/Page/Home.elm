@@ -12,7 +12,7 @@ homepage.
 import Browser exposing (Document)
 import Dict exposing (Dict)
 import Element.BackgroundImage as BackgroundImage
-import Element.CheckwordList as CheckwordList exposing (CheckwordData, Direction(..))
+import Element.CheckwordList as CheckwordList exposing (CheckwordData, Direction(..), deselectAll, selectAll, updateCheckword)
 import Element.LandingFloat as LandingFloat
 import Element.PrimaryButton as PrimaryButton
 import Element.TwoColumn as TwoColumn
@@ -20,6 +20,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import List.Extra
+import Page.Utils as Utils exposing (withCmdNone)
 import RemoteData exposing (RemoteData(..), WebData)
 import TypedSvg
 import Types.Credentials as Credentials exposing (Auth(..))
@@ -227,7 +228,7 @@ viewBody model =
         { tagline = "A free and open-source medical question bank."
         , contents =
             [ CheckwordList.element
-                { label = "Year Levels"
+                { label = "Year Level(s)"
                 , onSelectAll = ClickedSelectAll FilterStage
                 , onDeselectAll = ClickedDeselectAll FilterStage
                 , dict = model.stageDict
@@ -236,7 +237,7 @@ viewBody model =
             , TwoColumn.element
                 { first =
                     CheckwordList.element
-                        { label = "Specialties"
+                        { label = "Specialty(s)"
                         , onSelectAll = ClickedSelectAll FilterSpecialty
                         , onDeselectAll = ClickedDeselectAll FilterSpecialty
                         , dict = model.specialtyDict
@@ -244,7 +245,7 @@ viewBody model =
                         }
                 , second =
                     CheckwordList.element
-                        { label = "Topics"
+                        { label = "Topic(s)"
                         , onSelectAll = ClickedSelectAll FilterTopic
                         , onDeselectAll = ClickedDeselectAll FilterTopic
                         , dict = model.topicDict
@@ -254,7 +255,6 @@ viewBody model =
             , PrimaryButton.element
                 { text = "Start Questions"
                 , onClick = NoOp
-                , submit = False
                 }
             ]
         }
@@ -294,34 +294,6 @@ defaultStageDict : Dict Int (CheckwordData Msg)
 defaultStageDict =
     CheckwordList.defaultDictFromEnumerable Stage.enumerable ClickedStage
         |> deselectAll
-
-
-{-| Updates a checkword's `checked` value with a provided boolean.
--}
-updateCheckword : Bool -> CheckwordData msg -> CheckwordData msg
-updateCheckword newBool checkword =
-    { checkword | checked = newBool }
-
-
-{-| Update all dict values to checked = True.
--}
-selectAll : Dict Int (CheckwordData msg) -> Dict Int (CheckwordData msg)
-selectAll =
-    Dict.map (\_ value -> updateCheckword True value)
-
-
-{-| Update all dict values to checked = False.
--}
-deselectAll : Dict Int (CheckwordData msg) -> Dict Int (CheckwordData msg)
-deselectAll =
-    Dict.map (\_ value -> updateCheckword False value)
-
-
-{-| Wrap a model in no side effect command. A convenience helper.
--}
-withCmdNone : Model -> ( Model, Cmd Msg )
-withCmdNone model =
-    ( model, Cmd.none )
 
 
 {-| Update the specialty dictionary with a new one in the model

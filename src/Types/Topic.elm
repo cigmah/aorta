@@ -203,7 +203,7 @@ toString : Topic -> String
 toString topic =
     case topic of
         Overview ->
-            "Overview"
+            "Professional Practice"
 
         GlobalIssues ->
             "Global Issues"
@@ -269,10 +269,10 @@ toBriefString : Topic -> String
 toBriefString topic =
     case topic of
         Overview ->
-            "Overview"
+            "Profession"
 
         GlobalIssues ->
-            "Society"
+            "Epidemiology"
 
         Development ->
             "Development"

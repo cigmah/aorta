@@ -129,7 +129,7 @@ $navigation-bar-height: 3rem;
   @media only screen and (max-width: $mobile) {
     font-size: 1rem;
     display: block;
-    background: $primary-gradient;
+    background: $blue-500;
     color: white;
     display: flex;
     justify-content: space-between;
@@ -221,6 +221,25 @@ $navigation-bar-height: 3rem;
   font-size: 0.9em;
   &:hover {
     color: $blue-400;
+  }
+}
+
+.ghost-button {
+  @extend .primary-button;
+  color: $blue-500;
+  border: 2px solid $blue-500;
+  background: white;
+  &:hover {
+    color: white;
+    background: $blue-500;
+  }
+  &:active {
+    background: $blue-600;
+  }
+  &:disabled {
+    color: $grey-300;
+    border-color: $grey-300;
+    background: $white;
   }
 }
 
@@ -328,7 +347,10 @@ $bottom-bar-height: 3.6rem;
   width: 100%;
   height: 100%;
   flex-grow: 1;
-  color: $grey-700;
+  color: $grey-600;
+  .active {
+    color: $black;
+  }
 }
 
 .bottom-bar-item-link {
@@ -357,7 +379,7 @@ $bottom-bar-height: 3.6rem;
   margin-top: $navigation-bar-height;
   padding: 0;
   box-sizing: border-box;
-  background: $grey-200;
+  background: $white;
   z-index: 0;
   @media only screen and (max-width: $mobile) {
     margin-bottom: $bottom-bar-height;
@@ -436,9 +458,9 @@ $bottom-bar-height: 3.6rem;
 }
 
 .checkword-list {
-  margin: 0.5rem 0;
+  margin-bottom: 1rem;
+  width: 100%;
   @media only screen and (max-width: $mobile) {
-    margin-bottom: 1rem;
   }
 }
 
@@ -447,11 +469,22 @@ $bottom-bar-height: 3.6rem;
   color: $blue-400;
   font-weight: bold;
   margin-bottom: 0.25rem;
+  align-items: center;
 
   .checkword-list-label {
   }
 
   .checkword-list-select-all {
+    padding: 0;
+    height: 1em;
+    width: 1em;
+    margin-left: auto;
+  }
+  .checkword-list-deselect-all {
+    padding: 0;
+    height: 1em;
+    width: 1em;
+    margin-left: 0.5em;
   }
 }
 
@@ -483,27 +516,41 @@ $bottom-bar-height: 3.6rem;
 }
 
 // ----------------------------------------------------------------------------
-// || TWO COLUMNS
-// Element.TwoColumn styles
+// || COLUMNS
+// Element.TwoColumn, Element.ThreeColumn styles
 // ----------------------------------------------------------------------------
 
-.two-column {
+.columns {
   width: 100%;
   display: flex;
 
-  .column-one {
+  .column {
+    display: flex;
     flex-grow: 1;
-    margin-right: 1rem;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+    position: relative;
   }
 
-  .column-two {
-    flex-grow: 1;
+  .column.one {
+    margin-left: 0;
+  }
+
+  &.two .column.two {
+    margin-right: 0;
+  }
+
+  &.three .column.three {
+    margin-right: 0;
   }
 
   @media only screen and (max-width: $mobile) {
     display: block;
-    .column-one {
+    margin-right: 0;
+    margin-left: 0;
+    .column {
       margin-right: 0;
+      margin-left: 0;
     }
   }
 }
@@ -513,12 +560,12 @@ $bottom-bar-height: 3.6rem;
 // Element.LandingFloat styles
 // ----------------------------------------------------------------------------
 
-$landing-float-margin: 60px;
+$landing-float-margin: 50px;
 
 .landing-float {
   background: white;
   width: $mobile - (2 * $landing-float-margin) - 100px;
-  height: 600px;
+  height: 620px;
   overflow: auto;
   border-radius: 5px;
   box-shadow: 0 0 10px $grey-500;
@@ -549,4 +596,261 @@ $landing-float-margin: 60px;
   font-weight: bold;
   letter-spacing: -0.5px;
   margin-bottom: 1.5rem;
+}
+
+// ----------------------------------------------------------------------------
+// || FILTER AND RESULTS
+// Element.FilterAndResults styles
+// ----------------------------------------------------------------------------
+
+.filter-and-results {
+  max-width: 1200px;
+  margin: auto;
+  padding: 1rem;
+  display: flex;
+  @media only screen and (max-width: $mobile) {
+    flex-direction: column;
+  }
+}
+
+.filter-and-results-side {
+  min-width: 280px;
+  padding: 1rem;
+  @media only screen and (max-width: $mobile) {
+    min-width: 0;
+    width: auto;
+    padding: 0;
+    border: 2px solid $blue-400;
+  }
+}
+
+.filter-and-results-side-header {
+  font-weight: bold;
+  color: $blue-500;
+  font-size: 1.2rem;
+  border-bottom: 1px dotted $blue-400;
+  width: 100%;
+  text-align: left;
+  padding-left: 0;
+  padding-bottom: 0.25rem;
+  cursor: default;
+  @media only screen and (max-width: $mobile) {
+    cursor: pointer;
+    border: none;
+    margin: 0;
+    padding: 0.5rem;
+  }
+}
+
+.filter-and-results-side-body {
+  margin-top: 1rem;
+  @media only screen and (max-width: $mobile) {
+    display: none;
+    &.visible {
+      margin-top: 0;
+      display: block;
+      padding: 0.5rem;
+    }
+  }
+}
+
+.filter-and-results-main {
+  padding: 1rem;
+  flex-grow: 1;
+  @media only screen and (max-width: $mobile) {
+    padding: 0rem;
+    margin-top: 1rem;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// || SEARCH BAR
+// Element.SearchBar styles
+// ----------------------------------------------------------------------------
+
+.search-bar {
+  margin-bottom: 1rem;
+  width: 100%;
+  display: flex;
+}
+
+.search-bar-input {
+  @extend .text-input-input;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  flex-grow: 1;
+}
+
+.search-bar-button {
+  @extend .primary-button;
+  flex-grow: 0;
+  width: auto;
+  margin: 0;
+  margin-left: 1rem;
+  padding: 0.5rem 0.75rem;
+}
+
+// ----------------------------------------------------------------------------
+// || SNEAKY BOX
+// Element.SneakyBox styles
+// ----------------------------------------------------------------------------
+
+.sneaky-box {
+  font-size: 0.9rem;
+  margin: 1rem 0;
+  @media only screen and (max-width: $mobile) {
+    display: none;
+  }
+}
+
+.sneaky-box-summary {
+  color: $grey-500;
+  position: relative;
+  border: 1px dotted $grey-400;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+}
+
+.sneaky-box-content {
+  border: 1px dotted $blue-100;
+  padding: 0 0.5rem 0.5rem 0.5rem;
+  background: $blue-100;
+}
+
+// ----------------------------------------------------------------------------
+// || SELECT
+// Element.Select styles
+// ----------------------------------------------------------------------------
+
+.select-group {
+  margin: 1rem 0;
+  width: 100%;
+  font-size: inherit;
+}
+
+.select-label {
+  @extend .text-input-label;
+  font-weight: bold;
+  margin-bottom: 0.2rem;
+}
+
+.select-select {
+  width: 100%;
+  border: 1px dotted $blue-400;
+  padding: 0.25rem 0.5rem;
+}
+
+// ----------------------------------------------------------------------------
+// || PAGINATED RESULTS
+// Element.PaginatedResults styles
+// ----------------------------------------------------------------------------
+
+.paginated-results {
+  margin: 1rem 0;
+}
+
+.paginated-results-header {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px dotted $blue-400;
+}
+
+.paginated-results-header-buttons {
+  display: flex;
+  align-items: center;
+}
+
+.paginated-results-header-count {
+  flex-grow: 1;
+  color: $blue-500;
+}
+
+.paginated-results-header-button {
+  @extend .ghost-button;
+  padding: 0.25rem 0.5rem;
+  width: auto;
+  margin: 0.5rem 0;
+}
+
+.paginated-results-header-page {
+  margin: 0 1rem;
+  flex-grow: 1;
+  color: $blue-500;
+}
+
+.paginated-results-results {
+  margin: 0.5rem 0;
+}
+
+.paginated-results-item {
+  margin-bottom: 0.5rem;
+}
+
+.paginated-results-text {
+  margin-top: 1.5rem;
+  text-align: center;
+  &.error {
+    color: $red-500;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// || OBJECTIVE RESULT
+// Element.ObjectiveResult styles
+// ----------------------------------------------------------------------------
+
+.objective-result {
+  display: flex;
+  align-items: center;
+  box-shadow: 0 0 5px $grey-400;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  &:hover {
+    background: $blue-400;
+    color: $white;
+    .objective-result-tags {
+      color: $blue-100;
+    }
+  }
+  &:focus {
+    border-color: $blue-500;
+  }
+  &:active {
+    background: $blue-400;
+    color: $white;
+    background: $blue-500;
+    .objective-result-tags {
+      color: $blue-100;
+    }
+  }
+}
+
+.objective-result-icon {
+  width: 4rem;
+  height: 4rem;
+  min-width: 4rem;
+  min-height: 4rem;
+}
+
+.objective-result-body {
+  margin: 0.5rem 0.25rem;
+}
+
+.objective-result-tags {
+  display: flex;
+  color: $grey-500;
+  font-size: 0.8em;
+  margin-bottom: 0.25rem;
+}
+
+.objective-result-tag {
+  &.stage {
+    margin-right: 1rem;
+  }
+  &.specialty {
+    margin-right: 1rem;
+  }
+}
+
+.objective-result-title {
 }

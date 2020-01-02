@@ -285,7 +285,6 @@ viewLogoutDialog credentials authDialog =
                     , PrimaryButton.element
                         { text = "Logout"
                         , onClick = ClickedLogout
-                        , submit = False
                         }
                     ]
                 }
@@ -304,7 +303,6 @@ viewLogoutDialog credentials authDialog =
                             , PrimaryButton.element
                                 { text = "Got it!"
                                 , onClick = ToggledShowLogin
-                                , submit = False
                                 }
                             ]
                         }
