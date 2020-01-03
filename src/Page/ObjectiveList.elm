@@ -104,19 +104,6 @@ type Msg
 -------------------------------------------------------------------------------
 
 
-searchRequest : Model -> Cmd Msg
-searchRequest model =
-    Request.getObjectiveList
-        { auth = model.session.auth
-        , specialtyFilters = CheckwordList.filterChecked model.specialtyDict
-        , topicFilters = CheckwordList.filterChecked model.topicDict
-        , stageFilters = CheckwordList.filterChecked model.stageDict
-        , search = model.search
-        , page = model.page
-        , callback = GotSearchResults
-        }
-
-
 {-| The page initialisation function.
 -}
 init : Session -> ( Model, Cmd Msg )
@@ -582,6 +569,19 @@ type Filter
     = FilterSpecialty
     | FilterStage
     | FilterTopic
+
+
+searchRequest : Model -> Cmd Msg
+searchRequest model =
+    Request.getObjectiveList
+        { auth = model.session.auth
+        , specialtyFilters = CheckwordList.filterChecked model.specialtyDict
+        , topicFilters = CheckwordList.filterChecked model.topicDict
+        , stageFilters = CheckwordList.filterChecked model.stageDict
+        , search = model.search
+        , page = model.page
+        , callback = GotSearchResults
+        }
 
 
 type Direction

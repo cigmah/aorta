@@ -16,6 +16,7 @@ import Types.Credentials as Credentials exposing (..)
 import Types.Login as Login
 import Types.Objective as Objective
 import Types.Paginated as Paginated exposing (Paginated)
+import Types.Question as Question
 import Types.Register as Register
 import Types.Specialty as Specialty exposing (Specialty)
 import Types.Stage as Stage exposing (Stage)
@@ -100,6 +101,18 @@ type alias GetRequest response msg =
     }
 
 
+{-| A type representing data required to create a PATCH request.
+-}
+type alias PatchRequest response msg =
+    { endpoint : Endpoint
+    , body : Decode.Value
+    , returnDecoder : Decoder response
+    , callback : WebData response -> msg
+    , auth : Auth
+    , queryList : List Builder.QueryParameter
+    }
+
+
 {-| Converts a post request into a Cmd.
 -}
 post : PostRequest response msg -> Cmd msg
@@ -123,6 +136,18 @@ get request =
         request.returnDecoder
 
 
+{-| Converts a patch request into a command.
+-}
+patch : PatchRequest response msg -> Cmd msg
+patch request =
+    RemoteData.Http.patchWithConfig
+        (authToConfig request.auth)
+        (buildUrl (endpointToUrl request.endpoint) request.queryList)
+        request.callback
+        request.returnDecoder
+        request.body
+
+
 {-| Convenience aliance for an ID.
 -}
 type alias Id =
@@ -137,6 +162,8 @@ type Endpoint
     | PostObjective
     | GetObjectiveList
     | GetObjective Id
+    | GetQuestionList
+    | PutObjective Id
 
 
 {-| Converts an endpoint to a list of paths.
@@ -158,6 +185,12 @@ endpointToUrl endpoint =
 
         GetObjective id ->
             [ "objectives", String.fromInt id ]
+
+        PutObjective id ->
+            [ "objectives", String.fromInt id ]
+
+        GetQuestionList ->
+            [ "questions" ]
 
 
 {-| Data required for registering.
@@ -325,4 +358,54 @@ getObjectiveList request =
                 , searchQuery
                 , [ Builder.int "page" request.page ]
                 ]
+        }
+
+
+{-| A GET request for a list of basic question data, by objective ID.
+-}
+type alias GetQuestionBasicListData msg =
+    { objectiveId : Id
+    , page : Int
+    , auth : Auth
+    , callback : WebData (Paginated Question.GetBasicData) -> msg
+    }
+
+
+{-| A GET request for a list of questions, by objective ID.
+-}
+getQuestionBasicList : GetQuestionBasicListData msg -> Cmd msg
+getQuestionBasicList request =
+    get
+        { auth = request.auth
+        , endpoint = GetQuestionList
+        , callback = request.callback
+        , returnDecoder = Paginated.decoder Question.decoderBasic
+        , queryList =
+            [ Builder.int "page" request.page
+            , Builder.int "objective_id" request.objectiveId
+            ]
+        }
+
+
+{-| Data required to edit an objective.
+-}
+type alias PatchObjectiveData msg =
+    { data : Objective.EditableData
+    , objectiveId : Int
+    , auth : Auth
+    , callback : WebData Objective.GetData -> msg
+    }
+
+
+{-| A objective edit PATCH request.
+-}
+patchObjective : PatchObjectiveData msg -> Cmd msg
+patchObjective request =
+    patch
+        { endpoint = PutObjective request.objectiveId
+        , body = Objective.encodeEditable request.data
+        , returnDecoder = Objective.decoder
+        , callback = request.callback
+        , auth = request.auth
+        , queryList = []
         }

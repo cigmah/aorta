@@ -18,8 +18,10 @@ type alias Data msg =
 
 element : Data msg -> Html msg
 element data =
-    div
-        [ class "search-bar" ]
+    Html.form
+        [ class "search-bar"
+        , onSubmit data.onSearch
+        ]
         [ input
             [ type_ "search"
             , placeholder data.placeholder
@@ -28,9 +30,8 @@ element data =
             ]
             []
         , button
-            [ type_ "button"
+            [ type_ "submit"
             , class "search-bar-button"
-            , onClick data.onSearch
             ]
             [ text "Search" ]
         ]

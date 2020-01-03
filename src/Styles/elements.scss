@@ -379,8 +379,6 @@ $bottom-bar-height: 3.6rem;
   margin-top: $navigation-bar-height;
   padding: 0;
   box-sizing: border-box;
-  background: $white;
-  z-index: 0;
   @media only screen and (max-width: $mobile) {
     margin-bottom: $bottom-bar-height;
   }
@@ -853,4 +851,200 @@ $landing-float-margin: 50px;
 }
 
 .objective-result-title {
+}
+
+// ----------------------------------------------------------------------------
+// || OBJECTIVE DETAIL
+// Element. styles
+// ---------------------------------------------------------------------------
+
+.objective {
+  max-width: 1200px;
+  margin: auto;
+  margin-bottom: 4rem;
+  padding: 1rem;
+  display: flex;
+  @media only screen and (max-width: $mobile) {
+    padding: 0;
+    display: block;
+  }
+}
+
+.objective-sidebar {
+  width: 280px;
+  min-width: 280px;
+  padding: 1rem;
+  @media only screen and (max-width: $mobile) {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 0;
+    width: 100vw;
+  }
+}
+
+.objective-sidebar-icon {
+  border: 2px solid $blue-400;
+  border-radius: 5px;
+  @media only screen and (max-width: $mobile) {
+    width: 100%;
+    position: fixed;
+    z-index: -10;
+    border: none;
+  }
+}
+
+.objective-sidebar-back-button,
+.objective-sidebar-edit-button,
+.objective-sidebar-add-question-button {
+  @extend .ghost-button;
+  margin: 0.25rem 0;
+  border-color: $blue-400;
+  color: $blue-400;
+  &:hover {
+    border-color: $blue-500;
+  }
+}
+
+.objective-sidebar-back-button {
+  @media only screen and (max-width: $mobile) {
+    width: 100px;
+    position: absolute;
+    top: 4rem;
+    left: 1.5rem;
+  }
+}
+
+.objective-sidebar-edit-button,
+.objective-sidebar-add-question-button {
+  @media only screen and (max-width: $mobile) {
+    display: none;
+  }
+}
+
+.objective-body {
+  margin-top: 1rem;
+  margin-left: 1rem;
+  padding: 3rem;
+  background: $white;
+  box-shadow: 0 0 10px $grey-400;
+  width: 100%;
+  border-radius: 5px;
+  z-index: 10;
+  @media only screen and (max-width: $mobile) {
+    margin-top: 300px;
+    width: auto;
+    margin-left: 0;
+    min-height: 100vh;
+    padding: 1.5rem;
+  }
+}
+
+.objective-body-header {
+  margin-bottom: 3rem;
+}
+
+.objective-body-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  letter-spacing: -0.5px;
+}
+
+.objective-body-tags {
+  display: flex;
+}
+
+.objective-tag {
+  font-size: 0.9em;
+  color: $grey-600;
+  margin-bottom: 0.5rem;
+  &.stage {
+    &:after {
+      content: "—";
+      margin: 0 0.5rem;
+    }
+  }
+  &.specialty {
+    &:after {
+      content: "—";
+      margin: 0 0.5rem;
+    }
+  }
+}
+
+.objective-body-contributor {
+  font-size: 0.9em;
+  color: $grey-600;
+  .objective-body-contributor-username {
+    font-weight: bold;
+  }
+}
+
+// EDIT FORM
+
+.objective-edit-form {
+  max-width: 900px;
+  margin: auto;
+  padding: 2rem;
+  box-shadow: 0 0 10px $grey-400;
+  margin-top: 5rem;
+  margin-bottom: 5rem;
+  padding-bottom: 1rem;
+}
+
+textarea.objective-body-title,
+textarea.objective-body-notes {
+  width: 100%;
+  border: 1px dotted $blue-400;
+  padding: 1rem;
+  border-radius: 5px;
+  margin-bottom: 1rem;
+  &:focus {
+    border: 1px solid $blue-400;
+  }
+}
+
+.objective-body-edit-submit {
+  @extend .primary-button;
+  margin: 0.5rem 0;
+}
+
+// ----------------------------------------------------------------------------
+// || OBJECTIVE DETAIL
+// Element. styles
+// ---------------------------------------------------------------------------
+
+.markdown {
+  line-height: 1.25;
+  p {
+    margin: 1rem 0;
+  }
+  a {
+    text-decoration: underline;
+    &:hover {
+      color: $grey-700;
+    }
+    &:active {
+      color: $red-500;
+    }
+  }
+  pre,
+  code {
+    font-size: 0.9em;
+    line-height: 1;
+    font-family: Consolas, Menlo, Monaco, "Lucida Console", "Liberation Mono", "DejaVu Sans Mono",
+      "Bitstream Vera Sans Mono", monospace, serif;
+    background: $grey-200;
+  }
+  pre {
+    padding: 1rem;
+    margin: 1.5rem 0;
+  }
+  img {
+    max-width: 100%;
+    margin: auto;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
 }

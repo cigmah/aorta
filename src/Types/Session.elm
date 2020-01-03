@@ -91,6 +91,18 @@ isGuest session =
             False
 
 
+{-| Checks whether a session is a user
+-}
+isUser : Session -> Bool
+isUser session =
+    case session.auth of
+        Guest ->
+            False
+
+        User _ ->
+            True
+
+
 {-| Adds a message to the session object.
 -}
 addMessage : ( String, String ) -> Session -> Session

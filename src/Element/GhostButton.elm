@@ -14,23 +14,14 @@ import Html.Events exposing (..)
 type alias Data msg =
     { text : String
     , onClick : msg
-    , submit : Bool -- whether this should be a submit button on forms
     }
 
 
 element : Data msg -> Html msg
 element data =
-    let
-        buttonType =
-            if data.submit then
-                "submit"
-
-            else
-                "button"
-    in
     button
         [ class "ghost-button"
-        , type_ buttonType
+        , type_ "button"
         , onClick data.onClick
         ]
         [ text data.text ]

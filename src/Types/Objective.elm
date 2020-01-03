@@ -99,3 +99,24 @@ encode data =
         , ( "title", Encode.string data.title )
         , ( "notes", Encode.string "" )
         ]
+
+
+type alias EditableData =
+    { title : String
+    , notes : String
+    }
+
+
+editableFromData : GetData -> EditableData
+editableFromData data =
+    { title = data.title
+    , notes = data.notes
+    }
+
+
+encodeEditable : EditableData -> Value
+encodeEditable data =
+    Encode.object
+        [ ( "title", Encode.string data.title )
+        , ( "notes", Encode.string data.notes )
+        ]

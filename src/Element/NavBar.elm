@@ -6,6 +6,7 @@ The brand item is included in this module and not exposed.
 
 -}
 
+import Architecture.Route as Route
 import Element.SmallPopup as SmallPopup
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -29,8 +30,10 @@ element data =
         [ id "nav-bar" ]
         [ ul
             [ id "nav-bar-list" ]
-            [ li
-                [ id "nav-bar-brand" ]
+            [ a
+                [ id "nav-bar-brand"
+                , Route.toHref Route.Home
+                ]
                 [ div
                     [ id "nav-bar-brand-icon" ]
                     [ Icon.aortaWhite ]

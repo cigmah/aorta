@@ -3,7 +3,7 @@ import { Elm } from './App.elm';
 import landingImage from './Resources/landing.png';
 import registerServiceWorker from './registerServiceWorker';
 
-var storageKey = "session"
+var storageKey = "session";
 
 function addResources(jsonString) {
   // Parse the object
