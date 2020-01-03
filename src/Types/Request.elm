@@ -164,6 +164,7 @@ type Endpoint
     | GetObjective Id
     | GetQuestionList
     | PutObjective Id
+    | PostQuestion
 
 
 {-| Converts an endpoint to a list of paths.
@@ -190,6 +191,9 @@ endpointToUrl endpoint =
             [ "objectives", String.fromInt id ]
 
         GetQuestionList ->
+            [ "questions" ]
+
+        PostQuestion ->
             [ "questions" ]
 
 
@@ -405,6 +409,29 @@ patchObjective request =
         { endpoint = PutObjective request.objectiveId
         , body = Objective.encodeEditable request.data
         , returnDecoder = Objective.decoder
+        , callback = request.callback
+        , auth = request.auth
+        , queryList = []
+        }
+
+
+{-| Data required to add a question.
+-}
+type alias PostQuestionData msg =
+    { data : Question.PostData
+    , auth : Auth
+    , callback : WebData Question.GetBasicData -> msg
+    }
+
+
+{-| A POST request to add a question.
+-}
+postQuestion : PostQuestionData msg -> Cmd msg
+postQuestion request =
+    post
+        { endpoint = PostQuestion
+        , body = Question.encode request.data
+        , returnDecoder = Question.decoderBasic
         , callback = request.callback
         , auth = request.auth
         , queryList = []

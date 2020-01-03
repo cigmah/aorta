@@ -7,10 +7,12 @@ and medical training stage.
 
 -}
 
+import Dict exposing (Dict)
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
 import Time exposing (Posix)
+import Types.Choice as Choice
 import Types.Datetime as Datetime
 import Types.Objective as Objective
 import Types.Specialty as Specialty exposing (Specialty(..))
@@ -45,3 +47,66 @@ decoderBasic =
         |> required "created_at" Datetime.decoder
         |> required "modified_at" Datetime.decoder
         |> required "stem" Decode.string
+
+
+{-| Data required to add a question.
+-}
+type alias PostData =
+    { stem : String
+    , choices : Dict Int Choice.PostData
+    , objectiveId : Int
+    }
+
+
+{-| Encode a question for creation.
+-}
+encode : PostData -> Value
+encode data =
+    Encode.object
+        [ ( "objective_id", Encode.int data.objectiveId )
+        , ( "stem", Encode.string data.stem )
+        , ( "choices", Encode.list Choice.encode (Dict.values data.choices) )
+        ]
+
+
+{-| Initialise a new default question.
+-}
+init : Int -> PostData
+init objectiveId =
+    { stem = ""
+    , choices =
+        Dict.fromList
+            [ ( 0, Choice.newCorrect )
+            , ( 1, Choice.newIncorrect )
+            ]
+    , objectiveId = objectiveId
+    }
+
+
+updateStem : String -> PostData -> PostData
+updateStem string data =
+    { data | stem = string }
+
+
+updateChoiceContent : Int -> String -> PostData -> PostData
+updateChoiceContent key string data =
+    { data | choices = Dict.update key (Maybe.map <| Choice.withContent string) data.choices }
+
+
+updateChoiceExplanation : Int -> String -> PostData -> PostData
+updateChoiceExplanation key string data =
+    { data | choices = Dict.update key (Maybe.map <| Choice.withExplanation string) data.choices }
+
+
+{-| Adds a new distractor (incorrect choice) to the list of choices.
+-}
+addChoice : Int -> PostData -> PostData
+addChoice key data =
+    { data | choices = Dict.insert key Choice.newIncorrect data.choices }
+
+
+{-| Removes a choice from the list of choices.
+-}
+removeChoice : Int -> PostData -> PostData
+removeChoice key data =
+    { data | choices = Dict.remove key data.choices }

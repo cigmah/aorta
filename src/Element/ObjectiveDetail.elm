@@ -4,9 +4,11 @@ module Element.ObjectiveDetail exposing (..)
 -}
 
 import Architecture.Route as Route
+import Element.AddQuestionModal as AddQuestionModal
 import Element.Empty as Empty
 import Element.GhostButton as GhostButton
 import Element.PaginatedResults as PaginatedResults
+import Element.QuestionResult as QuestionResult
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -16,6 +18,8 @@ import Maybe.Extra exposing (isNothing)
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Icon as Icon
 import Types.Objective as Objective
+import Types.Paginated as Paginated exposing (Paginated)
+import Types.Question as Question
 import Types.Specialty as Specialty
 import Types.Stage as Stage
 import Types.Topic as Topic
@@ -32,6 +36,22 @@ type alias Data msg =
     , onClickSubmit : msg
     , canAddQuestion : Bool
     , onClickAddQuestion : msg
+    , showAddQuestionModal : Bool
+    , questionWebData : WebData (Paginated Question.GetBasicData)
+    , questionPage : Int
+    , paginatedOnClickNext : msg
+    , paginatedOnClickPrev : msg
+    , addQuestion :
+        { question : Question.PostData
+        , response : WebData Question.GetBasicData
+        , onClickClose : msg
+        , onChangeStem : String -> msg
+        , onChangeChoiceContent : Int -> String -> msg
+        , onChangeChoiceExplanation : Int -> String -> msg
+        , onClickAddChoice : msg
+        , onClickRemoveChoice : Int -> msg
+        , onClickSubmit : msg
+        }
     }
 
 
@@ -158,6 +178,24 @@ successView objective data =
 
             else
                 Empty.element
+
+        addQuestionModal =
+            if data.showAddQuestionModal then
+                AddQuestionModal.element
+                    { question = data.addQuestion.question
+                    , questionWebData = data.addQuestion.response
+                    , objectiveTitle = objective.title
+                    , onClickClose = data.addQuestion.onClickClose
+                    , onChangeStem = data.addQuestion.onChangeStem
+                    , onChangeChoiceContent = data.addQuestion.onChangeChoiceContent
+                    , onChangeChoiceExplanation = data.addQuestion.onChangeChoiceExplanation
+                    , onClickAddChoice = data.addQuestion.onClickAddChoice
+                    , onClickRemoveChoice = data.addQuestion.onClickRemoveChoice
+                    , onClickSubmit = data.addQuestion.onClickSubmit
+                    }
+
+            else
+                Empty.element
     in
     section
         [ class "objective" ]
@@ -174,37 +212,54 @@ successView objective data =
             , editButton
             , addQuestionButton
             ]
-        , article
-            [ class "objective-body" ]
-            [ header
-                [ class "objective-body-header" ]
-                [ h1
-                    [ class "objective-body-title" ]
-                    [ text objective.title ]
-                , div
-                    [ class "objective-body-tags" ]
-                    [ div
-                        [ class "objective-tag stage" ]
-                        [ text (Stage.enumerable.toString objective.stage) ]
+        , section
+            [ class "objective-main" ]
+            [ article
+                [ class "objective-body" ]
+                [ header
+                    [ class "objective-body-header" ]
+                    [ h1
+                        [ class "objective-body-title" ]
+                        [ text objective.title ]
                     , div
-                        [ class "objective-tag specialty" ]
-                        [ text (Specialty.enumerable.toString objective.specialty) ]
+                        [ class "objective-body-tags" ]
+                        [ div
+                            [ class "objective-tag stage" ]
+                            [ text (Stage.enumerable.toString objective.stage) ]
+                        , div
+                            [ class "objective-tag specialty" ]
+                            [ text (Specialty.enumerable.toString objective.specialty) ]
+                        , div
+                            [ class "objective-tag topic" ]
+                            [ text (Topic.enumerable.toString objective.topic) ]
+                        ]
                     , div
-                        [ class "objective-tag topic" ]
-                        [ text (Topic.enumerable.toString objective.topic) ]
+                        [ class "objective-body-contributor" ]
+                        [ text "Contributed by "
+                        , span
+                            [ class "objective-body-contributor-username" ]
+                            [ text objective.contributor.username ]
+                        ]
                     ]
-                , div
-                    [ class "objective-body-contributor" ]
-                    [ text "Contributed by "
-                    , span
-                        [ class "objective-body-contributor-username" ]
-                        [ text objective.contributor.username ]
-                    ]
+                , section
+                    [ class "objective-body-notes markdown" ]
+                    notes
                 ]
             , section
-                [ class "objective-body-notes markdown" ]
-                notes
+                [ class "objective-questions" ]
+                [ h1
+                    [ class "objective-questions-heading" ]
+                    [ text "Attached Questions" ]
+                , PaginatedResults.element
+                    { webData = data.questionWebData
+                    , page = data.questionPage
+                    , onClickNext = data.paginatedOnClickNext
+                    , onClickPrev = data.paginatedOnClickPrev
+                    , itemToElement = QuestionResult.element
+                    }
+                ]
             ]
+        , addQuestionModal
         ]
 
 

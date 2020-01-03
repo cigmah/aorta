@@ -31,6 +31,10 @@ type alias Model =
     , editing : Bool
     , questionWebData : WebData (Paginated Question.GetBasicData)
     , questionPage : Int
+    , questionModalVisible : Bool
+    , addQuestionData : Question.PostData
+    , addQuestionChoiceTally : Int
+    , addQuestionResponse : WebData Question.GetBasicData
     , errors : Errors
     }
 
@@ -58,12 +62,16 @@ type Msg
     | ChangedNotes String
     | ClickedSubmitEdits
     | ClickedAddQuestion
-    | ChangedStem
-    | ClickedAddDistractor
-    | ChangedOptionContent Int String
-    | ChangedOptionExplanation Int String
+    | ChangedStem String
+    | ChangedChoiceContent Int String
+    | ChangedChoiceExplanation Int String
+    | ClickedAddChoice
+    | ClickedRemoveChoice Int
     | ClickedSubmitQuestion
-    | GotQuestionAddResponse (WebData ())
+    | GotQuestionAddResponse (WebData Question.GetBasicData)
+    | ClickedCloseAddQuestionModal
+    | ClickedNext -- for paginated question results
+    | ClickedPrev -- for paginated question results
 
 
 
@@ -83,9 +91,13 @@ init session objectiveId =
             , objectiveWebData = Loading
             , objectiveId = objectiveId
             , questionPage = 1
-            , questionWebData = Loading
             , editableData = Nothing
             , editing = False
+            , questionWebData = Loading
+            , questionModalVisible = False
+            , addQuestionData = Question.init objectiveId
+            , addQuestionChoiceTally = 2 -- two choices already added by default
+            , addQuestionResponse = NotAsked
             }
     in
     ( model
@@ -198,32 +210,63 @@ update msg model =
                 |> withCmd (requestEditObjective model)
 
         ClickedAddQuestion ->
-            -- TODO
-            ( model, Cmd.none )
+            model
+                |> toggleQuestionModal
 
-        ChangedStem ->
-            -- TODO
-            ( model, Cmd.none )
+        ChangedStem string ->
+            string
+                |> updateQuestionStem model
+                |> withCmdNone
 
-        ClickedAddDistractor ->
-            -- TODO
-            ( model, Cmd.none )
+        ChangedChoiceContent key string ->
+            model
+                |> updateChoiceContent key string
+                |> withCmdNone
 
-        ChangedOptionContent int string ->
-            -- TODO
-            ( model, Cmd.none )
+        ChangedChoiceExplanation key string ->
+            model
+                |> updateChoiceExplanation key string
+                |> withCmdNone
 
-        ChangedOptionExplanation int string ->
-            -- TODO
-            ( model, Cmd.none )
+        ClickedAddChoice ->
+            model
+                |> addChoice
+                |> incrementChoiceTally
+                |> withCmdNone
+
+        ClickedRemoveChoice int ->
+            model
+                |> removeChoice int
+                |> withCmdNone
 
         ClickedSubmitQuestion ->
-            -- TODO
-            ( model, Cmd.none )
+            model
+                |> updateAddQuestionResponse Loading
+                |> withCmd (requestAddQuestion model)
 
         GotQuestionAddResponse response ->
-            -- TODO
-            ( model, Cmd.none )
+            model
+                |> updateAddQuestionResponse response
+                |> withCmdNone
+
+        ClickedCloseAddQuestionModal ->
+            toggleQuestionModal model
+
+        ClickedNext ->
+            let
+                newModel =
+                    updatePage Next model
+            in
+            updateQuestionWebData newModel Loading
+                |> withCmd (requestQuestionList newModel)
+
+        ClickedPrev ->
+            let
+                newModel =
+                    updatePage Prev model
+            in
+            updateQuestionWebData newModel Loading
+                |> withCmd (requestQuestionList newModel)
 
 
 
@@ -263,6 +306,22 @@ viewBody model =
         , onClickSubmit = ClickedSubmitEdits
         , canAddQuestion = Session.isUser model.session
         , onClickAddQuestion = ClickedAddQuestion
+        , showAddQuestionModal = model.questionModalVisible
+        , questionWebData = model.questionWebData
+        , questionPage = model.questionPage
+        , paginatedOnClickNext = ClickedNext
+        , paginatedOnClickPrev = ClickedPrev
+        , addQuestion =
+            { question = model.addQuestionData
+            , response = model.addQuestionResponse
+            , onClickClose = ClickedCloseAddQuestionModal
+            , onChangeStem = ChangedStem
+            , onChangeChoiceContent = ChangedChoiceContent
+            , onChangeChoiceExplanation = ChangedChoiceExplanation
+            , onClickAddChoice = ClickedAddChoice
+            , onClickRemoveChoice = ClickedRemoveChoice
+            , onClickSubmit = ClickedSubmitQuestion
+            }
         }
     ]
 
@@ -320,6 +379,19 @@ requestEditObjective model =
             Cmd.none
 
 
+requestAddQuestion : Model -> Cmd Msg
+requestAddQuestion model =
+    if model.questionModalVisible then
+        Request.postQuestion
+            { data = model.addQuestionData
+            , auth = model.session.auth
+            , callback = GotQuestionAddResponse
+            }
+
+    else
+        Cmd.none
+
+
 {-| Update the objective response web data.
 -}
 updateObjectiveWebData : Model -> WebData Objective.GetData -> Model
@@ -375,6 +447,73 @@ updateEditableNotes model string =
             model
 
 
+toggleQuestionModal : Model -> ( Model, Cmd Msg )
+toggleQuestionModal model =
+    if model.questionModalVisible then
+        ( { model
+            | questionModalVisible = False
+            , addQuestionData = Question.init model.objectiveId
+            , addQuestionChoiceTally = 2
+            , addQuestionResponse = NotAsked
+          }
+        , requestQuestionList model
+        )
+
+    else
+        ( { model | questionModalVisible = True }, Cmd.none )
+
+
+updateQuestionStem : Model -> String -> Model
+updateQuestionStem model string =
+    { model | addQuestionData = Question.updateStem string model.addQuestionData }
+
+
+updateChoiceContent : Int -> String -> Model -> Model
+updateChoiceContent key string model =
+    { model | addQuestionData = Question.updateChoiceContent key string model.addQuestionData }
+
+
+updateChoiceExplanation : Int -> String -> Model -> Model
+updateChoiceExplanation key string model =
+    { model | addQuestionData = Question.updateChoiceExplanation key string model.addQuestionData }
+
+
+incrementChoiceTally : Model -> Model
+incrementChoiceTally model =
+    { model | addQuestionChoiceTally = model.addQuestionChoiceTally + 1 }
+
+
+addChoice : Model -> Model
+addChoice model =
+    { model | addQuestionData = Question.addChoice model.addQuestionChoiceTally model.addQuestionData }
+
+
+removeChoice : Int -> Model -> Model
+removeChoice key model =
+    { model | addQuestionData = Question.removeChoice key model.addQuestionData }
+
+
+updateAddQuestionResponse : WebData Question.GetBasicData -> Model -> Model
+updateAddQuestionResponse response model =
+    case response of
+        -- if successful, then also reset the data
+        Success _ ->
+            { model | addQuestionResponse = response, addQuestionData = Question.init model.objectiveId }
+
+        _ ->
+            { model | addQuestionResponse = response }
+
+
+updatePage : PageDirection -> Model -> Model
+updatePage direction model =
+    case direction of
+        Next ->
+            { model | questionPage = model.questionPage + 1 }
+
+        Prev ->
+            { model | questionPage = model.questionPage - 1 }
+
+
 {-| Checks if the user is the original contributor.
 -}
 isContributor : WebData Objective.GetData -> Model -> Bool
@@ -389,3 +528,8 @@ isContributor webData model =
 
         _ ->
             False
+
+
+type PageDirection
+    = Next
+    | Prev

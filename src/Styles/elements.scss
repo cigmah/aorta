@@ -922,9 +922,14 @@ $landing-float-margin: 50px;
   }
 }
 
+.objective-main {
+  width: 100%;
+}
+
 .objective-body {
   margin-top: 1rem;
   margin-left: 1rem;
+  margin-bottom: 2rem;
   padding: 3rem;
   background: $white;
   box-shadow: 0 0 10px $grey-400;
@@ -973,6 +978,22 @@ $landing-float-margin: 50px;
   }
 }
 
+.objective-questions {
+  width: 100%;
+  margin-left: 1rem;
+  padding: 1rem;
+  @media only screen and (max-width: $mobile) {
+    box-shadow: 0 0 10px $grey-400;
+    margin-left: 0;
+    margin-bottom: 6rem;
+  }
+}
+
+.objective-questions-heading {
+  color: $blue-500;
+  font-size: 1.5rem;
+}
+
 .objective-body-contributor {
   font-size: 0.9em;
   color: $grey-600;
@@ -1011,8 +1032,8 @@ textarea.objective-body-notes {
 }
 
 // ----------------------------------------------------------------------------
-// || OBJECTIVE DETAIL
-// Element. styles
+// || MARKDOWN
+// Markdown styles
 // ---------------------------------------------------------------------------
 
 .markdown {
@@ -1047,4 +1068,203 @@ textarea.objective-body-notes {
     margin-top: 1.5rem;
     margin-bottom: 1.5rem;
   }
+}
+
+// ----------------------------------------------------------------------------
+// || ADD QUESTION MODAL
+// Element.AddQuestionModal styles
+// ---------------------------------------------------------------------------
+
+.add-question-group {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  overflow: auto;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.add-question-modal-background {
+  background: $grey-200;
+  opacity: 0.7;
+  height: 100vh;
+  position: absolute;
+  width: 100vw;
+  z-index: -10;
+}
+
+.add-question-modal {
+  margin: auto;
+  width: 100%;
+  max-width: 1200px;
+  background: $white;
+  opacity: 1;
+  box-shadow: 0 0 10px $grey-400;
+}
+
+.add-question-modal-header {
+  background: $blue-500;
+  color: $white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+
+.add-question-modal-header-text {
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+}
+
+.add-question-modal-header-close {
+  font-size: 2rem;
+}
+
+.add-question-modal-body {
+  height: 70vh;
+  overflow: auto;
+  display: flex;
+}
+
+.add-question-modal-left,
+.add-question-modal-right {
+  width: 50%;
+  overflow: auto;
+  padding: 1rem;
+}
+
+.add-question-modal-left {
+  padding-left: 2rem;
+}
+
+.add-question-modal-right {
+  padding-right: 2rem;
+}
+
+.add-question-modal-objective {
+  margin-bottom: 1rem;
+}
+
+.add-question-modal-objective-label,
+.add-question-modal-stem-label,
+.add-question-modal-label {
+  font-size: 0.9rem;
+  width: 100%;
+  color: $blue-500;
+  font-weight: bold;
+}
+
+.add-question-modal-stem {
+  margin: 1rem 0;
+  .add-question-modal-stem-textarea {
+    width: 100%;
+    font-size: inherit;
+    border: 1px dotted $blue-500;
+    padding: 0.5rem;
+    border-radius: 5px;
+  }
+}
+
+.add-question-modal-label {
+  &.correct {
+    color: $green-500;
+  }
+  &.incorrect {
+    color: $red-500;
+  }
+}
+
+.add-question-modal-choice {
+  margin-bottom: 1rem;
+}
+
+.add-question-modal-choice-content,
+.add-question-modal-choice-explanation {
+  width: 100%;
+  border: 1px dotted transparent;
+  font-size: 0.9rem;
+  padding: 0.25rem 0.5rem;
+  margin-bottom: 0.25rem;
+  border-radius: 5px;
+  max-width: 100%;
+  &.correct {
+    border-color: $green-500;
+  }
+  &.incorrect {
+    border-color: $red-500;
+  }
+}
+
+.add-question-modal-label-group {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.25rem 0;
+  align-items: center;
+}
+
+.add-question-modal-delete-choice-button {
+  @extend .ghost-button;
+  color: $red-500;
+  font-size: 0.8rem;
+  padding: 0.25rem;
+  border: 1px solid red;
+  width: auto;
+  margin: 0;
+  &:hover {
+    background: $red-500;
+  }
+}
+
+.add-question-modal-add-choice-button {
+  @extend .ghost-button;
+}
+
+.add-question-modal-footer {
+  border-top: 1px solid $grey-300;
+  padding: 0.5rem;
+}
+
+.add-question-modal-submit-button {
+  @extend .primary-button;
+  margin: 0;
+}
+
+.add-question-modal-response {
+  text-align: center;
+  margin: 0.5rem 0;
+  font-size: 0.9em;
+  &.success {
+    color: $green-500;
+  }
+  &.error {
+    color: $red-500;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// || QUESTION RESULT
+// Element. styles
+// ---------------------------------------------------------------------------
+
+.question-result {
+  @extend .objective-result;
+  display: block;
+}
+
+.question-result-stem {
+  padding: 1rem;
+  max-height: 200px;
+  overflow: hidden;
+}
+
+.question-result-contributor {
+  border-top: 1px solid $grey-300;
+  text-align: right;
+  padding: 0.5rem;
+  font-size: 0.8em;
 }
