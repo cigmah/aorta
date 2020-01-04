@@ -20,6 +20,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Page.Utils as Utils exposing (withCmd, withCmdNone)
+import Random
+import Random.List
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Choice as Choice
 import Types.Comment as Comment
@@ -41,6 +43,7 @@ import Types.Test as Test
 type alias Model =
     { session : Session
     , questionId : Int
+    , randomisedChoices : Maybe (List Choice.GetData)
     , questionWebData : WebData Question.GetDetailData
     , selected : Maybe Choice.GetData
     , responseResponse : WebData ()
@@ -70,6 +73,7 @@ type alias Errors =
 type Msg
     = NoOp
     | GotQuestion (WebData Question.GetDetailData)
+    | GotRandomisedChoices (List Choice.GetData)
     | ClickedReload
     | ClickedChoice Int
     | GotQuestionResponseResponse (WebData ())
@@ -98,6 +102,7 @@ init session questionId =
             { session = session
             , errors = defaultErrors
             , questionId = questionId
+            , randomisedChoices = Nothing
             , questionWebData = Loading
             , responseResponse = NotAsked
             , selected = Nothing
@@ -165,8 +170,26 @@ update msg model =
             ( model, Cmd.none )
 
         GotQuestion response ->
+            -- if the response was successful, then shuffle the choices
+            case response of
+                Success question ->
+                    model
+                        |> updateQuestionWebData response
+                        |> withCmd
+                            (question.choices
+                                |> Dict.values
+                                |> Random.List.shuffle
+                                |> Random.generate GotRandomisedChoices
+                            )
+
+                _ ->
+                    model
+                        |> updateQuestionWebData response
+                        |> withCmdNone
+
+        GotRandomisedChoices choices ->
             model
-                |> updateQuestionWebData response
+                |> updateRandomisedChoices choices
                 |> withCmdNone
 
         ClickedReload ->
@@ -291,6 +314,7 @@ viewBody model =
     [ QuestionDetail.element
         { questionWebData = model.questionWebData
         , test = model.session.test
+        , randomisedChoices = model.randomisedChoices
         , selected = model.selected
         , rating = model.rating
         , comment = model.comment
@@ -375,6 +399,11 @@ updateSelected key model =
             model
 
 
+updateRandomisedChoices : List Choice.GetData -> Model -> Model
+updateRandomisedChoices choices model =
+    { model | randomisedChoices = Just choices }
+
+
 {-| Sorry for the confusing name. Might refactor.
 
 Updates the web response to a question response.
@@ -419,6 +448,7 @@ goBack model =
                 newSession =
                     model.session
                         |> Session.setBack Nothing
+                        |> Session.clearTest
             in
             ( { model | session = newSession }
             , Navigation.pushUrl newSession.key (Route.toString route)
@@ -426,7 +456,14 @@ goBack model =
 
         -- Otherwise, the user came from the url or the home page, so reroute them back to the Home page
         Nothing ->
-            ( model, Navigation.pushUrl model.session.key (Route.toString Route.Home) )
+            let
+                newSession =
+                    model.session
+                        |> Session.clearTest
+            in
+            ( { model | session = newSession }
+            , Navigation.pushUrl model.session.key (Route.toString Route.Home)
+            )
 
 
 addComment : Comment.GetData -> Model -> Model

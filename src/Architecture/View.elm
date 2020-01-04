@@ -118,14 +118,14 @@ wrapPage model document children =
             "main-" ++ titleProcessed
 
         navigationBarMaybe =
-            if isEqual (Route.Question 0) model then
+            if isEqual (Route.Question 0) model || isEqual Route.Report model then
                 Empty.element
 
             else
                 navigationBar model
 
         bottomBarMaybe =
-            if isEqual (Route.Question 0) model then
+            if isEqual (Route.Question 0) model || isEqual Route.Report model then
                 Empty.element
 
             else
@@ -291,12 +291,15 @@ viewLogoutDialog credentials authDialog =
                 , onClose = ToggledShowLogin
                 , body =
                     [ Text.smallHeader (String.join "" [ "Hi, ", credentials.username, "!" ])
-                    , Text.body "Thanks for using AORTA. Your overall statistics are viewable from the link below:"
-                    , PrimaryLink.element
-                        { text = "View my Statistics"
-                        , href = Route.toHref Route.Profile
-                        }
-                    , Text.body "If you have any questions, let us know at cigmah.contact@gmail.com - we're always happy to receive feedback."
+
+                    {- removing this until ready...
+                       , Text.body "Thanks for using AORTA. Your overall statistics are viewable from the link below:"
+                       , PrimaryLink.element
+                           { text = "View my Statistics"
+                           , href = Route.toHref Route.Profile
+                           }
+                    -}
+                    , Text.body "If you have any questions, let us know at cigmah.contact@gmail.com - we're always happy to respond."
                     , PrimaryButton.element
                         { text = "Logout"
                         , onClick = ClickedLogout

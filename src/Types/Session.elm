@@ -126,6 +126,11 @@ updateTest test session =
     { session | test = Just test }
 
 
+clearTest : Session -> Session
+clearTest session =
+    { session | test = Nothing }
+
+
 {-| Sets a back route to keep track of where the user came from.
 -}
 setBack : Maybe Route -> Session -> Session

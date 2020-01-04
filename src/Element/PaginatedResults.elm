@@ -77,7 +77,10 @@ loadingView =
         [ class "paginated-results" ]
         [ section
             [ class "paginated-results-text loading" ]
-            [ text "Loading..." ]
+            [ div
+                [ class "loading-box" ]
+                []
+            ]
         ]
 
 

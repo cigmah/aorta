@@ -1,6 +1,9 @@
 module Page.Report exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
+import Architecture.Route as Route
 import Browser exposing (Document)
+import Browser.Navigation as Navigation
+import Element.TestReport as TestReport
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -8,6 +11,7 @@ import RemoteData exposing (RemoteData(..), WebData)
 import Types.Credentials as Credentials exposing (Auth(..))
 import Types.Request as Request
 import Types.Session as Session exposing (Session)
+import Types.Test as Test
 
 
 
@@ -40,6 +44,7 @@ type alias Errors =
 -}
 type Msg
     = NoOp
+    | ClickedFinish
 
 
 
@@ -112,6 +117,17 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
+        ClickedFinish ->
+            let
+                newSession =
+                    model.session
+                        |> Session.clearTest
+                        |> Session.setBack Nothing
+            in
+            ( { model | session = newSession }
+            , Navigation.pushUrl newSession.key (Route.toString Route.Home)
+            )
+
 
 
 -------------------------------------------------------------------------------
@@ -121,7 +137,7 @@ update msg model =
 
 view : Model -> Document Msg
 view model =
-    { title = ""
+    { title = "Report"
     , body = viewBody model
     }
 
@@ -130,7 +146,11 @@ view model =
 -}
 viewBody : Model -> List (Html Msg)
 viewBody model =
-    []
+    [ TestReport.element
+        { test = model.session.test
+        , onClickFinish = ClickedFinish
+        }
+    ]
 
 
 

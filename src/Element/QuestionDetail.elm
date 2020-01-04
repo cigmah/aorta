@@ -26,6 +26,7 @@ import Types.Topic as Topic
 
 type alias Data msg =
     { questionWebData : WebData Question.GetDetailData
+    , randomisedChoices : Maybe (List Choice.GetData)
     , test : Maybe Test.SessionData
     , selected : Maybe Choice.GetData
     , rating : Maybe Int
@@ -144,8 +145,8 @@ questionHeader data =
 
 mainQuestion : Data msg -> Html msg
 mainQuestion data =
-    case data.questionWebData of
-        Success question ->
+    case ( data.questionWebData, data.randomisedChoices ) of
+        ( Success question, Just choices ) ->
             let
                 totalChosen =
                     Choice.totalChosen question.choices
@@ -174,11 +175,11 @@ mainQuestion data =
                         (Markdown.toHtml Nothing question.stem)
                     , ul
                         [ class "question-detail-choices" ]
-                        (question.choices |> Dict.map (renderChoice data data.selected totalChosen) |> Dict.values)
+                        (choices |> List.map (renderChoice data data.selected totalChosen))
                     ]
                 ]
 
-        Loading ->
+        ( Loading, _ ) ->
             article
                 [ class "question-detail-question" ]
                 [ section
@@ -189,7 +190,18 @@ mainQuestion data =
                     ]
                 ]
 
-        Failure e ->
+        ( Success _, Nothing ) ->
+            article
+                [ class "question-detail-question" ]
+                [ section
+                    [ class "question-detail-loading" ]
+                    [ div
+                        [ class "loading-box" ]
+                        []
+                    ]
+                ]
+
+        ( Failure e, _ ) ->
             let
                 errorString =
                     case e of
@@ -229,19 +241,19 @@ mainQuestion data =
                 ]
 
         -- impossible state
-        NotAsked ->
+        ( NotAsked, _ ) ->
             Empty.element
 
 
-renderChoice : Data msg -> Maybe Choice.GetData -> Int -> Int -> Choice.GetData -> Html msg
-renderChoice data selectedMaybe totalChosen choiceId choice =
+renderChoice : Data msg -> Maybe Choice.GetData -> Int -> Choice.GetData -> Html msg
+renderChoice data selectedMaybe totalChosen choice =
     case selectedMaybe of
         Nothing ->
             li
                 [ class "question-detail-choice-item" ]
                 [ button
                     [ class "question-detail-choice-button"
-                    , onClick (data.onClickChoice choiceId)
+                    , onClick (data.onClickChoice choice.id)
                     ]
                     (Markdown.toHtml Nothing choice.content)
                 ]
@@ -262,7 +274,7 @@ renderChoice data selectedMaybe totalChosen choiceId choice =
                     , classList
                         [ ( "correct", choice.isCorrect )
                         , ( "incorrect", not choice.isCorrect )
-                        , ( "selected", selected.id == choiceId )
+                        , ( "selected", selected.id == choice.id )
                         ]
                     ]
                     [ summary

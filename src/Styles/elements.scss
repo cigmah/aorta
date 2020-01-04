@@ -390,6 +390,18 @@ $bottom-bar-height: 3.6rem;
   align-items: center;
 }
 
+#main-report {
+  background: $grey-100;
+  margin-top: 0;
+  min-height: 100vh;
+  margin-bottom: 0;
+  padding: 1rem;
+  @media only screen and (max-width: $mobile) {
+    background: $white;
+    padding: 0.5rem;
+  }
+}
+
 // ----------------------------------------------------------------------------
 // || BACKGROUND IMAGE
 // Styling for a background image, Element.BackgroundImage
@@ -404,6 +416,7 @@ $bottom-bar-height: 3.6rem;
   top: 0;
   right: 0;
   z-index: -50;
+  background-color: $blue-300;
 }
 
 // ----------------------------------------------------------------------------
@@ -780,6 +793,7 @@ $landing-float-margin: 50px;
 
 .paginated-results-results {
   margin: 0.5rem 0;
+  animation: 0.3s fadein;
 }
 
 .paginated-results-item {
@@ -789,6 +803,8 @@ $landing-float-margin: 50px;
 .paginated-results-text {
   margin-top: 1.5rem;
   text-align: center;
+  display: flex;
+  justify-content: center;
   &.error {
     color: $red-500;
   }
@@ -1703,4 +1719,170 @@ textarea.objective-body-notes {
 .star {
   font-size: 2rem;
   line-height: 0;
+}
+
+// ----------------------------------------------------------------------------
+// || TEST REPORT
+// Element.QuestionDetail styles
+// ---------------------------------------------------------------------------
+
+.test-report-empty {
+  height: 100%;
+  min-height: 90vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+  flex-direction: column;
+}
+
+.test-report-empty-heading {
+  max-width: 900px;
+  font-size: 2rem;
+  letter-spacing: -1px;
+}
+
+.test-report-empty-button {
+  @extend .primary-button;
+  max-width: 900px;
+}
+
+.test-report {
+  width: 100%;
+  margin: auto;
+  margin-top: 4rem;
+  margin-bottom: 2rem;
+  padding: 2rem;
+  max-width: 900px;
+  box-shadow: 0 0 20px $grey-300;
+  @media only screen and (max-width: $mobile) {
+    margin-top: 0;
+    box-shadow: none;
+    padding: 1rem;
+  }
+}
+
+.test-report-header {
+  display: flex;
+}
+
+.test-report-grade {
+  height: 8rem;
+  width: 8rem;
+  font-size: 4rem;
+  border: 3px solid transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  line-height: 0;
+  border-radius: 5px;
+  margin-right: 2rem;
+  &.A {
+    color: $green-500;
+    border-color: $green-500;
+  }
+  &.B {
+    color: $green-300;
+    border-color: $green-300;
+  }
+  &.C {
+    color: $grey-700;
+    border-color: $grey-700;
+  }
+  &.D {
+    color: $grey-500;
+    border-color: $grey-500;
+  }
+  &.E {
+    border-color: $red-300;
+    color: $red-300;
+  }
+  &.F {
+    border-color: $red-500;
+    color: $red-500;
+  }
+}
+
+.test-report-statement {
+  border: 3px solid transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+  padding: 0.5rem;
+  font-size: 4rem;
+  border-radius: 5px;
+  letter-spacing: -2px;
+  text-align: center;
+  @media only screen and (max-width: $mobile) {
+    font-size: 1.5rem;
+    letter-spacing: 0;
+  }
+  &.A {
+    color: $green-500;
+    border-color: $green-500;
+  }
+  &.B {
+    color: $green-300;
+    border-color: $green-300;
+  }
+  &.C {
+    color: $grey-700;
+    border-color: $grey-700;
+  }
+  &.D {
+    color: $grey-500;
+    border-color: $grey-500;
+  }
+  &.E {
+    border-color: $red-300;
+    color: $red-300;
+  }
+  &.F {
+    border-color: $red-500;
+    color: $red-500;
+  }
+}
+
+.test-report-finish-button {
+  @extend .primary-button;
+}
+
+.test-report-body {
+  margin: 2rem 0;
+}
+
+.test-report-completed {
+  margin: 1rem 0;
+  .test-report-completed-stem {
+    padding: 0.5rem;
+  }
+  .test-report-completed-your-answer {
+    display: flex;
+    padding: 1rem;
+  }
+  .test-report-completed-your-answer-text {
+    margin-right: 1rem;
+  }
+  &.correct {
+    border-color: $green-500;
+    .test-report-completed-stem {
+      background: $green-500;
+      color: $white;
+    }
+    .test-report-completed-your-answer {
+      background: $green-200;
+    }
+  }
+  &.incorrect {
+    border-color: $red-500;
+    .test-report-completed-stem {
+      background: $red-500;
+      color: $white;
+    }
+    .test-report-completed-your-answer {
+      background: $red-200;
+    }
+  }
 }
