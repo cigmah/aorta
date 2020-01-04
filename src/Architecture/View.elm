@@ -16,6 +16,7 @@ import Architecture.Route as Route
 import Architecture.Update exposing (eject)
 import Browser exposing (Document)
 import Element.BottomBar as BottomBar
+import Element.Empty as Empty
 import Element.Form as Form
 import Element.MainBody as MainBody
 import Element.NavBar as NavBar
@@ -115,10 +116,24 @@ wrapPage model document children =
 
         mainId =
             "main-" ++ titleProcessed
+
+        navigationBarMaybe =
+            if isEqual (Route.Question 0) model then
+                Empty.element
+
+            else
+                navigationBar model
+
+        bottomBarMaybe =
+            if isEqual (Route.Question 0) model then
+                Empty.element
+
+            else
+                bottomBar model
     in
     [ MainBody.element { id = mainId, children = children }
-    , navigationBar model
-    , bottomBar model
+    , navigationBarMaybe
+    , bottomBarMaybe
     ]
 
 

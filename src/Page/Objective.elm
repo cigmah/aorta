@@ -1,6 +1,8 @@
 module Page.Objective exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
+import Architecture.Route as Route
 import Browser exposing (Document)
+import Browser.Navigation as Navigation
 import Element.ObjectiveDetail as ObjectiveDetail
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -70,6 +72,7 @@ type Msg
     | ClickedSubmitQuestion
     | GotQuestionAddResponse (WebData Question.GetBasicData)
     | ClickedCloseAddQuestionModal
+    | ClickedQuestion Int
     | ClickedNext -- for paginated question results
     | ClickedPrev -- for paginated question results
 
@@ -252,6 +255,14 @@ update msg model =
         ClickedCloseAddQuestionModal ->
             toggleQuestionModal model
 
+        -- navigate to the question page, and set the "back" field in the session to know to come back here!
+        ClickedQuestion id ->
+            let
+                newSession =
+                    Session.setBack (Just (Route.Objective model.objectiveId)) model.session
+            in
+            ( { model | session = newSession }, Navigation.pushUrl newSession.key (Route.toString (Route.Question id)) )
+
         ClickedNext ->
             let
                 newModel =
@@ -311,6 +322,7 @@ viewBody model =
         , questionPage = model.questionPage
         , paginatedOnClickNext = ClickedNext
         , paginatedOnClickPrev = ClickedPrev
+        , onClickQuestion = ClickedQuestion
         , addQuestion =
             { question = model.addQuestionData
             , response = model.addQuestionResponse

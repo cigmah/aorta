@@ -40,7 +40,7 @@ errors webData =
                                     "We already have some of the information you entered, so there was a clash. Try changing your inputs."
 
                                 404 ->
-                                    "The requested resource wasn't found. Let us know, this shouldn't happen."
+                                    "We didn't find any results which matched your criteria. Sorry! We're adding content as fast as we can."
 
                                 _ ->
                                     "There was a bad status with code " ++ String.fromInt int ++ "."

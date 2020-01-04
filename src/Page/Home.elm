@@ -9,16 +9,20 @@ homepage.
 
 -}
 
+import Architecture.Route as Route
 import Browser exposing (Document)
+import Browser.Navigation as Navigation
 import Dict exposing (Dict)
 import Element.BackgroundImage as BackgroundImage
 import Element.CheckwordList as CheckwordList exposing (CheckwordData, Direction(..), deselectAll, selectAll, updateCheckword)
+import Element.Form as Form
 import Element.LandingFloat as LandingFloat
 import Element.PrimaryButton as PrimaryButton
 import Element.TwoColumn as TwoColumn
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Http exposing (Error(..))
 import List.Extra
 import Page.Utils as Utils exposing (withCmdNone)
 import RemoteData exposing (RemoteData(..), WebData)
@@ -48,6 +52,7 @@ type alias Model =
     , specialtyDict : Dict Int (CheckwordData Msg)
     , topicDict : Dict Int (CheckwordData Msg)
     , stageDict : Dict Int (CheckwordData Msg)
+    , questionIdListResponse : WebData (List Int)
     }
 
 
@@ -72,6 +77,8 @@ type Msg
     | ClickedStage Int Bool
     | ClickedSelectAll Filter
     | ClickedDeselectAll Filter
+    | ClickedStartQuestions
+    | GotQuestionIdList (WebData (List Int))
 
 
 
@@ -89,6 +96,7 @@ init session =
       , specialtyDict = defaultSpecialtyDict
       , topicDict = defaultTopicDict
       , stageDict = defaultStageDict
+      , questionIdListResponse = NotAsked
       }
     , Cmd.none
     )
@@ -205,6 +213,40 @@ update msg ({ errors } as model) =
                         |> updateStageDict model
                         |> withCmdNone
 
+        ClickedStartQuestions ->
+            let
+                newModel =
+                    updateQuestionIdListResponse Loading model
+            in
+            ( newModel, requestQuestionIdList newModel )
+
+        -- The logic for starting a test is a little bit involved, so need to be careful here
+        GotQuestionIdList response ->
+            case response of
+                -- if the question list was received
+                Success questions ->
+                    -- if there was at least one question, save the list into the test session and reroute
+                    if List.length questions > 0 then
+                        let
+                            ( newSession, newRoute ) =
+                                Session.createTest questions Route.Home model.session
+                        in
+                        ( { model | session = newSession }, Navigation.pushUrl newSession.key (Route.toString newRoute) )
+                        -- otherwise, display it as if it were an error, even though the request succeeded
+
+                    else
+                        let
+                            intercepted =
+                                Failure (BadStatus 404)
+                        in
+                        updateQuestionIdListResponse intercepted model
+                            |> withCmdNone
+
+                -- otherwise, just store it in the model for display
+                _ ->
+                    updateQuestionIdListResponse response model
+                        |> withCmdNone
+
 
 
 -------------------------------------------------------------------------------
@@ -227,34 +269,37 @@ viewBody model =
     , LandingFloat.element
         { tagline = "A free and open-source medical question bank."
         , contents =
-            [ CheckwordList.element
-                { label = "Year Level(s)"
-                , onSelectAll = ClickedSelectAll FilterStage
-                , onDeselectAll = ClickedDeselectAll FilterStage
-                , dict = model.stageDict
-                , direction = Horizontal
-                }
-            , TwoColumn.element
-                { first =
-                    CheckwordList.element
-                        { label = "Specialty(s)"
-                        , onSelectAll = ClickedSelectAll FilterSpecialty
-                        , onDeselectAll = ClickedDeselectAll FilterSpecialty
-                        , dict = model.specialtyDict
-                        , direction = Vertical
+            [ Form.element
+                { onSubmit = ClickedStartQuestions
+                , submitButtonText = "Start Questions"
+                , responseWebData = model.questionIdListResponse
+                , children =
+                    [ CheckwordList.element
+                        { label = "Year Level(s)"
+                        , onSelectAll = ClickedSelectAll FilterStage
+                        , onDeselectAll = ClickedDeselectAll FilterStage
+                        , dict = model.stageDict
+                        , direction = Horizontal
                         }
-                , second =
-                    CheckwordList.element
-                        { label = "Topic(s)"
-                        , onSelectAll = ClickedSelectAll FilterTopic
-                        , onDeselectAll = ClickedDeselectAll FilterTopic
-                        , dict = model.topicDict
-                        , direction = Vertical
+                    , TwoColumn.element
+                        { first =
+                            CheckwordList.element
+                                { label = "Specialty(s)"
+                                , onSelectAll = ClickedSelectAll FilterSpecialty
+                                , onDeselectAll = ClickedDeselectAll FilterSpecialty
+                                , dict = model.specialtyDict
+                                , direction = Vertical
+                                }
+                        , second =
+                            CheckwordList.element
+                                { label = "Topic(s)"
+                                , onSelectAll = ClickedSelectAll FilterTopic
+                                , onDeselectAll = ClickedDeselectAll FilterTopic
+                                , dict = model.topicDict
+                                , direction = Vertical
+                                }
                         }
-                }
-            , PrimaryButton.element
-                { text = "Start Questions"
-                , onClick = NoOp
+                    ]
                 }
             ]
         }
@@ -272,6 +317,17 @@ viewBody model =
 defaultErrors : Errors
 defaultErrors =
     {}
+
+
+requestQuestionIdList : Model -> Cmd Msg
+requestQuestionIdList model =
+    Request.getQuestionIdList
+        { auth = model.session.auth
+        , specialtyFilters = CheckwordList.filterChecked model.specialtyDict
+        , topicFilters = CheckwordList.filterChecked model.topicDict
+        , stageFilters = CheckwordList.filterChecked model.stageDict
+        , callback = GotQuestionIdList
+        }
 
 
 {-| A default specialty dictionary mapping specialty ints to checkword data.
@@ -315,6 +371,11 @@ updateTopicDict model updatedDict =
 updateStageDict : Model -> Dict Int (CheckwordData Msg) -> Model
 updateStageDict model updatedDict =
     { model | stageDict = updatedDict }
+
+
+updateQuestionIdListResponse : WebData (List Int) -> Model -> Model
+updateQuestionIdListResponse response model =
+    { model | questionIdListResponse = response }
 
 
 {-| The types of categorisation of questions.

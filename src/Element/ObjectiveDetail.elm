@@ -41,6 +41,7 @@ type alias Data msg =
     , questionPage : Int
     , paginatedOnClickNext : msg
     , paginatedOnClickPrev : msg
+    , onClickQuestion : Int -> msg
     , addQuestion :
         { question : Question.PostData
         , response : WebData Question.GetBasicData
@@ -255,7 +256,7 @@ successView objective data =
                     , page = data.questionPage
                     , onClickNext = data.paginatedOnClickNext
                     , onClickPrev = data.paginatedOnClickPrev
-                    , itemToElement = QuestionResult.element
+                    , itemToElement = QuestionResult.element data.onClickQuestion
                     }
                 ]
             ]

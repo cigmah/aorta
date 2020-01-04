@@ -128,11 +128,13 @@ element data =
             , button
                 [ class "checkword-list-select-all"
                 , onClick data.onSelectAll
+                , type_ "button"
                 ]
                 [ Icon.selectAll ]
             , button
                 [ class "checkword-list-deselect-all"
                 , onClick data.onDeselectAll
+                , type_ "button"
                 ]
                 [ Icon.deselectAll ]
             ]

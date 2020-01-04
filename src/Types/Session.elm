@@ -15,6 +15,7 @@ a flag to the program so they can be bundled into the app with webpack.
 
 -}
 
+import Architecture.Route as Route exposing (Route)
 import Browser.Navigation exposing (Key)
 import Dict exposing (Dict)
 import Json.Decode as Decode exposing (Decoder, Value)
@@ -36,6 +37,7 @@ type alias Session =
     , auth : Auth
     , key : Key
     , test : Maybe Test.SessionData
+    , back : Maybe Route
     , resources : Resources
     }
 
@@ -58,6 +60,7 @@ fillKey auth landingImage key =
     , auth = auth
     , key = key
     , test = Nothing
+    , back = Nothing
     , resources = { landingImage = landingImage }
     }
 
@@ -75,6 +78,7 @@ default key =
     , auth = Guest
     , key = key
     , test = Nothing
+    , back = Nothing
     , resources = { landingImage = "" }
     }
 
@@ -101,6 +105,32 @@ isUser session =
 
         User _ ->
             True
+
+
+{-| Create a new test for the session
+-}
+createTest : List Int -> Route -> Session -> ( Session, Route )
+createTest questions back session =
+    let
+        baseTest =
+            Test.init questions
+
+        ( newTest, route ) =
+            Test.unconsFuture baseTest
+    in
+    ( { session | test = Just newTest, back = Just back }, route )
+
+
+updateTest : Test.SessionData -> Session -> Session
+updateTest test session =
+    { session | test = Just test }
+
+
+{-| Sets a back route to keep track of where the user came from.
+-}
+setBack : Maybe Route -> Session -> Session
+setBack routeMaybe session =
+    { session | back = routeMaybe }
 
 
 {-| Adds a message to the session object.

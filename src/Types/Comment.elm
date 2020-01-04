@@ -5,7 +5,7 @@ import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Decode.Pipeline exposing (required)
 import Json.Encode as Encode
 import Time exposing (Posix)
-import Types.User as User 
+import Types.User as User
 
 
 type alias PostData =
@@ -15,9 +15,9 @@ type alias PostData =
 
 
 type alias GetData =
-    { author : Maybe User.GetData
+    { contributor : Maybe User.GetData
     , content : String
-    , created_at : Posix
+    , createdAt : Posix
     }
 
 
@@ -32,6 +32,6 @@ encode data =
 decoder : Decoder GetData
 decoder =
     Decode.succeed GetData
-        |> required "author" (Decode.maybe User.decoder)
+        |> required "contributor" (Decode.maybe User.decoder)
         |> required "content" Decode.string
         |> required "created_at" Iso8601.decoder

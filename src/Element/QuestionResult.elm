@@ -10,11 +10,12 @@ import Html.Events exposing (..)
 import Types.Question as Question
 
 
-element : Question.GetBasicData -> Html msg
-element data =
-    a
-        [ Route.toHref (Route.Question data.id)
-        , class "question-result"
+element : (Int -> msg) -> Question.GetBasicData -> Html msg
+element onClickQuestion data =
+    button
+        [ class "question-result"
+        , type_ "button"
+        , onClick (onClickQuestion data.id)
         ]
         [ section
             [ class "question-result-stem" ]

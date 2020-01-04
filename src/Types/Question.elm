@@ -13,6 +13,7 @@ import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
 import Time exposing (Posix)
 import Types.Choice as Choice
+import Types.Comment as Comment
 import Types.Datetime as Datetime
 import Types.Objective as Objective
 import Types.Specialty as Specialty exposing (Specialty(..))
@@ -36,6 +37,19 @@ type alias GetBasicData =
     }
 
 
+type alias GetDetailData =
+    { id : Int
+    , objective : Objective.GetData
+    , contributor : User.GetData
+    , createdAt : Posix
+    , modifiedAt : Posix
+    , stem : String
+    , choices : Dict Int Choice.GetData
+    , comments : List Comment.GetData
+    , averageRating : Float
+    }
+
+
 {-| Decode basic question data without the choices.
 -}
 decoderBasic : Decoder GetBasicData
@@ -47,6 +61,20 @@ decoderBasic =
         |> required "created_at" Datetime.decoder
         |> required "modified_at" Datetime.decoder
         |> required "stem" Decode.string
+
+
+decoderDetail : Decoder GetDetailData
+decoderDetail =
+    Decode.succeed GetDetailData
+        |> required "id" Decode.int
+        |> required "objective" Objective.decoder
+        |> required "contributor" User.decoder
+        |> required "created_at" Datetime.decoder
+        |> required "modified_at" Datetime.decoder
+        |> required "stem" Decode.string
+        |> required "choices" Choice.decodeDictionary
+        |> required "comments" (Decode.list Comment.decoder)
+        |> required "average_rating" Decode.float
 
 
 {-| Data required to add a question.

@@ -12,6 +12,7 @@ import Json.Encode as Encode
 import RemoteData exposing (WebData)
 import RemoteData.Http exposing (Config)
 import Secret exposing (apiBase)
+import Types.Comment as Comment
 import Types.Credentials as Credentials exposing (..)
 import Types.Login as Login
 import Types.Objective as Objective
@@ -165,6 +166,11 @@ type Endpoint
     | GetQuestionList
     | PutObjective Id
     | PostQuestion
+    | GetQuestionIdList
+    | GetQuestion Id
+    | PostQuestionResponse
+    | PostQuestionRating
+    | PostQuestionComment
 
 
 {-| Converts an endpoint to a list of paths.
@@ -195,6 +201,21 @@ endpointToUrl endpoint =
 
         PostQuestion ->
             [ "questions" ]
+
+        GetQuestionIdList ->
+            [ "questions", "test" ]
+
+        GetQuestion id ->
+            [ "questions", String.fromInt id ]
+
+        PostQuestionResponse ->
+            [ "questions", "responses" ]
+
+        PostQuestionRating ->
+            [ "questions", "ratings" ]
+
+        PostQuestionComment ->
+            [ "questions", "comments" ]
 
 
 {-| Data required for registering.
@@ -432,6 +453,119 @@ postQuestion request =
         { endpoint = PostQuestion
         , body = Question.encode request.data
         , returnDecoder = Question.decoderBasic
+        , callback = request.callback
+        , auth = request.auth
+        , queryList = []
+        }
+
+
+type alias GetQuestionDetailData msg =
+    { questionId : Id
+    , auth : Auth
+    , callback : WebData Question.GetDetailData -> msg
+    }
+
+
+getQuestionDetail : GetQuestionDetailData msg -> Cmd msg
+getQuestionDetail request =
+    get
+        { auth = request.auth
+        , endpoint = GetQuestion request.questionId
+        , callback = request.callback
+        , returnDecoder = Question.decoderDetail
+        , queryList = []
+        }
+
+
+type alias GetQuestionIdListData msg =
+    { auth : Auth
+    , specialtyFilters : List Int
+    , topicFilters : List Int
+    , stageFilters : List Int
+    , callback : WebData (List Int) -> msg
+    }
+
+
+getQuestionIdList : GetQuestionIdListData msg -> Cmd msg
+getQuestionIdList request =
+    get
+        { auth = request.auth
+        , endpoint = GetQuestionIdList
+        , callback = request.callback
+        , returnDecoder = Decode.list Decode.int
+        , queryList =
+            List.concat
+                [ toSpecialtyQueries request.specialtyFilters
+                , toTopicQueries request.topicFilters
+                , toStageQueries request.stageFilters
+                , [ Builder.string "random" "true" ]
+                ]
+        }
+
+
+type alias PostQuestionResponseData msg =
+    { auth : Auth
+    , callback : WebData () -> msg
+    , choiceId : Int
+    }
+
+
+postQuestionResponse : PostQuestionResponseData msg -> Cmd msg
+postQuestionResponse request =
+    post
+        { endpoint = PostQuestionResponse
+        , body =
+            Encode.object
+                [ ( "choice", Encode.int request.choiceId ) ]
+        , returnDecoder = Decode.succeed ()
+        , callback = request.callback
+        , auth = request.auth
+        , queryList = []
+        }
+
+
+type alias PostQuestionRatingData msg =
+    { auth : Auth
+    , callback : WebData () -> msg
+    , rating : Int
+    , questionId : Int
+    }
+
+
+postQuestionRating : PostQuestionRatingData msg -> Cmd msg
+postQuestionRating request =
+    post
+        { endpoint = PostQuestionRating
+        , body =
+            Encode.object
+                [ ( "question", Encode.int request.questionId )
+                , ( "rating", Encode.int request.rating )
+                ]
+        , returnDecoder = Decode.succeed ()
+        , callback = request.callback
+        , auth = request.auth
+        , queryList = []
+        }
+
+
+type alias PostQuestionCommentData msg =
+    { auth : Auth
+    , callback : WebData Comment.GetData -> msg
+    , comment : String
+    , questionId : Int
+    }
+
+
+postQuestionComment : PostQuestionCommentData msg -> Cmd msg
+postQuestionComment request =
+    post
+        { endpoint = PostQuestionComment
+        , body =
+            Encode.object
+                [ ( "question", Encode.int request.questionId )
+                , ( "content", Encode.string request.comment )
+                ]
+        , returnDecoder = Comment.decoder
         , callback = request.callback
         , auth = request.auth
         , queryList = []

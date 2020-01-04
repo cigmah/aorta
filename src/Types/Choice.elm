@@ -1,14 +1,17 @@
 module Types.Choice exposing
     ( GetData
     , PostData
+    , decodeDictionary
     , decoder
     , encode
     , newCorrect
     , newIncorrect
+    , totalChosen
     , withContent
     , withExplanation
     )
 
+import Dict exposing (Dict)
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
 
@@ -72,3 +75,29 @@ decoder =
         (Decode.field "explanation" Decode.string)
         (Decode.field "is_correct" Decode.bool)
         (Decode.field "num_chosen" Decode.int)
+
+
+choiceToTuple : GetData -> ( Int, GetData )
+choiceToTuple data =
+    ( data.id, data )
+
+
+choicesToDictionary : List GetData -> Dict Int GetData
+choicesToDictionary data =
+    data
+        |> List.map choiceToTuple
+        |> Dict.fromList
+
+
+decodeDictionary : Decoder (Dict Int GetData)
+decodeDictionary =
+    Decode.list decoder
+        |> Decode.map choicesToDictionary
+
+
+totalChosen : Dict Int GetData -> Int
+totalChosen dict =
+    dict
+        |> Dict.toList
+        |> List.map (\( k, v ) -> v.numChosen)
+        |> List.sum
