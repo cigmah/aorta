@@ -1491,6 +1491,8 @@ textarea.objective-body-notes {
   width: 60%;
   margin-right: 1rem;
   padding: 2rem;
+  overflow: auto;
+  height: 70vh;
   @media only screen and (max-width: $mobile) {
     width: 100%;
     box-shadow: none;
@@ -1502,9 +1504,8 @@ textarea.objective-body-notes {
 }
 
 .question-detail-content {
-  height: 70vh;
-  overflow: auto;
   animation: 0.2s fadein;
+  padding-bottom: 2rem;
 }
 
 .question-detail-tags {
@@ -1746,6 +1747,7 @@ textarea.objective-body-notes {
   padding-left: 2rem;
   padding-right: 2rem;
   padding-bottom: 1vh;
+  z-index: 50;
   @media only screen and (max-width: $mobile) {
     padding-left: 0.5rem;
     padding-right: 0.5rem;
