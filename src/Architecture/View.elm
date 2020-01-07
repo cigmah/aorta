@@ -15,6 +15,7 @@ import Architecture.Parser exposing (isEqual)
 import Architecture.Route as Route
 import Architecture.Update exposing (eject)
 import Browser exposing (Document)
+import Dict
 import Element.BottomBar as BottomBar
 import Element.Empty as Empty
 import Element.Form as Form
@@ -26,6 +27,7 @@ import Element.SmallPopup as SmallPopup
 import Element.Text as Text
 import Element.TextInput as TextInput
 import Element.TinyTextButton as TinyTextButton
+import Element.TopNotification as TopNotification
 import Html exposing (Html, div)
 import Page.Home as Home
 import Page.NotFound as NotFound
@@ -134,7 +136,27 @@ wrapPage model document children =
     [ MainBody.element { id = mainId, children = children }
     , navigationBarMaybe
     , bottomBarMaybe
+    , serviceWorkerMessage model
     ]
+
+
+{-| A top notification about whether the service worker has cached new content.
+-}
+serviceWorkerMessage : Model -> Html Msg
+serviceWorkerMessage model =
+    let
+        session =
+            eject model
+    in
+    case Dict.get "service_worker" session.messages of
+        Nothing ->
+            Empty.element
+
+        Just message ->
+            TopNotification.element
+                { text = message
+                , onClick = ClickedMessage "service_worker"
+                }
 
 
 {-| A default navigation bar that can wrap pages.

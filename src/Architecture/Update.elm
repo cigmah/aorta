@@ -78,6 +78,11 @@ update msg model =
             Session.clearMessage string
                 |> updateSession model
 
+        -- If the service worker caches new content, add it to the messages
+        ( GotServiceWorkerNotification _, _ ) ->
+            Session.addMessage ( "service_worker", "We've updated the app since your last visit - please refresh to load the updates." )
+                |> updateSession model
+
         -- If the user toggles the login box, it should either be shown or not shown
         ( ToggledShowLogin, _ ) ->
             Session.toggleAuthDialog

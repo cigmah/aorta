@@ -371,6 +371,44 @@ $bottom-bar-height: 3.6rem;
 }
 
 // ----------------------------------------------------------------------------
+// || TOP NOTIFICATION
+// Element.TopNotification styles
+// ----------------------------------------------------------------------------
+
+.top-notification-container {
+  z-index: 100;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: enter;
+  height: $navigation-bar-height;
+  pointer-events: none;
+}
+
+.top-notification {
+  max-width: 600px;
+  font-size: 0.9em;
+  padding: 0.5rem 1rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  background: $white;
+  color: $grey-700;
+  box-shadow: 0 0 10px $grey-500;
+  animation: 0.3s fadein;
+  pointer-events: auto;
+  cursor: pointer;
+  @media only screen and (max-width: $mobile) {
+    border-radius: 0;
+  }
+}
+
+// ----------------------------------------------------------------------------
 // || MAIN BODY
 // Styling for the main body element, Element.MainBody
 // ----------------------------------------------------------------------------
@@ -1723,7 +1761,7 @@ textarea.objective-body-notes {
 
 // ----------------------------------------------------------------------------
 // || TEST REPORT
-// Element.QuestionDetail styles
+// Element.TestReport styles
 // ---------------------------------------------------------------------------
 
 .test-report-empty {

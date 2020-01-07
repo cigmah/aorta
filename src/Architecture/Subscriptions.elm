@@ -1,4 +1,4 @@
-module Architecture.Subscriptions exposing (subscriptions)
+port module Architecture.Subscriptions exposing (subscriptions)
 
 {-| Contains the subscriptions for the top-level application.
 
@@ -31,7 +31,11 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     case model of
         Home subModel ->
-            Sub.map GotHomeMsg (Home.subscriptions subModel)
+            {- Only add the service worker notification for the home page. -}
+            Sub.batch
+                [ Sub.map GotHomeMsg (Home.subscriptions subModel)
+                , serviceWorkerNotification GotServiceWorkerNotification
+                ]
 
         NotFound subModel ->
             Sub.map GotNotFoundMsg (NotFound.subscriptions subModel)
@@ -50,3 +54,8 @@ subscriptions model =
 
         Report subModel ->
             Sub.map GotReportMsg (Report.subscriptions subModel)
+
+
+{-| A port which susbcribes to notification from the service worker that new content is available.
+-}
+port serviceWorkerNotification : (() -> msg) -> Sub msg

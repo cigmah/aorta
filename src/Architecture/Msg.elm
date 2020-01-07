@@ -41,6 +41,7 @@ type Msg
     | UrlChanged Url
     | RouteChanged Route
     | ClickedMessage String
+    | GotServiceWorkerNotification ()
       -- Logging in and Registering is done at the top-level application
     | ToggledShowLogin
     | ToggledAuthDialogType
