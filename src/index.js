@@ -30,4 +30,4 @@ app.ports.cache.subscribe(function (data) {
   localStorage.setItem(storageKey, JSON.stringify(data))
 })
 
-registerServiceWorker();
+registerServiceWorker(app);
