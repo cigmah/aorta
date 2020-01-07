@@ -12,14 +12,15 @@ import RemoteData exposing (RemoteData(..), WebData)
 
 type alias Data a msg =
     { onSubmit : msg
+    , onSuccessMessage : a -> Html msg
     , children : List (Html msg)
     , submitButtonText : String
     , responseWebData : WebData a -- only used for loading and error styling
     }
 
 
-errors : WebData a -> Html msg
-errors webData =
+errors : Data a msg -> WebData a -> Html msg
+errors data webData =
     case webData of
         Failure e ->
             let
@@ -49,6 +50,11 @@ errors webData =
                             "We had a decoding error. Let us know, this shouldn't happen."
             in
             div [ class "form-errors" ] [ text errorString ]
+
+        Success a ->
+            div
+                [ class "form-success" ]
+                [ data.onSuccessMessage a ]
 
         _ ->
             div [] []
@@ -87,5 +93,5 @@ element data =
             , classList [ ( "loading", isLoading ) ]
             ]
             [ text submitButtonText ]
-        , errors data.responseWebData
+        , errors data data.responseWebData
         ]

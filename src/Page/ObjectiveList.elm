@@ -6,6 +6,7 @@ This page is for viewing and searching a list of learning objectives.
 
 -}
 
+import Architecture.Route as Route
 import Browser exposing (Document)
 import Dict exposing (Dict)
 import Element.CheckwordList as CheckwordList exposing (CheckwordData, Direction(..), deselectAll, selectAll, updateCheckword)
@@ -396,6 +397,7 @@ viewSneakyBox model =
                 { onSubmit = ClickedAddObjective
                 , submitButtonText = "Add Learning Objective"
                 , responseWebData = model.addObjectiveResponse
+                , onSuccessMessage = onSuccessAddedObjective
                 , children =
                     [ ThreeColumn.element
                         { first =
@@ -582,6 +584,13 @@ searchRequest model =
         , page = model.page
         , callback = GotSearchResults
         }
+
+
+onSuccessAddedObjective : Objective.GetData -> Html msg
+onSuccessAddedObjective objective =
+    a
+        [ Route.toHref (Route.Objective objective.id) ]
+        [ text "Your objective was added successfully - thank you. Click here to navigate to it." ]
 
 
 type Direction

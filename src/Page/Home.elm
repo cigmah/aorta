@@ -273,6 +273,7 @@ viewBody model =
                 { onSubmit = ClickedStartQuestions
                 , submitButtonText = "Start Questions"
                 , responseWebData = model.questionIdListResponse
+                , onSuccessMessage = \_ -> div [] []
                 , children =
                     [ CheckwordList.element
                         { label = "Year Level(s)"

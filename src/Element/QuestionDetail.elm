@@ -355,6 +355,7 @@ sidePanel data =
                     { onSubmit = data.onClickSubmitComment
                     , submitButtonText = "Submit Comment"
                     , responseWebData = data.commentWebData
+                    , onSuccessMessage = \_ -> Empty.element
                     , children =
                         [ textarea
                             [ class "question-detail-comment-textarea"

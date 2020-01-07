@@ -229,6 +229,7 @@ viewAuthDialog authDialog =
                         { onSubmit = ClickedLogin
                         , submitButtonText = "Login"
                         , responseWebData = webData
+                        , onSuccessMessage = \_ -> Empty.element
                         , children =
                             [ TextInput.element
                                 { value = data.username
@@ -269,6 +270,7 @@ viewAuthDialog authDialog =
                         { onSubmit = ClickedRegister
                         , submitButtonText = "Register"
                         , responseWebData = webData
+                        , onSuccessMessage = \_ -> Empty.element
                         , children =
                             [ TextInput.element
                                 { value = data.username
