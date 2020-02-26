@@ -2,9 +2,9 @@
 
 This repo contains the frontend code for AORTA - an open revision tool for assessments.
 
-AORTA is a project of [CIGMAH, the Coding Interest Group in Medicine and Healthcare](https://cigmah.github.io/).
+AORTA is a project of [CIGMAH, the Coding Interest Group in Medicine and Healthcare](https://cigmah.org/).
 
-We are currently hosting a frontend at https://aorta.netlify.com.
+We are currently hosting a frontend at https://aorta.cigmah.org.
 
 # Developing Locally
 
@@ -26,12 +26,6 @@ module Secret exposing (apiBase)
 apiBase : String
 apiBase =
     "http://127.0.0.1:8000"
-```
-
-Finally, make sure to build the first styles:
-
-```sh
-npx tailwind build src/styles.css -o src/output.css
 ```
 
 You should now be able to run the app from this directory with:
@@ -78,22 +72,28 @@ Adding a page requires some boilerplate.
 
 It's a lot, yes. This should be scriptable, so we may make a script for it sometime.
 
-## Styles
-
-This project uses Tailwind CSS for styling.
-
-To build the styles from `src/styles.css`, run:
-
-```sh
-npx tailwind build src/styles.css -o src/output.css
-```
-
-from this directory.
-
 ## Development TODOs
 
-- [ ] Refactor all HTML elements out of pages and into either `Page/Elements.elm`
-  or a different type module. Currently in progress.
-- [ ] Simplify update functions for each page - a lot are unwieldy at the moment.
-- [ ] Pagination for response history.
-- [ ] Follow up backend roadmap endpoints as they are added.
+- Style/Superficial Fixes
+  - [ ] Loading screen for objective loading - change single word to loading animation
+  - [ ] Better styling for the report page
+  - [ ] Remove onClick attribute for modal background for add question 
+  - [ ] Equalise the height of the question body and the feedback body on
+        question page
+  - [ ] Make select and deselect buttons more obviously buttons
+  - [ ] Mobile - information icons for the login modal
+  - [ ] Mobile - bottom bar icons
+  - [ ] Render the markdown for the attached questions list
+  - [ ] On add objective, clear the text box
+  - [ ] When click on next page on the paginated results, change state to loading
+  - [ ] Smaller results for paginated results
+- Logic/Functionality
+  - [ ] Implement "Back" for objective list - store filters in URL and update
+        back, and change back button from the objective page
+  - [ ] Better printing view for question report page
+  - [ ] User statistics page
+  - [ ] Store filters in session 
+  - [ ] Preview box for editing notes
+  - [ ] Version control for database ( to be added to backend )
+  
+    

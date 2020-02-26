@@ -40,6 +40,7 @@ type Topic
     | DisordersSpecific
     | DisordersPaediatric
     | DisordersPrimaryCarePrevention
+    | DisordersGeriatric
     | DisordersTraumaExternal
     | MiscellaneousTopics
 
@@ -117,12 +118,13 @@ toInt topic =
 
         DisordersPrimaryCarePrevention ->
             17
+        DisordersGeriatric -> 18
 
         DisordersTraumaExternal ->
-            18
+            19
 
         MiscellaneousTopics ->
-            19
+            20
 
 
 {-| Converts an integer code to a topic.
@@ -188,9 +190,11 @@ fromInt int =
             DisordersPrimaryCarePrevention
 
         18 ->
+            DisordersGeriatric
+        19 ->
             DisordersTraumaExternal
 
-        19 ->
+        20 ->
             MiscellaneousTopics
 
         _ ->
@@ -255,6 +259,9 @@ toString topic =
 
         DisordersPrimaryCarePrevention ->
             "Disorders - Primary Care & Prevention"
+
+        DisordersGeriatric ->
+            "Disorders - Geriatric"
 
         DisordersTraumaExternal ->
             "Disorders - Trauma & External Causes"
@@ -322,6 +329,9 @@ toBriefString topic =
         DisordersPrimaryCarePrevention ->
             "GP"
 
+        DisordersGeriatric ->
+            "Aged Care"
+
         DisordersTraumaExternal ->
             "Trauma"
 
@@ -351,6 +361,7 @@ list =
     , DisordersSpecific
     , DisordersPaediatric
     , DisordersPrimaryCarePrevention
+    , DisordersGeriatric
     , DisordersTraumaExternal
     , MiscellaneousTopics
     ]
