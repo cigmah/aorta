@@ -571,10 +571,10 @@ updatePage model direction =
         newModel =
             case direction of
                 Increment ->
-                    { model | page = model.page + 1 }
+                    { model | page = model.page + 1, results = Loading }
 
                 Decrement ->
-                    { model | page = model.page - 1 }
+                    { model | page = model.page - 1, results = Loading }
     in
     ( newModel, searchRequest newModel )
 
