@@ -20,8 +20,8 @@ import Types.Icon as Icon
 import Types.Objective as Objective
 import Types.Paginated as Paginated exposing (Paginated)
 import Types.Question as Question
-import Types.Specialty as Specialty
 import Types.Stage as Stage
+import Types.System as System
 import Types.Topic as Topic
 
 
@@ -207,7 +207,7 @@ successView objective data =
             [ class "objective-sidebar" ]
             [ div
                 [ class "objective-sidebar-icon" ]
-                [ Specialty.toIcon objective.specialty ]
+                [ System.toIcon objective.system ]
             , a
                 [ class "objective-sidebar-back-button"
                 , Route.toHref Route.ObjectiveList
@@ -231,8 +231,8 @@ successView objective data =
                             [ class "objective-tag stage" ]
                             [ text (Stage.enumerable.toString objective.stage) ]
                         , div
-                            [ class "objective-tag specialty" ]
-                            [ text (Specialty.enumerable.toString objective.specialty) ]
+                            [ class "objective-tag system" ]
+                            [ text (System.enumerable.toString objective.system) ]
                         , div
                             [ class "objective-tag topic" ]
                             [ text (Topic.enumerable.toString objective.topic) ]

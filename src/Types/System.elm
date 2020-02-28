@@ -1,12 +1,12 @@
-module Types.Specialty exposing
-    ( Specialty(..)
+module Types.System exposing
+    ( System(..)
     , enumerable
     , toIcon
     )
 
-{-| Contains the Specialty type and operations relating to the Specialty type.
+{-| Contains the System type and operations relating to the System type.
 
-The Specialty type represents a medical specialty, and is one of the
+The System type represents a medical system, and is one of the
 categories used to classify objectives.
 
 -}
@@ -18,14 +18,14 @@ import Types.Icon as Icon
 import Types.Interface exposing (Enumerable)
 
 
-{-| Represents a single medical specialty.
+{-| Represents a single medical system.
 
-These medical specialty types are enumerated both here and in the backend. In
+These medical system types are enumerated both here and in the backend. In
 the database, they are stored as integer codes. It's important to ensure that
 the integer codes on the frontend and backend match.
 
 -}
-type Specialty
+type System
     = Principles
     | Cardiovascular
     | Respiratory
@@ -42,9 +42,9 @@ type Specialty
     | Dermatological
 
 
-{-| Implementation of the enumerable interface for specialty.
+{-| Implementation of the enumerable interface for system.
 -}
-enumerable : Enumerable Specialty
+enumerable : Enumerable System
 enumerable =
     { list = list
     , count = count
@@ -57,11 +57,11 @@ enumerable =
     }
 
 
-{-| Converts a specialty to an integer code.
+{-| Converts a system to an integer code.
 -}
-toInt : Specialty -> Int
-toInt specialty =
-    case specialty of
+toInt : System -> Int
+toInt system =
+    case system of
         Principles ->
             0
 
@@ -105,12 +105,12 @@ toInt specialty =
             13
 
 
-{-| Converts an integer code to a specialty.
+{-| Converts an integer code to a system.
 
 The default case is Principles.
 
 -}
-fromInt : Int -> Specialty
+fromInt : Int -> System
 fromInt int =
     case int of
         0 ->
@@ -159,11 +159,11 @@ fromInt int =
             Principles
 
 
-{-| Converts a specialty to a full string.
+{-| Converts a system to a full string.
 -}
-toString : Specialty -> String
-toString specialty =
-    case specialty of
+toString : System -> String
+toString system =
+    case system of
         Principles ->
             "Principles"
 
@@ -207,11 +207,11 @@ toString specialty =
             "Dermatology"
 
 
-{-| Converts a specialty to a brief string.
+{-| Converts a system to a brief string.
 -}
-toBriefString : Specialty -> String
-toBriefString specialty =
-    case specialty of
+toBriefString : System -> String
+toBriefString system =
+    case system of
         Principles ->
             "Principles"
 
@@ -255,9 +255,9 @@ toBriefString specialty =
             "Derm"
 
 
-{-| A constant which enumerates the full list of specialties.
+{-| A constant which enumerates the full list of systems.
 -}
-list : List Specialty
+list : List System
 list =
     [ Principles
     , Cardiovascular
@@ -276,34 +276,34 @@ list =
     ]
 
 
-{-| A constant of the full count of specialties.
+{-| A constant of the full count of systems.
 -}
 count : Int
 count =
     List.length list
 
 
-{-| Encodes a specialty as JSON.
+{-| Encodes a system as JSON.
 -}
-encode : Specialty -> Value
-encode specialty =
-    toInt specialty
+encode : System -> Value
+encode system =
+    toInt system
         |> Encode.int
 
 
-{-| A JSON decoder for a specialty.
+{-| A JSON decoder for a system.
 -}
-decoder : Decoder Specialty
+decoder : Decoder System
 decoder =
     Decode.int
         |> Decode.map fromInt
 
 
-{-| Converts a specialty to an SVG icon from Types.Icon
+{-| Converts a system to an SVG icon from Types.Icon
 -}
-toIcon : Specialty -> Svg msg
-toIcon specialty =
-    case specialty of
+toIcon : System -> Svg msg
+toIcon system =
+    case system of
         Principles ->
             Icon.principles
 

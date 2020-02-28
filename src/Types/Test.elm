@@ -6,8 +6,8 @@ import Json.Decode as Decode exposing (Value)
 import Json.Encode as Encode
 import Types.Choice as Choice
 import Types.Question as Question
-import Types.Specialty as Specialty exposing (Specialty)
 import Types.Stage as Stage exposing (Stage)
+import Types.System as System exposing (System)
 import Types.Topic as Topic exposing (Topic)
 
 

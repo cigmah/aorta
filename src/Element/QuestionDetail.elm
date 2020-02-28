@@ -18,8 +18,8 @@ import Types.Comment as Comment
 import Types.Datetime as Datetime
 import Types.Objective as Objective
 import Types.Question as Question
-import Types.Specialty as Specialty
 import Types.Stage as Stage
+import Types.System as System
 import Types.Test as Test
 import Types.Topic as Topic
 
@@ -159,8 +159,8 @@ mainQuestion data =
                         [ class "question-detail-tag stage" ]
                         [ text (Stage.enumerable.toBriefString question.objective.stage) ]
                     , div
-                        [ class "question-detail-tag specialty" ]
-                        [ text (Specialty.enumerable.toBriefString question.objective.specialty) ]
+                        [ class "question-detail-tag system" ]
+                        [ text (System.enumerable.toBriefString question.objective.system) ]
                     , div
                         [ class "question-detail-tag topic" ]
                         [ text (Topic.enumerable.toBriefString question.objective.topic) ]
@@ -318,7 +318,7 @@ sidePanel data =
                         ]
                         [ figure
                             [ class "objective-result-icon" ]
-                            [ Specialty.toIcon question.objective.specialty ]
+                            [ System.toIcon question.objective.system ]
                         , section
                             [ class "objective-result-body" ]
                             [ header
@@ -327,8 +327,8 @@ sidePanel data =
                                     [ class "objective-result-tag stage" ]
                                     [ text <| Stage.enumerable.toBriefString question.objective.stage ]
                                 , div
-                                    [ class "objective-result-tag specialty" ]
-                                    [ text <| Specialty.enumerable.toBriefString question.objective.specialty ]
+                                    [ class "objective-result-tag system" ]
+                                    [ text <| System.enumerable.toBriefString question.objective.system ]
                                 , div
                                     [ class "objective-result-tag topic" ]
                                     [ text <| Topic.enumerable.toBriefString question.objective.topic ]

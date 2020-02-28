@@ -2,7 +2,7 @@ module Types.Question exposing (..)
 
 {-| A multiple-choice question - the core question-bank feature of AORTA.
 
-Each question has a parent objective, which is tagged with a specialty, topic
+Each question has a parent objective, which is tagged with a system, topic
 and medical training stage.
 
 -}
@@ -16,8 +16,8 @@ import Types.Choice as Choice
 import Types.Comment as Comment
 import Types.Datetime as Datetime
 import Types.Objective as Objective
-import Types.Specialty as Specialty exposing (Specialty(..))
 import Types.Stage as Stage exposing (Stage(..))
+import Types.System as System exposing (System(..))
 import Types.Topic as Topic exposing (Topic(..))
 import Types.User as User
 

@@ -36,8 +36,8 @@ import Types.Objective as Objective
 import Types.Paginated as Paginated exposing (Paginated)
 import Types.Request as Request
 import Types.Session as Session exposing (Session)
-import Types.Specialty as Specialty exposing (Specialty)
 import Types.Stage as Stage exposing (Stage)
+import Types.System as System exposing (System)
 import Types.Topic as Topic exposing (Topic)
 
 
@@ -52,7 +52,7 @@ import Types.Topic as Topic exposing (Topic)
 type alias Model =
     { session : Session
     , errors : Errors
-    , specialtyDict : Dict Int (CheckwordData Msg)
+    , systemDict : Dict Int (CheckwordData Msg)
     , topicDict : Dict Int (CheckwordData Msg)
     , stageDict : Dict Int (CheckwordData Msg)
     , results : WebData (Paginated Objective.GetData)
@@ -80,7 +80,7 @@ type alias Errors =
 -}
 type Msg
     = NoOp
-    | ClickedSpecialty Int Bool -- toggled specialty filter
+    | ClickedSystem Int Bool -- toggled system filter
     | ClickedTopic Int Bool -- toggled topic filter
     | ClickedStage Int Bool -- toggled stage filter
     | ClickedSelectAll Filter -- clicked select all on a filter
@@ -93,7 +93,7 @@ type Msg
     | ClickedPrev -- clicked prev on paginated results
     | ChangedAddObjectiveTitle String -- changed the new objective title (only authenticated)
     | ChangedAddObjectiveStage String -- change the new objective stage (only authenticated)
-    | ChangedAddObjectiveSpecialty String -- change the new objective specialty (only authenticated)
+    | ChangedAddObjectiveSystem String -- change the new objective system (only authenticated)
     | ChangedAddObjectiveTopic String -- change the new objective topic (only authenticated)
     | ClickedAddObjective -- submit a new objective
     | GotAddObjectiveResponse (WebData Objective.GetData) -- receive the create-objective response
@@ -113,7 +113,7 @@ init session =
         model =
             { session = session
             , errors = defaultErrors
-            , specialtyDict = defaultSpecialtyDict
+            , systemDict = defaultSystemDict
             , topicDict = defaultTopicDict
             , stageDict = defaultStageDict
             , results = Loading
@@ -180,10 +180,10 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        ClickedSpecialty specialty bool ->
-            model.specialtyDict
-                |> Dict.update specialty (Maybe.map (updateCheckword bool))
-                |> updateSpecialtyDict model
+        ClickedSystem system bool ->
+            model.systemDict
+                |> Dict.update system (Maybe.map (updateCheckword bool))
+                |> updateSystemDict model
                 |> withCmdNone
 
         ClickedTopic topic bool ->
@@ -200,10 +200,10 @@ update msg model =
 
         ClickedSelectAll filter ->
             case filter of
-                FilterSpecialty ->
-                    model.specialtyDict
+                FilterSystem ->
+                    model.systemDict
                         |> selectAll
-                        |> updateSpecialtyDict model
+                        |> updateSystemDict model
                         |> withCmdNone
 
                 FilterTopic ->
@@ -220,10 +220,10 @@ update msg model =
 
         ClickedDeselectAll filter ->
             case filter of
-                FilterSpecialty ->
-                    model.specialtyDict
+                FilterSystem ->
+                    model.systemDict
                         |> deselectAll
-                        |> updateSpecialtyDict model
+                        |> updateSystemDict model
                         |> withCmdNone
 
                 FilterTopic ->
@@ -270,12 +270,12 @@ update msg model =
                 |> updateAddObjectiveTopic model
                 |> withCmdNone
 
-        ChangedAddObjectiveSpecialty specialty ->
-            specialty
+        ChangedAddObjectiveSystem system ->
+            system
                 |> String.toInt
                 |> Maybe.withDefault 0
-                |> Specialty.enumerable.fromInt
-                |> updateAddObjectiveSpecialty model
+                |> System.enumerable.fromInt
+                |> updateAddObjectiveSystem model
                 |> withCmdNone
 
         ClickedAddObjective ->
@@ -349,10 +349,10 @@ viewBody model =
                 , direction = Vertical
                 }
             , CheckwordList.element
-                { label = "Specialty(s)"
-                , onSelectAll = ClickedSelectAll FilterSpecialty
-                , onDeselectAll = ClickedDeselectAll FilterSpecialty
-                , dict = model.specialtyDict
+                { label = "System(s)"
+                , onSelectAll = ClickedSelectAll FilterSystem
+                , onDeselectAll = ClickedDeselectAll FilterSystem
+                , dict = model.systemDict
                 , direction = Vertical
                 }
             , CheckwordList.element
@@ -409,10 +409,10 @@ viewSneakyBox model =
                                 }
                         , second =
                             Select.element
-                                { label = "Specialty"
-                                , value = model.addObjective.specialty
-                                , enumerable = Specialty.enumerable
-                                , onInput = ChangedAddObjectiveSpecialty
+                                { label = "System"
+                                , value = model.addObjective.system
+                                , enumerable = System.enumerable
+                                , onInput = ChangedAddObjectiveSystem
                                 }
                         , third =
                             Select.element
@@ -451,11 +451,11 @@ defaultErrors =
     {}
 
 
-{-| A default specialty dictionary mapping specialty ints to checkword data.
+{-| A default system dictionary mapping system ints to checkword data.
 -}
-defaultSpecialtyDict : Dict Int (CheckwordData Msg)
-defaultSpecialtyDict =
-    CheckwordList.defaultDictFromEnumerable Specialty.enumerable ClickedSpecialty
+defaultSystemDict : Dict Int (CheckwordData Msg)
+defaultSystemDict =
+    CheckwordList.defaultDictFromEnumerable System.enumerable ClickedSystem
 
 
 {-| A default topic dictionary mapping topic ints to checkword data.
@@ -472,11 +472,11 @@ defaultStageDict =
     CheckwordList.defaultDictFromEnumerable Stage.enumerable ClickedStage
 
 
-{-| Update the specialty dictionary with a new one in the model
+{-| Update the system dictionary with a new one in the model
 -}
-updateSpecialtyDict : Model -> Dict Int (CheckwordData Msg) -> Model
-updateSpecialtyDict model updatedDict =
-    { model | specialtyDict = updatedDict }
+updateSystemDict : Model -> Dict Int (CheckwordData Msg) -> Model
+updateSystemDict model updatedDict =
+    { model | systemDict = updatedDict }
 
 
 {-| Update the topic dictionary with a new one in the model
@@ -514,11 +514,11 @@ updateAddObjectiveTitle model string =
     { model | addObjective = model.addObjective |> Objective.updateTitle string }
 
 
-{-| Modifies the add objective specialty.
+{-| Modifies the add objective system.
 -}
-updateAddObjectiveSpecialty : Model -> Specialty -> Model
-updateAddObjectiveSpecialty model specialty =
-    { model | addObjective = model.addObjective |> Objective.updateSpecialty specialty }
+updateAddObjectiveSystem : Model -> System -> Model
+updateAddObjectiveSystem model system =
+    { model | addObjective = model.addObjective |> Objective.updateSystem system }
 
 
 {-| Modifies the add objective stage.
@@ -582,7 +582,7 @@ updatePage model direction =
 {-| The types of categorisation of questions.
 -}
 type Filter
-    = FilterSpecialty
+    = FilterSystem
     | FilterStage
     | FilterTopic
 
@@ -591,7 +591,7 @@ searchRequest : Model -> Cmd Msg
 searchRequest model =
     Request.getObjectiveList
         { auth = model.session.auth
-        , specialtyFilters = CheckwordList.filterChecked model.specialtyDict
+        , systemFilters = CheckwordList.filterChecked model.systemDict
         , topicFilters = CheckwordList.filterChecked model.topicDict
         , stageFilters = CheckwordList.filterChecked model.stageDict
         , search = model.search

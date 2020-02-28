@@ -18,8 +18,8 @@ import Types.Comment as Comment
 import Types.Datetime as Datetime
 import Types.Objective as Objective
 import Types.Question as Question
-import Types.Specialty as Specialty
 import Types.Stage as Stage
+import Types.System as System
 import Types.Test as Test
 import Types.Topic as Topic
 

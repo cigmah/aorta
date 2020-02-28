@@ -84,7 +84,7 @@ It's a lot, yes. This should be scriptable, so we may make a script for it somet
   - [ ] Mobile - information icons for the login modal
   - [X] Mobile - bottom bar icons
   - [ ] Render the markdown for the attached questions list
-  - [ ] On add objective, clear the text box
+  - [X] On add objective, clear the text box
   - [ ] When click on next page on the paginated results, change state to loading
   - [ ] Smaller results for paginated results
 - Logic/Functionality

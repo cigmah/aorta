@@ -19,8 +19,8 @@ import Types.Objective as Objective
 import Types.Paginated as Paginated exposing (Paginated)
 import Types.Question as Question
 import Types.Register as Register
-import Types.Specialty as Specialty exposing (Specialty)
 import Types.Stage as Stage exposing (Stage)
+import Types.System as System exposing (System)
 import Types.Topic as Topic exposing (Topic)
 import Url.Builder as Builder
 
@@ -313,7 +313,7 @@ getObjective request =
 -}
 type alias GetObjectiveListData msg =
     { auth : Auth
-    , specialtyFilters : List Int
+    , systemFilters : List Int
     , topicFilters : List Int
     , stageFilters : List Int
     , search : String
@@ -322,15 +322,16 @@ type alias GetObjectiveListData msg =
     }
 
 
-{-| Convers list of ints to specialty query string.
+{-| Convers list of ints to system query string.
 -}
-toSpecialtyQueries : List Int -> List Builder.QueryParameter
-toSpecialtyQueries list =
-    if List.length list == Specialty.enumerable.count then
+toSystemQueries : List Int -> List Builder.QueryParameter
+toSystemQueries list =
+    if List.length list == System.enumerable.count then
         []
 
     else
         list
+            -- Legacy - systems were initially called specialties
             |> List.map (Builder.int "specialty")
 
 
@@ -377,7 +378,7 @@ getObjectiveList request =
         , returnDecoder = Paginated.decoder Objective.decoder
         , queryList =
             List.concat
-                [ toSpecialtyQueries request.specialtyFilters
+                [ toSystemQueries request.systemFilters
                 , toTopicQueries request.topicFilters
                 , toStageQueries request.stageFilters
                 , searchQuery
@@ -479,7 +480,7 @@ getQuestionDetail request =
 
 type alias GetQuestionIdListData msg =
     { auth : Auth
-    , specialtyFilters : List Int
+    , systemFilters : List Int
     , topicFilters : List Int
     , stageFilters : List Int
     , callback : WebData (List Int) -> msg
@@ -495,7 +496,7 @@ getQuestionIdList request =
         , returnDecoder = Decode.list Decode.int
         , queryList =
             List.concat
-                [ toSpecialtyQueries request.specialtyFilters
+                [ toSystemQueries request.systemFilters
                 , toTopicQueries request.topicFilters
                 , toStageQueries request.stageFilters
                 , [ Builder.string "random" "true" ]

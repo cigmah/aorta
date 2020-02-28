@@ -48,7 +48,7 @@ enumerable =
     }
 
 
-{-| Converts a specialty to an integer code.
+{-| Converts a system to an integer code.
 -}
 toInt : Stage -> Int
 toInt stage =
@@ -175,7 +175,7 @@ encode stage =
         |> Encode.int
 
 
-{-| A JSON decoder for a specialty.
+{-| A JSON decoder for a system.
 -}
 decoder : Decoder Stage
 decoder =

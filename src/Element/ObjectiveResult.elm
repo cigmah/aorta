@@ -9,8 +9,8 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Types.Icon as Icon
 import Types.Objective as Objective
-import Types.Specialty as Specialty
 import Types.Stage as Stage
+import Types.System as System
 import Types.Topic as Topic
 
 
@@ -22,7 +22,7 @@ element data =
         ]
         [ figure
             [ class "objective-result-icon" ]
-            [ Specialty.toIcon data.specialty ]
+            [ System.toIcon data.system ]
         , section
             [ class "objective-result-body" ]
             [ header
@@ -31,8 +31,8 @@ element data =
                     [ class "objective-result-tag stage" ]
                     [ text <| Stage.enumerable.toBriefString data.stage ]
                 , div
-                    [ class "objective-result-tag specialty" ]
-                    [ text <| Specialty.enumerable.toBriefString data.specialty ]
+                    [ class "objective-result-tag system" ]
+                    [ text <| System.enumerable.toBriefString data.system ]
                 , div
                     [ class "objective-result-tag topic" ]
                     [ text <| Topic.enumerable.toBriefString data.topic ]

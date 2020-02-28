@@ -32,8 +32,8 @@ import Types.Icon as Icon
 import Types.Interface exposing (Enumerable)
 import Types.Request as Request
 import Types.Session as Session exposing (Session)
-import Types.Specialty as Specialty exposing (Specialty)
 import Types.Stage as Stage exposing (Stage)
+import Types.System as System exposing (System)
 import Types.Test as Test
 import Types.Topic as Topic exposing (Topic)
 
@@ -49,7 +49,7 @@ import Types.Topic as Topic exposing (Topic)
 type alias Model =
     { session : Session
     , errors : Errors
-    , specialtyDict : Dict Int (CheckwordData Msg)
+    , systemDict : Dict Int (CheckwordData Msg)
     , topicDict : Dict Int (CheckwordData Msg)
     , stageDict : Dict Int (CheckwordData Msg)
     , questionIdListResponse : WebData (List Int)
@@ -72,7 +72,7 @@ type alias Errors =
 -}
 type Msg
     = NoOp
-    | ClickedSpecialty Int Bool
+    | ClickedSystem Int Bool
     | ClickedTopic Int Bool
     | ClickedStage Int Bool
     | ClickedSelectAll Filter
@@ -93,7 +93,7 @@ init : Session -> ( Model, Cmd Msg )
 init session =
     ( { session = session
       , errors = defaultErrors
-      , specialtyDict = defaultSpecialtyDict
+      , systemDict = defaultSystemDict
       , topicDict = defaultTopicDict
       , stageDict = defaultStageDict
       , questionIdListResponse = NotAsked
@@ -155,10 +155,10 @@ update msg ({ errors } as model) =
         NoOp ->
             ( model, Cmd.none )
 
-        ClickedSpecialty specialty bool ->
-            model.specialtyDict
-                |> Dict.update specialty (Maybe.map (updateCheckword bool))
-                |> updateSpecialtyDict model
+        ClickedSystem system bool ->
+            model.systemDict
+                |> Dict.update system (Maybe.map (updateCheckword bool))
+                |> updateSystemDict model
                 |> withCmdNone
 
         ClickedTopic topic bool ->
@@ -175,10 +175,10 @@ update msg ({ errors } as model) =
 
         ClickedSelectAll filter ->
             case filter of
-                FilterSpecialty ->
-                    model.specialtyDict
+                FilterSystem ->
+                    model.systemDict
                         |> selectAll
-                        |> updateSpecialtyDict model
+                        |> updateSystemDict model
                         |> withCmdNone
 
                 FilterTopic ->
@@ -195,10 +195,10 @@ update msg ({ errors } as model) =
 
         ClickedDeselectAll filter ->
             case filter of
-                FilterSpecialty ->
-                    model.specialtyDict
+                FilterSystem ->
+                    model.systemDict
                         |> deselectAll
-                        |> updateSpecialtyDict model
+                        |> updateSystemDict model
                         |> withCmdNone
 
                 FilterTopic ->
@@ -285,10 +285,10 @@ viewBody model =
                     , TwoColumn.element
                         { first =
                             CheckwordList.element
-                                { label = "Specialty(s)"
-                                , onSelectAll = ClickedSelectAll FilterSpecialty
-                                , onDeselectAll = ClickedDeselectAll FilterSpecialty
-                                , dict = model.specialtyDict
+                                { label = "System(s)"
+                                , onSelectAll = ClickedSelectAll FilterSystem
+                                , onDeselectAll = ClickedDeselectAll FilterSystem
+                                , dict = model.systemDict
                                 , direction = Vertical
                                 }
                         , second =
@@ -324,18 +324,18 @@ requestQuestionIdList : Model -> Cmd Msg
 requestQuestionIdList model =
     Request.getQuestionIdList
         { auth = model.session.auth
-        , specialtyFilters = CheckwordList.filterChecked model.specialtyDict
+        , systemFilters = CheckwordList.filterChecked model.systemDict
         , topicFilters = CheckwordList.filterChecked model.topicDict
         , stageFilters = CheckwordList.filterChecked model.stageDict
         , callback = GotQuestionIdList
         }
 
 
-{-| A default specialty dictionary mapping specialty ints to checkword data.
+{-| A default system dictionary mapping system ints to checkword data.
 -}
-defaultSpecialtyDict : Dict Int (CheckwordData Msg)
-defaultSpecialtyDict =
-    CheckwordList.defaultDictFromEnumerable Specialty.enumerable ClickedSpecialty
+defaultSystemDict : Dict Int (CheckwordData Msg)
+defaultSystemDict =
+    CheckwordList.defaultDictFromEnumerable System.enumerable ClickedSystem
 
 
 {-| A default topic dictionary mapping topic ints to checkword data.
@@ -353,11 +353,11 @@ defaultStageDict =
         |> deselectAll
 
 
-{-| Update the specialty dictionary with a new one in the model
+{-| Update the system dictionary with a new one in the model
 -}
-updateSpecialtyDict : Model -> Dict Int (CheckwordData Msg) -> Model
-updateSpecialtyDict model updatedDict =
-    { model | specialtyDict = updatedDict }
+updateSystemDict : Model -> Dict Int (CheckwordData Msg) -> Model
+updateSystemDict model updatedDict =
+    { model | systemDict = updatedDict }
 
 
 {-| Update the topic dictionary with a new one in the model
@@ -382,6 +382,6 @@ updateQuestionIdListResponse response model =
 {-| The types of categorisation of questions.
 -}
 type Filter
-    = FilterSpecialty
+    = FilterSystem
     | FilterStage
     | FilterTopic

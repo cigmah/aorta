@@ -11,8 +11,8 @@ import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
 import Time exposing (Posix)
 import Types.Datetime as Datetime
-import Types.Specialty as Specialty exposing (Specialty(..))
 import Types.Stage as Stage exposing (Stage(..))
+import Types.System as System exposing (System(..))
 import Types.Topic as Topic exposing (Topic(..))
 import Types.User as User
 
@@ -23,7 +23,7 @@ For simplicity sake, default the notes to empty string on creation.
 
 -}
 type alias PostData =
-    { specialty : Specialty
+    { system : System
     , stage : Stage
     , topic : Topic
     , title : String
@@ -34,16 +34,16 @@ type alias PostData =
 -}
 init : PostData
 init =
-    { specialty = Principles
+    { system = Principles
     , stage = Year1
     , topic = Overview
     , title = ""
     }
 
 
-updateSpecialty : Specialty -> PostData -> PostData
-updateSpecialty specialty data =
-    { data | specialty = specialty }
+updateSystem : System -> PostData -> PostData
+updateSystem system data =
+    { data | system = system }
 
 
 updateStage : Stage -> PostData -> PostData
@@ -63,7 +63,7 @@ updateTitle title data =
 
 type alias GetData =
     { id : Int
-    , specialty : Specialty
+    , system : System
     , topic : Topic
     , stage : Stage
     , title : String
@@ -79,7 +79,8 @@ decoder : Decoder GetData
 decoder =
     Decode.succeed GetData
         |> required "id" Decode.int
-        |> required "specialty" Specialty.enumerable.decoder
+        |> required "specialty" System.enumerable.decoder
+        -- legacy - systems were initially called specialties
         |> required "topic" Topic.enumerable.decoder
         |> required "stage" Stage.enumerable.decoder
         |> required "title" Decode.string
@@ -93,7 +94,7 @@ decoder =
 encode : PostData -> Value
 encode data =
     Encode.object
-        [ ( "specialty", Specialty.enumerable.encode data.specialty )
+        [ ( "specialty", System.enumerable.encode data.system ) -- legacy - systems were initially called specialties
         , ( "topic", Topic.enumerable.encode data.topic )
         , ( "stage", Stage.enumerable.encode data.stage )
         , ( "title", Encode.string data.title )
