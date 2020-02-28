@@ -88,11 +88,11 @@ It's a lot, yes. This should be scriptable, so we may make a script for it somet
   - [X] When click on next page on the paginated results, change state to loading
   - [ ] Smaller results for paginated results
 - Logic/Functionality
-  - [ ] Implement "Back" for objective list - store filters in URL and update
+  - [X] Implement "Back" for objective list - store filters in URL and update
         back, and change back button from the objective page
   - [ ] Better printing view for question report page
   - [ ] User statistics page
-  - [ ] Store filters in session 
+  - [X] Store filters in session 
   - [ ] Preview box for editing notes
   - [ ] Version control for database ( to be added to backend )
   
