@@ -59,6 +59,7 @@ element data =
                 , sidePanel data
                 ]
             ]
+        , objectiveModal data
         , actionFooter data
         ]
 
@@ -512,39 +513,55 @@ nextButton data =
 modalBackground : msg -> Html msg
 modalBackground onClickMsg =
     div
-        [ class "modal-background"
+        [ class "question-detail-modal-background"
         , onClick onClickMsg
         ]
         []
 
 
-objectiveModal : Data msg -> Question.GetDetailData -> Html msg
-objectiveModal data question =
-    if data.showObjective then
-        section
-            [ class "question-detail-objective-modal-group" ]
-            [ modalBackground data.onToggleShowObjective
-            , article
-                [ class "question-detail-objective-modal" ]
-                [ header
-                    [ class "question-detail-objective-modal-header" ]
-                    [ button
-                        [ class "question-detail-objective-modal-close"
-                        , onClick data.onToggleShowObjective
-                        ]
-                        [ text "×" ]
-                    ]
-                , section
-                    [ class "question-detail-objective-modal-body" ]
-                    [ h1
-                        [ class "question-detail-objective-modal-title" ]
-                        [ text question.objective.title ]
-                    , div
-                        [ class "question-detail-objective-modal-notes" ]
-                        (Markdown.toHtml Nothing question.objective.notes)
-                    ]
-                ]
-            ]
+objectiveModal : Data msg -> Html msg
+objectiveModal data =
+    case data.questionWebData of
+        Success question ->
+            let
+                notes =
+                    if question.objective.notes == "" then
+                        "There aren't any notes added for this objective yet. Stay tuned!"
 
-    else
-        Empty.element
+                    else
+                        question.objective.notes
+            in
+            if data.showObjective then
+                section
+                    [ class "question-detail-objective-modal-group" ]
+                    [ modalBackground data.onToggleShowObjective
+                    , div [ class "question-detail-objective-modal-main" ]
+                        [ article
+                            [ class "question-detail-objective-modal" ]
+                            [ header
+                                [ class "question-detail-objective-modal-header" ]
+                                [ h1 [ class "question-detail-objective-modal-header-text" ] [ text "Objective" ]
+                                , button
+                                    [ class "question-detail-objective-modal-close"
+                                    , onClick data.onToggleShowObjective
+                                    ]
+                                    [ text "×" ]
+                                ]
+                            , section
+                                [ class "question-detail-objective-modal-body" ]
+                                [ h1
+                                    [ class "question-detail-objective-modal-title" ]
+                                    [ text question.objective.title ]
+                                , div
+                                    [ class "question-detail-objective-modal-notes markdown" ]
+                                    (Markdown.toHtml Nothing notes)
+                                ]
+                            ]
+                        ]
+                    ]
+
+            else
+                Empty.element
+
+        _ ->
+            Empty.element
