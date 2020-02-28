@@ -483,6 +483,7 @@ type alias GetQuestionIdListData msg =
     , systemFilters : List Int
     , topicFilters : List Int
     , stageFilters : List Int
+    , quantity : Int
     , callback : WebData (List Int) -> msg
     }
 
@@ -499,7 +500,7 @@ getQuestionIdList request =
                 [ toSystemQueries request.systemFilters
                 , toTopicQueries request.topicFilters
                 , toStageQueries request.stageFilters
-                , [ Builder.string "random" "true" ]
+                , [ Builder.string "random" "true", Builder.int "quantity" request.quantity ]
                 ]
         }
 

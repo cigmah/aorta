@@ -17,6 +17,7 @@ import Element.BackgroundImage as BackgroundImage
 import Element.CheckwordList as CheckwordList exposing (CheckwordData, Direction(..), deselectAll, selectAll, updateCheckword)
 import Element.Form as Form
 import Element.LandingFloat as LandingFloat
+import Element.NumericalInput as NumericalInput
 import Element.PrimaryButton as PrimaryButton
 import Element.TwoColumn as TwoColumn
 import Html exposing (..)
@@ -52,6 +53,7 @@ type alias Model =
     , systemDict : Dict Int (CheckwordData Msg)
     , topicDict : Dict Int (CheckwordData Msg)
     , stageDict : Dict Int (CheckwordData Msg)
+    , quantity : String
     , questionIdListResponse : WebData (List Int)
     }
 
@@ -78,6 +80,7 @@ type Msg
     | ClickedSelectAll Filter
     | ClickedDeselectAll Filter
     | ClickedStartQuestions
+    | ChangedQuantity String
     | GotQuestionIdList (WebData (List Int))
 
 
@@ -96,6 +99,7 @@ init session =
       , systemDict = defaultSystemDict
       , topicDict = defaultTopicDict
       , stageDict = defaultStageDict
+      , quantity = String.fromInt 10
       , questionIdListResponse = NotAsked
       }
     , Cmd.none
@@ -171,6 +175,11 @@ update msg ({ errors } as model) =
             model.stageDict
                 |> Dict.update stage (Maybe.map (updateCheckword bool))
                 |> updateStageDict model
+                |> withCmdNone
+
+        ChangedQuantity quantity ->
+            quantity
+                |> updateQuantity model
                 |> withCmdNone
 
         ClickedSelectAll filter ->
@@ -275,7 +284,14 @@ viewBody model =
                 , responseWebData = model.questionIdListResponse
                 , onSuccessMessage = \_ -> div [] []
                 , children =
-                    [ CheckwordList.element
+                    [ NumericalInput.element
+                        { label = "Quantity"
+                        , value = model.quantity
+                        , min = 1
+                        , max = 100
+                        , onInput = ChangedQuantity
+                        }
+                    , CheckwordList.element
                         { label = "Year Level(s)"
                         , onSelectAll = ClickedSelectAll FilterStage
                         , onDeselectAll = ClickedDeselectAll FilterStage
@@ -327,6 +343,7 @@ requestQuestionIdList model =
         , systemFilters = CheckwordList.filterChecked model.systemDict
         , topicFilters = CheckwordList.filterChecked model.topicDict
         , stageFilters = CheckwordList.filterChecked model.stageDict
+        , quantity = String.toInt model.quantity |> Maybe.withDefault 10
         , callback = GotQuestionIdList
         }
 
@@ -372,6 +389,11 @@ updateTopicDict model updatedDict =
 updateStageDict : Model -> Dict Int (CheckwordData Msg) -> Model
 updateStageDict model updatedDict =
     { model | stageDict = updatedDict }
+
+
+updateQuantity : Model -> String -> Model
+updateQuantity model quantity =
+    { model | quantity = quantity }
 
 
 updateQuestionIdListResponse : WebData (List Int) -> Model -> Model

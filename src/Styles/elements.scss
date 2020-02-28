@@ -304,6 +304,25 @@ $navigation-bar-height: 3rem;
   }
 }
 
+
+// ----------------------------------------------------------------------------
+// || NUMERICAL INPUT STYLES
+// Generic numerical input styles, corresponds to Element.TextInput
+// ----------------------------------------------------------------------------
+
+.numerical-input {
+  @extend .text-input;
+}
+
+.numerical-input-label {
+  @extend .text-input-label;
+  font-weight: bold;
+}
+
+.numerical-input-input {
+  @extend .text-input-input;
+}
+
 // ----------------------------------------------------------------------------
 // || FORM STYLES
 // Styling for the form
@@ -533,12 +552,13 @@ $bottom-bar-height: 3.6rem;
 
 .checkword-list-row {
   display: flex;
-  color: $blue-400;
+  color: $blue-500;
   font-weight: bold;
   margin-bottom: 0.25rem;
   align-items: center;
 
   .checkword-list-label {
+    font-size: 0.9rem;
   }
 
   .checkword-list-select-all {
@@ -633,7 +653,7 @@ $landing-float-margin: 50px;
   background: white;
   width: $mobile - (2 * $landing-float-margin) - 100px;
   height: auto;
-  max-height: 660px;
+  max-height: 720px;
   overflow: auto;
   border-radius: 5px;
   box-shadow: 0 0 10px $grey-500;
