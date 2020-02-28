@@ -539,7 +539,21 @@ updateAddObjectiveTopic model topic =
 -}
 updateAddObjectiveResponse : Model -> WebData Objective.GetData -> Model
 updateAddObjectiveResponse model response =
-    { model | addObjectiveResponse = response }
+    case response of
+        Loading ->
+            { model | addObjectiveResponse = response }
+
+        Failure _ ->
+            { model | addObjectiveResponse = response }
+
+        NotAsked ->
+            { model | addObjectiveResponse = response }
+
+        Success _ ->
+            { model
+                | addObjectiveResponse = response
+                , addObjective = model.addObjective |> Objective.updateTitle ""
+            }
 
 
 {-| Updates the search results
