@@ -103,8 +103,11 @@ element data =
 loadingView : Html msg
 loadingView =
     section
-        [ class "objective-text loading" ]
-        [ text "Loading..." ]
+        [ class "objective-loading" ]
+        [ div
+            [ class "loading-box" ]
+            []
+        ]
 
 
 notAskedView : Html msg

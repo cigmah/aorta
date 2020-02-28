@@ -930,6 +930,7 @@ $landing-float-margin: 50px;
   margin-bottom: 4rem;
   padding: 1rem;
   display: flex;
+  animation: 0.3s fadein;
   @media only screen and (max-width: $mobile) {
     padding: 0;
     display: block;
@@ -1066,6 +1067,14 @@ $landing-float-margin: 50px;
   .objective-body-contributor-username {
     font-weight: bold;
   }
+}
+
+.objective-loading {
+  min-height: 80vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 // EDIT FORM

@@ -75,7 +75,7 @@ It's a lot, yes. This should be scriptable, so we may make a script for it somet
 ## Development TODOs
 
 - Style/Superficial Fixes
-  - [ ] Loading screen for objective loading - change single word to loading animation
+  - [X] Loading screen for objective loading - change single word to loading animation
   - [ ] Better styling for the report page
   - [X] Remove onClick attribute for modal background for add question 
   - [ ] Equalise the height of the question body and the feedback body on
