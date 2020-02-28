@@ -27,6 +27,7 @@ import Types.Topic as Topic
 
 type alias Data msg =
     { objective : WebData Objective.GetData
+    , backHref : Attribute msg
     , editable : Bool
     , onClickEdit : msg
     , editableData : Maybe Objective.EditableData
@@ -210,7 +211,7 @@ successView objective data =
                 [ System.toIcon objective.system ]
             , a
                 [ class "objective-sidebar-back-button"
-                , Route.toHref Route.ObjectiveList
+                , data.backHref
                 ]
                 [ text "Back" ]
             , editButton

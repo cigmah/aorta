@@ -15,8 +15,10 @@ is then mapped to the proper page's initialisation function.
 
 import Architecture.Model as Model exposing (Model)
 import Architecture.Route as Route exposing (Route)
+import Maybe.Extra
 import Url exposing (Url)
-import Url.Parser exposing ((</>), Parser, int, map, oneOf, parse, s, top)
+import Url.Parser exposing ((</>), (<?>), Parser, int, map, oneOf, parse, s, top)
+import Url.Parser.Query as Query
 
 
 {-| A Parser to map URL paths to a `Route`.
@@ -34,7 +36,7 @@ parser =
         , map Route.Home <| s "index.html"
         , map Route.Profile <| s "profile"
         , map Route.Objective <| s "objectives" </> int
-        , map Route.ObjectiveList <| s "objectives"
+        , map Route.ObjectiveList <| s "objectives" <?> parserObjectiveListQuery
         , map Route.Report <| s "report"
         , map Route.Question <| s "questions" </> int
         ]
@@ -72,7 +74,7 @@ isEqual route model =
         ( Route.Objective _, Model.Objective _ ) ->
             True
 
-        ( Route.ObjectiveList, Model.ObjectiveList _ ) ->
+        ( Route.ObjectiveList _, Model.ObjectiveList _ ) ->
             True
 
         ( Route.Question _, Model.Question _ ) ->
@@ -83,3 +85,33 @@ isEqual route model =
 
         _ ->
             False
+
+
+parserStage : Query.Parser (Maybe (List Int))
+parserStage =
+    Query.custom "stage" (Maybe.Extra.combine << List.map String.toInt)
+
+
+parserTopic : Query.Parser (Maybe (List Int))
+parserTopic =
+    Query.custom "topic" (Maybe.Extra.combine << List.map String.toInt)
+
+
+{-| Parses one or multiple system filters from the url for objective list.of
+
+This is stored in a specialty variable for legacy reasons.
+
+-}
+parserSystem : Query.Parser (Maybe (List Int))
+parserSystem =
+    Query.custom "specialty" (Maybe.Extra.combine << List.map String.toInt)
+
+
+parserObjectiveListQuery : Query.Parser Route.ObjectiveListQueries
+parserObjectiveListQuery =
+    Query.map5 Route.ObjectiveListQueries
+        parserStage
+        parserSystem
+        parserTopic
+        (Query.string "search")
+        (Query.int "page")

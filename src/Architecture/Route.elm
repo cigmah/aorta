@@ -1,8 +1,4 @@
-module Architecture.Route exposing
-    ( Route(..)
-    , toHref
-    , toString
-    )
+module Architecture.Route exposing (..)
 
 {-| Contains the basic `Route` type.
 
@@ -16,6 +12,9 @@ logic is fairly straightforward.
 
 import Html exposing (Attribute)
 import Html.Attributes exposing (href)
+import List
+import Maybe
+import Types.Request as Request
 import Url.Builder as Builder
 
 
@@ -32,10 +31,54 @@ type Route
     = Home
     | NotFound
     | Profile
-    | ObjectiveList
+    | ObjectiveList ObjectiveListQueries
     | Objective Int
     | Question Int
     | Report
+
+
+{-| Queries for navigating to an objective list route.
+-}
+type alias ObjectiveListQueries =
+    { stages : Maybe (List Int)
+    , systems : Maybe (List Int)
+    , topics : Maybe (List Int)
+    , search : Maybe String
+    , page : Maybe Int
+    }
+
+
+{-| Default objective list queries.
+-}
+defaultObjectiveListQueries =
+    { stages = Nothing
+    , systems = Nothing
+    , topics = Nothing
+    , search = Nothing
+    , page = Nothing
+    }
+
+
+{-| Objective list query updaters.
+-}
+updateObjectiveListStages stages queries =
+    { queries | stages = stages }
+
+
+updateObjectiveListSystems systems queries =
+    { queries | systems = systems }
+
+
+updateObjectiveListTopics topics queries =
+    { queries | topics = topics }
+
+
+updateObjectiveListSearch search queries =
+    { queries | search = search }
+
+
+updateObjectiveListPage page queries =
+    { queries | page = page }
 
 
 {-| Converts a `Route` into a string URL path. }
@@ -69,10 +112,41 @@ toString route =
                 ]
                 []
 
-        ObjectiveList ->
+        ObjectiveList queries ->
+            let
+                stageQueries =
+                    Maybe.map Request.toStageQueries queries.stages
+                        |> Maybe.withDefault []
+
+                systemQueries =
+                    Maybe.map Request.toSystemQueries queries.systems
+                        |> Maybe.withDefault []
+
+                topicQueries =
+                    Maybe.map Request.toTopicQueries queries.topics
+                        |> Maybe.withDefault []
+
+                searchQuery =
+                    case queries.search of
+                        Just s ->
+                            [ Builder.string "search" s ]
+
+                        Nothing ->
+                            []
+
+                pageQuery =
+                    case queries.page of
+                        Just i ->
+                            [ Builder.int "page" i ]
+
+                        Nothing ->
+                            []
+            in
             Builder.absolute
                 [ "objectives" ]
-                []
+                (List.concat
+                    [ stageQueries, systemQueries, topicQueries, searchQuery, pageQuery ]
+                )
 
         Question questionId ->
             Builder.absolute

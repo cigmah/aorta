@@ -6,8 +6,9 @@ This page is for viewing and searching a list of learning objectives.
 
 -}
 
-import Architecture.Route as Route
+import Architecture.Route as Route exposing (ObjectiveListQueries)
 import Browser exposing (Document)
+import Browser.Navigation as Navigation
 import Dict exposing (Dict)
 import Element.CheckwordList as CheckwordList exposing (CheckwordData, Direction(..), deselectAll, selectAll, updateCheckword)
 import Element.Empty as Empty
@@ -107,19 +108,19 @@ type Msg
 
 {-| The page initialisation function.
 -}
-init : Session -> ( Model, Cmd Msg )
-init session =
+init : Session -> ObjectiveListQueries -> ( Model, Cmd Msg )
+init session queries =
     let
         model =
-            { session = session
+            { session = { session | objectiveListQueries = queries }
             , errors = defaultErrors
-            , systemDict = defaultSystemDict
-            , topicDict = defaultTopicDict
-            , stageDict = defaultStageDict
+            , systemDict = fromCheckedSystems queries.systems
+            , topicDict = fromCheckedTopics queries.topics
+            , stageDict = fromCheckedStages queries.stages
             , results = Loading
             , filtersVisible = False
-            , search = ""
-            , page = 1
+            , search = queries.search |> Maybe.withDefault ""
+            , page = queries.page |> Maybe.withDefault 1
             , addObjective = Objective.init
             , addObjectiveResponse = NotAsked
             }
@@ -184,19 +185,16 @@ update msg model =
             model.systemDict
                 |> Dict.update system (Maybe.map (updateCheckword bool))
                 |> updateSystemDict model
-                |> withCmdNone
 
         ClickedTopic topic bool ->
             model.topicDict
                 |> Dict.update topic (Maybe.map (updateCheckword bool))
                 |> updateTopicDict model
-                |> withCmdNone
 
         ClickedStage stage bool ->
             model.stageDict
                 |> Dict.update stage (Maybe.map (updateCheckword bool))
                 |> updateStageDict model
-                |> withCmdNone
 
         ClickedSelectAll filter ->
             case filter of
@@ -204,19 +202,16 @@ update msg model =
                     model.systemDict
                         |> selectAll
                         |> updateSystemDict model
-                        |> withCmdNone
 
                 FilterTopic ->
                     model.topicDict
                         |> selectAll
                         |> updateTopicDict model
-                        |> withCmdNone
 
                 FilterStage ->
                     model.stageDict
                         |> selectAll
                         |> updateStageDict model
-                        |> withCmdNone
 
         ClickedDeselectAll filter ->
             case filter of
@@ -224,19 +219,16 @@ update msg model =
                     model.systemDict
                         |> deselectAll
                         |> updateSystemDict model
-                        |> withCmdNone
 
                 FilterTopic ->
                     model.topicDict
                         |> deselectAll
                         |> updateTopicDict model
-                        |> withCmdNone
 
                 FilterStage ->
                     model.stageDict
                         |> deselectAll
                         |> updateStageDict model
-                        |> withCmdNone
 
         ClickedToggleFilters ->
             model.filtersVisible
@@ -297,7 +289,7 @@ update msg model =
         ClickedSearch ->
             Loading
                 |> updateResults model
-                |> withCmd (searchRequest model)
+                |> clickedSearch
 
         GotSearchResults response ->
             response
@@ -458,6 +450,51 @@ defaultSystemDict =
     CheckwordList.defaultDictFromEnumerable System.enumerable ClickedSystem
 
 
+{-| Create system dict from maybe list of checked items.
+-}
+fromCheckedSystems : Maybe (List Int) -> Dict Int (CheckwordData Msg)
+fromCheckedSystems maybeChecked =
+    case maybeChecked of
+        Nothing ->
+            defaultSystemDict
+
+        Just checked ->
+            List.foldl
+                (\key -> Dict.update key (Maybe.map (updateCheckword True)))
+                defaultSystemDict
+                checked
+
+
+{-| Create topics dict from maybe list of checked topics.
+-}
+fromCheckedTopics : Maybe (List Int) -> Dict Int (CheckwordData Msg)
+fromCheckedTopics maybeChecked =
+    case maybeChecked of
+        Nothing ->
+            defaultTopicDict
+
+        Just checked ->
+            List.foldl
+                (\key -> Dict.update key (Maybe.map (updateCheckword True)))
+                defaultTopicDict
+                checked
+
+
+{-| Create stages dict from maybe list of checked topics.
+-}
+fromCheckedStages : Maybe (List Int) -> Dict Int (CheckwordData Msg)
+fromCheckedStages maybeChecked =
+    case maybeChecked of
+        Nothing ->
+            defaultStageDict
+
+        Just checked ->
+            List.foldl
+                (\key -> Dict.update key (Maybe.map (updateCheckword True)))
+                defaultStageDict
+                checked
+
+
 {-| A default topic dictionary mapping topic ints to checkword data.
 -}
 defaultTopicDict : Dict Int (CheckwordData Msg)
@@ -474,23 +511,47 @@ defaultStageDict =
 
 {-| Update the system dictionary with a new one in the model
 -}
-updateSystemDict : Model -> Dict Int (CheckwordData Msg) -> Model
+updateSystemDict : Model -> Dict Int (CheckwordData Msg) -> ( Model, Cmd Msg )
 updateSystemDict model updatedDict =
-    { model | systemDict = updatedDict }
+    let
+        updatedObjectiveListQueries =
+            model.session.objectiveListQueries
+                |> Route.updateObjectiveListSystems (Just <| CheckwordList.filterChecked updatedDict)
+                |> Route.updateObjectiveListPage Nothing
+    in
+    ( model
+    , Navigation.pushUrl model.session.key (Route.toString <| Route.ObjectiveList updatedObjectiveListQueries)
+    )
 
 
 {-| Update the topic dictionary with a new one in the model
 -}
-updateTopicDict : Model -> Dict Int (CheckwordData Msg) -> Model
+updateTopicDict : Model -> Dict Int (CheckwordData Msg) -> ( Model, Cmd Msg )
 updateTopicDict model updatedDict =
-    { model | topicDict = updatedDict }
+    let
+        updatedObjectiveListQueries =
+            model.session.objectiveListQueries
+                |> Route.updateObjectiveListTopics (Just <| CheckwordList.filterChecked updatedDict)
+                |> Route.updateObjectiveListPage Nothing
+    in
+    ( model
+    , Navigation.pushUrl model.session.key (Route.toString <| Route.ObjectiveList updatedObjectiveListQueries)
+    )
 
 
 {-| Update the stage dictionary with a new one in the model
 -}
-updateStageDict : Model -> Dict Int (CheckwordData Msg) -> Model
+updateStageDict : Model -> Dict Int (CheckwordData Msg) -> ( Model, Cmd Msg )
 updateStageDict model updatedDict =
-    { model | stageDict = updatedDict }
+    let
+        updatedObjectiveListQueries =
+            model.session.objectiveListQueries
+                |> Route.updateObjectiveListStages (Just <| CheckwordList.filterChecked updatedDict)
+                |> Route.updateObjectiveListPage Nothing
+    in
+    ( model
+    , Navigation.pushUrl model.session.key (Route.toString <| Route.ObjectiveList updatedObjectiveListQueries)
+    )
 
 
 {-| Update the search bar with a new string
@@ -556,6 +617,21 @@ updateAddObjectiveResponse model response =
             }
 
 
+{-| Clicked the search button.
+-}
+clickedSearch : Model -> ( Model, Cmd Msg )
+clickedSearch model =
+    let
+        updatedObjectiveListQueries =
+            model.session.objectiveListQueries
+                |> Route.updateObjectiveListSearch (Just model.search)
+                |> Route.updateObjectiveListPage Nothing
+    in
+    ( model
+    , Navigation.pushUrl model.session.key (Route.toString <| Route.ObjectiveList updatedObjectiveListQueries)
+    )
+
+
 {-| Updates the search results
 -}
 updateResults : Model -> WebData (Paginated Objective.GetData) -> Model
@@ -568,15 +644,21 @@ updateResults model response =
 updatePage : Model -> Direction -> ( Model, Cmd Msg )
 updatePage model direction =
     let
-        newModel =
+        newPageNumber =
             case direction of
                 Increment ->
-                    { model | page = model.page + 1, results = Loading }
+                    model.page + 1
 
                 Decrement ->
-                    { model | page = model.page - 1, results = Loading }
+                    model.page - 1
+
+        updatedObjectiveListQueries =
+            model.session.objectiveListQueries
+                |> Route.updateObjectiveListPage (Just newPageNumber)
     in
-    ( newModel, searchRequest newModel )
+    ( model
+    , Navigation.pushUrl model.session.key (Route.toString <| Route.ObjectiveList updatedObjectiveListQueries)
+    )
 
 
 {-| The types of categorisation of questions.

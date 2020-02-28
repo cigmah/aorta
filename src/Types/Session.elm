@@ -15,7 +15,7 @@ a flag to the program so they can be bundled into the app with webpack.
 
 -}
 
-import Architecture.Route as Route exposing (Route)
+import Architecture.Route as Route exposing (ObjectiveListQueries, Route)
 import Browser.Navigation exposing (Key)
 import Dict exposing (Dict)
 import Json.Decode as Decode exposing (Decoder, Value)
@@ -38,6 +38,7 @@ type alias Session =
     , key : Key
     , test : Maybe Test.SessionData
     , back : Maybe Route
+    , objectiveListQueries : ObjectiveListQueries
     , resources : Resources
     }
 
@@ -61,6 +62,7 @@ fillKey auth landingImage key =
     , key = key
     , test = Nothing
     , back = Nothing
+    , objectiveListQueries = Route.defaultObjectiveListQueries
     , resources = { landingImage = landingImage }
     }
 
@@ -79,6 +81,7 @@ default key =
     , key = key
     , test = Nothing
     , back = Nothing
+    , objectiveListQueries = Route.defaultObjectiveListQueries
     , resources = { landingImage = "" }
     }
 

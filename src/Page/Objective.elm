@@ -308,6 +308,7 @@ viewBody : Model -> List (Html Msg)
 viewBody model =
     [ ObjectiveDetail.element
         { objective = model.objectiveWebData
+        , backHref = Route.toHref (Route.ObjectiveList model.session.objectiveListQueries)
         , editable = isContributor model.objectiveWebData model
         , onClickEdit = ClickedEdit
         , editableData = model.editableData

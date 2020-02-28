@@ -27,6 +27,7 @@ element data =
             , placeholder data.placeholder
             , onInput data.onInput
             , class "search-bar-input"
+            , value data.value
             ]
             []
         , button

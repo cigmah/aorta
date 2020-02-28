@@ -92,8 +92,8 @@ fromRoute route session =
             Objective.init session objectiveId
                 |> extractWith Objective GotObjectiveMsg
 
-        Route.ObjectiveList ->
-            ObjectiveList.init session
+        Route.ObjectiveList objectiveListQueries ->
+            ObjectiveList.init session objectiveListQueries
                 |> extractWith ObjectiveList GotObjectiveListMsg
 
         Route.Question questionId ->

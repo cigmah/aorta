@@ -189,8 +189,8 @@ navigationBar model =
               , href = Route.toHref Route.Home
               }
             , { text = "Learning Objectives"
-              , active = isEqual Route.ObjectiveList model || isEqual (Route.Objective 0) model
-              , href = Route.toHref Route.ObjectiveList
+              , active = isEqual (Route.ObjectiveList Route.defaultObjectiveListQueries) model || isEqual (Route.Objective 0) model
+              , href = Route.toHref (Route.ObjectiveList (.objectiveListQueries <| eject model))
               }
             ]
         , rightItem = rightItem
@@ -209,8 +209,8 @@ bottomBar model =
               , icon = Icon.questions
               }
             , { text = "Objectives"
-              , active = isEqual Route.ObjectiveList model || isEqual (Route.Objective 0) model
-              , href = Route.toHref Route.ObjectiveList
+              , active = isEqual (Route.ObjectiveList Route.defaultObjectiveListQueries) model || isEqual (Route.Objective 0) model
+              , href = Route.toHref (Route.ObjectiveList (.objectiveListQueries <| eject model))
               , icon = Icon.objectives
               }
             ]
