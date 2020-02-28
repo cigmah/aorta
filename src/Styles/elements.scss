@@ -358,8 +358,14 @@ $bottom-bar-height: 3.6rem;
   height: 100%;
   flex-grow: 1;
   color: $grey-600;
+  .bottom-bar-icon {
+    stroke: $grey-600;
+  }
   .active {
     color: $black;
+    .bottom-bar-icon {
+      stroke: $black;
+    }
   }
 }
 
@@ -373,6 +379,8 @@ $bottom-bar-height: 3.6rem;
 
 .bottom-bar-item-icon {
   font-size: 1.3rem;
+  width: 1em;
+  height: 1em;
 }
 
 .bottom-bar-item-text {

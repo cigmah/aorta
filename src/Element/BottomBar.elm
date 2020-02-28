@@ -6,6 +6,7 @@ module Element.BottomBar exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Types.Icon as Icon
 
 
 type alias Data msg =
@@ -16,6 +17,7 @@ type alias ItemData msg =
     { href : Attribute msg
     , text : String
     , active : Bool
+    , icon : Html msg
     }
 
 
@@ -40,7 +42,7 @@ item data =
             ]
             [ div
                 [ class "bottom-bar-item-icon" ]
-                [ text "?" ]
+                [ data.icon ]
             , div
                 [ class "bottom-bar-item-text" ]
                 [ text data.text ]

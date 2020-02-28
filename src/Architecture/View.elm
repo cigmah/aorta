@@ -38,6 +38,7 @@ import Page.Question as Question
 import Page.Report as Report
 import RemoteData exposing (RemoteData(..))
 import Types.Credentials exposing (Auth(..), Credentials)
+import Types.Icon as Icon
 import Types.Register as Register
 import Types.Session as Session
 
@@ -205,10 +206,12 @@ bottomBar model =
             [ { text = "Questions"
               , active = isEqual Route.Home model
               , href = Route.toHref Route.Home
+              , icon = Icon.questions
               }
             , { text = "Objectives"
               , active = isEqual Route.ObjectiveList model || isEqual (Route.Objective 0) model
               , href = Route.toHref Route.ObjectiveList
+              , icon = Icon.objectives
               }
             ]
         }

@@ -24,6 +24,14 @@ selectAll =
     svg [ width "100%", height "100%", viewBox "0 0 128 128" ] [ g [ fill "none", stroke "#4299e1", strokeLinejoin "round" ] [ Svg.path [ strokeWidth "12.921", d "M23.138 23.576h80.827v82.1H23.138z" ] [], Svg.path [ d "M41.757 65.268l21 21 45.208-66.692", strokeWidth "12", strokeLinecap "round" ] [] ] ]
 
 
+objectives =
+    svg [ width "100%", height "100%", viewBox "0 0 128 128", class "bottom-bar-icon" ] [ g [ strokeLinecap "round" ] [ Svg.path [ fill "#fff", strokeWidth "6.067", strokeLinejoin "round", d "M12 12h27.733v27.733H12zM12 50.133h27.733v27.733H12zM12 88.267h27.733V116H12z" ] [], g [ fill "none", strokeWidth "6" ] [ Svg.path [ d "M56 13.867h56M56 25.867h32M56 37.867h52" ] [] ], g [ fill "none", strokeWidth "6" ] [ Svg.path [ d "M56 52h56M56 64h32M56 76h52" ] [] ], g [ fill "none", strokeWidth "6" ] [ Svg.path [ d "M56 90.133h56M56 102.133h32M56 114.133h52" ] [] ] ] ]
+
+
+questions =
+    svg [ width "100%", height "100%", viewBox "0 0 128 128", class "bottom-bar-icon" ] [ g [ strokeWidth "7", strokeLinecap "round" ] [ Svg.path [ fill "#fff", strokeLinejoin "round", d "M16 16h96v96H16z" ] [], Svg.path [ d "M28 28h72M28 40h32M28 52h56M28 64h44M28 76h68M28 88h48M28 100h60", fill "none" ] [] ] ]
+
+
 ent =
     svg [ width "100%", height "100%", viewBox "0 0 63.5 63.5" ] [ g [ stroke "#fff", strokeLinecap "round", strokeLinejoin "round" ] [ Svg.path [ d "M31.75 21.167c-9.978 1.476-8.052 15.954-7.937 18.52.114 2.567-.047 5.665 3.409 5.665 3.455 0 2.743-2.293 3.948-4.146 1.205-1.853 8.4-7.484 8.518-12.102a7.938 7.938 0 0 0-7.938-7.937z", fill "#feb2b2", strokeWidth "1.058" ] [], Svg.path [ d "M28.693 32.784a5.11 5.11-45 0 1-1.102-5.58 5.11 5.11-45 0 1 4.741-3.142 5.11 5.11-45 0 1 4.71 3.19m-5.509 4.885a3.187 3.187 45 0 1 .687 3.48 3.187 3.187 45 0 1-2.957 1.96 3.187 3.187 45 0 1-2.937-1.99", fill "none", strokeWidth "1.059" ] [] ] ]
 
