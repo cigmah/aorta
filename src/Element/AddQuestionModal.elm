@@ -47,7 +47,6 @@ element data =
         [ class "add-question-group" ]
         [ div
             [ class "add-question-modal-background"
-            , onClick data.onClickClose
             ]
             []
         , Html.form

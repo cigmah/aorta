@@ -14,7 +14,7 @@ Clone this repository.
 git clone https://github.com/cigmah/aorta.git
 ```
 
-To develop locally, you'll need to have [Elm](https://elm-lang.org/) and [create-elm-app](https://github.com/halfzebra/create-elm-app) installed (and therefore `npm` as well). You'll also need [tailwindcss](https://tailwindcss.com/) to build the styles.
+To develop locally, you'll need to have [Elm](https://elm-lang.org/) and [create-elm-app](https://github.com/halfzebra/create-elm-app) installed (and therefore `npm` as well). 
 
 If you're setting things up locally, you'll probably want to have the backend setup locally as well. See the [aorticroot](https://github.com/cigmah/aorticroot) repo for instructions on setting up the backend locally. For local development, to make sure both the frontend and backend can communicate, you may need to modify the `CORS_ORIGIN_WHITELIST`(or set `CORS_ORIGIN_ALLOW_ALL = True`). 
 
@@ -77,7 +77,7 @@ It's a lot, yes. This should be scriptable, so we may make a script for it somet
 - Style/Superficial Fixes
   - [ ] Loading screen for objective loading - change single word to loading animation
   - [ ] Better styling for the report page
-  - [ ] Remove onClick attribute for modal background for add question 
+  - [X] Remove onClick attribute for modal background for add question 
   - [ ] Equalise the height of the question body and the feedback body on
         question page
   - [ ] Make select and deselect buttons more obviously buttons
