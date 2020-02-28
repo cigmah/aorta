@@ -78,7 +78,7 @@ It's a lot, yes. This should be scriptable, so we may make a script for it somet
   - [X] Loading screen for objective loading - change single word to loading animation
   - [ ] Better styling for the report page
   - [X] Remove onClick attribute for modal background for add question 
-  - [ ] Equalise the height of the question body and the feedback body on
+  - [X] Equalise the height of the question body and the feedback body on
         question page
   - [ ] Make select and deselect buttons more obviously buttons
   - [ ] Mobile - information icons for the login modal
