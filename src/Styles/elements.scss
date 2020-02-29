@@ -1941,138 +1941,161 @@ textarea.objective-body-notes {
 .test-report {
   width: 100%;
   margin: auto;
-  margin-top: 4rem;
-  margin-bottom: 2rem;
   padding: 2rem;
-  max-width: 900px;
-  box-shadow: 0 0 20px $grey-300;
+  max-width: 1400px;
+  display: flex;
   @media only screen and (max-width: $mobile) {
-    margin-top: 0;
-    box-shadow: none;
     padding: 1rem;
+    flex-direction: column-reverse;
   }
 }
 
-.test-report-header {
-  display: flex;
-}
-
-.test-report-grade {
-  height: 8rem;
-  width: 8rem;
-  font-size: 4rem;
-  border: 3px solid transparent;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  line-height: 0;
+.test-report-left {
+  width: 65%;
+  background: $white;
+  box-shadow: 0 0 10px $grey-300;
+  padding: 2rem;
   border-radius: 5px;
-  margin-right: 2rem;
-  &.A {
-    color: $green-500;
-    border-color: $green-500;
-  }
-  &.B {
-    color: $green-300;
-    border-color: $green-300;
-  }
-  &.C {
-    color: $grey-700;
-    border-color: $grey-700;
-  }
-  &.D {
-    color: $grey-500;
-    border-color: $grey-500;
-  }
-  &.E {
-    border-color: $red-300;
-    color: $red-300;
-  }
-  &.F {
-    border-color: $red-500;
-    color: $red-500;
-  }
-}
-
-.test-report-statement {
-  border: 3px solid transparent;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-grow: 1;
-  padding: 0.5rem;
-  font-size: 4rem;
-  border-radius: 5px;
-  letter-spacing: -2px;
-  text-align: center;
   @media only screen and (max-width: $mobile) {
-    font-size: 1.5rem;
-    letter-spacing: 0;
+    box-shadow: none;
+    padding: 0;
+    width: 100%;
   }
-  &.A {
-    color: $green-500;
-    border-color: $green-500;
+}
+
+.test-report-right {
+  width: 35%;
+  flex-grow: 1;
+  padding: 0 2rem;
+  @media only screen and (max-width: $mobile) {
+    width: 100%;
+    padding: 0;
+    margin-bottom: 2rem;
   }
-  &.B {
-    color: $green-300;
-    border-color: $green-300;
+}
+
+.test-report-left-heading {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid $grey-500;
+}
+
+.test-report-completed {
+  border-left-width: 5px;
+  padding-left: 1rem;
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+  .markdown p {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
   }
-  &.C {
-    color: $grey-700;
-    border-color: $grey-700;
+  &.correct {
+    border-left-color: $green-500;
   }
-  &.D {
-    color: $grey-500;
-    border-color: $grey-500;
+
+  &.incorrect {
+    border-left-color: $red-500;
   }
-  &.E {
-    border-color: $red-300;
-    color: $red-300;
+}
+
+.test-report-completed-stem {
+  color: $grey-700;
+  border: 1px solid $grey-400;
+  padding: 0 1rem;
+  border-radius: 2px;
+  margin-bottom: 1rem;
+}
+
+.test-report-completed-your-answer {
+  display: flex;
+  font-weight: bold;
+  .test-report-completed-your-answer-text {
+    margin-right: 1rem;
   }
-  &.F {
-    border-color: $red-500;
-    color: $red-500;
+  .test-report-completed-your-answer-choice {
+    flex-grow: 1;
+  }
+}
+
+.test-report-completed-correct-answer {
+  display: flex;
+  font-weight: bold;
+  .test-report-completed-correct-answer-text {
+    margin-right: 1rem;
+  }
+  .test-report-completed-correct-answer-choice {
+    flex-grow: 1;
+  }
+}
+
+.test-report-completed-explanation, .test-report-completed-correct-explanation {
+  margin-left: 1rem;
+  margin-bottom: 1rem;
+}
+
+.test-report-statistics-your-score {
+  display: flex;
+  width: 100%;
+  background: $white;
+  box-shadow: 0 0 10px $grey-400;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  .test-report-statistics-your-score-score {
+    flex-grow: 1;
+    font-weight: bold;
+    text-align: right;
+    font-size: 2rem;
+  }
+}
+
+.test-report-statistics-user-average {
+  @extend .test-report-statistics-your-score;
+  color: $grey-500;
+  .test-report-statistics-user-average-score {
+    @extend .test-report-statistics-your-score-score;
   }
 }
 
 .test-report-finish-button {
   @extend .primary-button;
+  margin-bottom: 2rem;
+  font-size: 1.3rem;
 }
 
-.test-report-body {
-  margin: 2rem 0;
-}
-
-.test-report-completed {
-  margin: 1rem 0;
-  .test-report-completed-stem {
-    padding: 0.5rem;
+.test-report-grouped-scores {
+  background: $white;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 0 10px $grey-400;
+  @media only screen and (max-width: $mobile) {
+    font-size: 0.8rem;
   }
-  .test-report-completed-your-answer {
+}
+
+.test-report-grouped-scores-block {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+  .test-report-grouped-scores-block-text {
+    width: 30%;
+  }
+  .test-report-grouped-scores-block-fraction {
+    width: 10%;
+  }
+  .test-report-grouped-scores-block-graphic {
+    width: 60%;
     display: flex;
-    padding: 1rem;
   }
-  .test-report-completed-your-answer-text {
-    margin-right: 1rem;
-  }
-  &.correct {
-    border-color: $green-500;
-    .test-report-completed-stem {
-      background: $green-500;
-      color: $white;
+  .test-report-grouped-scores-block-block {
+    height: 1rem;
+    &.correct {
+      background: $green-400;
     }
-    .test-report-completed-your-answer {
-      background: $green-200;
-    }
-  }
-  &.incorrect {
-    border-color: $red-500;
-    .test-report-completed-stem {
-      background: $red-500;
-      color: $white;
-    }
-    .test-report-completed-your-answer {
-      background: $red-200;
+    &.incorrect {
+      background: $red-400;
     }
   }
 }
