@@ -4,6 +4,7 @@ module Element.ObjectiveDetail exposing (..)
 -}
 
 import Architecture.Route as Route
+import Color
 import Element.AddQuestionModal as AddQuestionModal
 import Element.Empty as Empty
 import Element.GhostButton as GhostButton
@@ -218,9 +219,12 @@ successView objective data =
             , addQuestionButton
             ]
         , section
-            [ class "objective-main" ]
+            [ class "objective-main"
+            ]
             [ article
-                [ class "objective-body" ]
+                [ class "objective-body"
+                , style "border-top-color" (objective.stage |> Stage.toColor |> Color.toCssString)
+                ]
                 [ header
                     [ class "objective-body-header" ]
                     [ h1

@@ -3,6 +3,7 @@ module Element.QuestionDetail exposing (..)
 {-| A full, detailed view of a question during a test.
 -}
 
+import Color
 import Dict exposing (Dict)
 import Element.Empty as Empty
 import Element.Form as Form
@@ -316,6 +317,7 @@ sidePanel data =
                     , button
                         [ class "question-detail-objective-result"
                         , onClick data.onToggleShowObjective
+                        , style "border-left-color" (question.objective.stage |> Stage.toColor |> Color.toCssString)
                         ]
                         [ figure
                             [ class "objective-result-icon" ]
@@ -539,8 +541,10 @@ objectiveModal data =
                         [ article
                             [ class "question-detail-objective-modal" ]
                             [ header
-                                [ class "question-detail-objective-modal-header" ]
-                                [ h1 [ class "question-detail-objective-modal-header-text" ] [ text "Objective" ]
+                                [ class "question-detail-objective-modal-header"
+                                , style "background" (question.objective.stage |> Stage.toColor |> Color.toCssString)
+                                ]
+                                [ h1 [ class "question-detail-objective-modal-header-text" ] [ text "Learning Objective" ]
                                 , button
                                     [ class "question-detail-objective-modal-close"
                                     , onClick data.onToggleShowObjective

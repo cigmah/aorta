@@ -1,6 +1,7 @@
 module Types.Stage exposing
     ( Stage(..)
     , enumerable
+    , toColor
     )
 
 {-| Contains the Stage type and operations relating to the Stage type.
@@ -10,6 +11,7 @@ categories used to classify learning objectives.
 
 -}
 
+import Color exposing (Color)
 import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
 import Types.Interface exposing (Enumerable)
@@ -181,3 +183,12 @@ decoder : Decoder Stage
 decoder =
     Decode.int
         |> Decode.map fromInt
+
+
+toColor : Stage -> Color
+toColor stage =
+    let
+        hue =
+            0.5 + (0.5 * (toFloat <| toInt stage) / toFloat count)
+    in
+    Color.hsl hue 0.7 0.8

@@ -118,7 +118,9 @@ toInt topic =
 
         DisordersPrimaryCarePrevention ->
             17
-        DisordersGeriatric -> 18
+
+        DisordersGeriatric ->
+            18
 
         DisordersTraumaExternal ->
             19
@@ -191,6 +193,7 @@ fromInt int =
 
         18 ->
             DisordersGeriatric
+
         19 ->
             DisordersTraumaExternal
 

@@ -7,17 +7,16 @@
 // The navigation bar at the top of the page, corresponds to Element.NavBar
 // ----------------------------------------------------------------------------
 
-$navigation-bar-height: 3rem;
+$navigation-bar-height: 2.8rem;
 
 #nav-bar {
   width: 100vw;
   height: $navigation-bar-height;
   padding: 0.25rem 1rem;
   background: $blue-500;
-  background: $primary-gradient;
   display: flex;
   align-items: center;
-  box-shadow: 0 0 10px $blue-500;
+  box-shadow: 0 0 5px $blue-500;
   z-index: 50;
   position: fixed;
   top: 0;
@@ -647,7 +646,7 @@ $bottom-bar-height: 3.6rem;
 // Element.LandingFloat styles
 // ----------------------------------------------------------------------------
 
-$landing-float-margin: 50px;
+$landing-float-margin: 40px;
 
 .landing-float {
   background: white;
@@ -658,9 +657,9 @@ $landing-float-margin: 50px;
   border-radius: 5px;
   box-shadow: 0 0 10px $grey-500;
   margin-left: $landing-float-margin;
-  margin-top: $landing-float-margin;
-  padding: 1.5rem;
-  padding-bottom: 1rem;
+  margin-top: $landing-float-margin / 2;
+  padding: 1.25rem;
+  padding-bottom: 0.5rem;
 
   .primary-button {
     font-size: 1.2rem;
@@ -895,8 +894,10 @@ $landing-float-margin: 50px;
   display: flex;
   align-items: center;
   box-shadow: 0 0 5px $grey-400;
-  border-radius: 5px;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
   border: 1px solid transparent;
+  border-left-width: 5px;
   &:hover {
     background: $blue-400;
     color: $white;
@@ -918,10 +919,10 @@ $landing-float-margin: 50px;
 }
 
 .objective-result-icon {
-  width: 4rem;
-  height: 4rem;
-  min-width: 4rem;
-  min-height: 4rem;
+  width: 3rem;
+  height: 3rem;
+  min-width: 3rem;
+  min-height: 3rem;
 }
 
 .objective-result-body {
@@ -1026,17 +1027,21 @@ $landing-float-margin: 50px;
   margin-left: 1rem;
   margin-bottom: 2rem;
   padding: 3rem;
+  padding-top: 2rem; 
   background: $white;
   box-shadow: 0 0 10px $grey-400;
   width: 100%;
-  border-radius: 5px;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
   z-index: 10;
+  border-top-width: 1.5rem;
   @media only screen and (max-width: $mobile) {
     margin-top: 300px;
     width: auto;
     margin-left: 0;
-    min-height: 100vh;
+    min-height: 50vh;
     padding: 1.5rem;
+    box-shadow: none;
   }
 }
 
@@ -1078,7 +1083,6 @@ $landing-float-margin: 50px;
   margin-left: 1rem;
   padding: 1rem;
   @media only screen and (max-width: $mobile) {
-    box-shadow: 0 0 10px $grey-400;
     margin-left: 0;
     margin-bottom: 6rem;
   }
@@ -1880,10 +1884,10 @@ textarea.objective-body-notes {
 }
 
 .question-detail-objective-modal-header {
-  background: $blue-400;
   color: $white;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 0.5rem 1rem;
   font-weight: bold;
   font-size: 1.2rem;

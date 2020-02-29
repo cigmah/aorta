@@ -4,6 +4,7 @@ module Element.ObjectiveResult exposing (..)
 -}
 
 import Architecture.Route as Route
+import Color
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -19,6 +20,7 @@ element data =
     a
         [ class "objective-result"
         , Route.toHref (Route.Objective data.id)
+        , style "border-left-color" (data.stage |> Stage.toColor |> Color.toCssString)
         ]
         [ figure
             [ class "objective-result-icon" ]
