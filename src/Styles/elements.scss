@@ -490,7 +490,7 @@ $bottom-bar-height: 3.6rem;
   top: 0;
   right: 0;
   z-index: -50;
-  background-color: $blue-300;
+  background-color: $blue-500;
 }
 
 // ----------------------------------------------------------------------------
@@ -1944,6 +1944,7 @@ textarea.objective-body-notes {
   padding: 2rem;
   max-width: 1400px;
   display: flex;
+  animation: 0.3s fadein;
   @media only screen and (max-width: $mobile) {
     padding: 1rem;
     flex-direction: column-reverse;
