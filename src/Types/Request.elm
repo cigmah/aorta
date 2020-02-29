@@ -326,37 +326,41 @@ type alias GetObjectiveListData msg =
 -}
 toSystemQueries : List Int -> List Builder.QueryParameter
 toSystemQueries list =
-    if List.length list == System.enumerable.count then
-        []
+    {- Optimisation removed as it interfered with expected UI interaction.
+       if List.length list == System.enumerable.count then
+           []
 
-    else
-        list
-            -- Legacy - systems were initially called specialties
-            |> List.map (Builder.int "specialty")
+       else
+    -}
+    list
+        -- Legacy - systems were initially called specialties
+        |> List.map (Builder.int "specialty")
 
 
 {-| Converts list of ints to topic query string.
 -}
 toTopicQueries : List Int -> List Builder.QueryParameter
 toTopicQueries list =
-    if List.length list == Topic.enumerable.count then
-        []
+    {- if List.length list == Topic.enumerable.count then
+           []
 
-    else
-        list
-            |> List.map (Builder.int "topic")
+       else
+    -}
+    list
+        |> List.map (Builder.int "topic")
 
 
 {-| Converts list of ints to stage query string.
 -}
 toStageQueries : List Int -> List Builder.QueryParameter
 toStageQueries list =
-    if List.length list == Stage.enumerable.count then
-        []
+    {- if List.length list == Stage.enumerable.count then
+           []
 
-    else
-        list
-            |> List.map (Builder.int "stage")
+       else
+    -}
+    list
+        |> List.map (Builder.int "stage")
 
 
 {-| A GET request for a list of objectives

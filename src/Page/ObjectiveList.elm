@@ -354,10 +354,6 @@ viewBody model =
                 , dict = model.topicDict
                 , direction = Vertical
                 }
-            , PrimaryButton.element
-                { text = "Apply"
-                , onClick = ClickedSearch
-                }
             ]
         , main =
             [ SearchBar.element
