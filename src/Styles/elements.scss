@@ -1198,21 +1198,24 @@ textarea.objective-body-notes {
     padding-left: 0.5rem;
   }
   h1 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     border-bottom: 1px solid $grey-300;
     padding-bottom: 0.5rem;
     margin-top: 2rem;
+    letter-spacing: -1px;
   }
   h2 {
     font-size: 1.25rem;
     border-bottom: 1px solid $grey-200;
     padding-bottom: 0.5rem;
     margin-top: 1.5rem;
+    letter-spacing: -0.5px;
   }
   h3 {
     font-size: 1.15rem;
     font-weight: bold;
     margin-top: 1.25rem;
+    letter-spacing: -0.4px;
   }
   blockquote {
     margin: 1rem;
