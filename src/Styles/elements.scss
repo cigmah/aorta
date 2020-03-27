@@ -514,6 +514,7 @@ $bottom-bar-height: 3.6rem;
     margin-bottom: 0.25rem;
     margin-right: 0.25rem;
     color: $grey-400;
+    font-size: 0.9em;
 
     &:hover {
       background: $grey-400;
@@ -524,6 +525,9 @@ $bottom-bar-height: 3.6rem;
     }
     @media only screen and (max-width: $mobile) {
       padding: 0.5rem;
+    }
+    @media only screen and (min-width: $large) {
+      font-size: 1em;
     }
   }
 
@@ -658,6 +662,7 @@ $landing-float-margin: 40px;
   box-shadow: 0 0 10px $grey-500;
   margin-left: $landing-float-margin;
   margin-top: $landing-float-margin / 2;
+  margin-bottom: $landing-float-margin / 2;
   padding: 1.25rem;
   padding-bottom: 0.5rem;
 
@@ -679,11 +684,14 @@ $landing-float-margin: 40px;
 }
 
 .landing-float-tagline {
-  font-size: 2.4rem;
+  font-size: 2rem;
   line-height: 0.97;
   font-weight: bold;
   letter-spacing: -0.5px;
   margin-bottom: 1.5rem;
+  @media only screen and (min-width: $large) {
+    font-size: 2.4rem;
+  }
 }
 
 // ----------------------------------------------------------------------------
