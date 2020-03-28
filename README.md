@@ -40,7 +40,7 @@ To build, run:
 elm-app build
 ```
 
-If building for Netlify, then also copy the `netlify.toml` file into the build directory.
+If building for Netlify, then also copy the `netlify.toml` and `_redirects` files into the build directory.
 
 ## Structure
 

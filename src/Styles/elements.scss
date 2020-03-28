@@ -1221,6 +1221,21 @@ textarea.objective-body-notes {
     margin: 1rem;
     font-style: italic;
   }
+  table {
+    width: 100%;
+    margin: 1.5rem 0;
+    border-collapse: collapse;
+  }
+  th {
+    border: 1px solid $grey-300;
+    font-style: bold;
+    padding: 0.5rem;
+    background: $grey-200;
+  }
+  td {
+    padding: 0.5rem;
+    border: 1px solid $grey-300;
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -1544,13 +1559,18 @@ textarea.objective-body-notes {
   margin-right: 1rem;
   padding: 2rem;
   overflow: auto;
+  font-size: 0.9em;
   @media only screen and (max-width: $mobile) {
+    font-size: 1em;
     width: 100%;
     box-shadow: none;
     margin: 0;
     padding: 1.2rem;
     padding-top: 0;
     height: auto;
+  }
+  @media only screen and (min-width: $large) {
+    font-size: 1em;
   }
 }
 
@@ -1596,10 +1616,15 @@ textarea.objective-body-notes {
 .question-detail-choice-button {
   @extend .ghost-button;
   margin: 0.5rem 0;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.5rem;
   text-align: left;
   cursor: pointer;
   font-size: 1rem;
+  .markdown {
+    p {
+      margin: 0;
+    }
+  }
 }
 
 .question-detail-choice-summary-text {
@@ -1612,7 +1637,7 @@ textarea.objective-body-notes {
 .question-detail-choice-details {
   margin: 0.5rem 0;
   .question-detail-choice-summary {
-    font-size: 1rem;
+    font-size: 1em;
     border: 2px solid transparent;
     display: flex;
     padding: 0.5rem 1rem;
@@ -1623,6 +1648,11 @@ textarea.objective-body-notes {
     background: $grey-300;
     color: $grey-600;
     position: relative;
+    display: flex;
+    align-items: center;
+    &::-webkit-details-marker {
+      z-index: 30;
+    }
   }
   .question-detail-choice-summary-markdown {
     margin: 0;
@@ -1690,7 +1720,7 @@ textarea.objective-body-notes {
   overflow: auto;
   animation: 0.3s fadein;
   transition: 0.3s all;
-
+  font-size: 0.9em;
   label {
     @extend .text-input-label;
     font-weight: bold;
@@ -1704,6 +1734,9 @@ textarea.objective-body-notes {
     box-shadow: none !important;
     border-top: 1px dotted $grey-400;
     margin-bottom: 9vh;
+  }
+  @media only screen and (min-width: $large) {
+    font-size: 1em;
   }
 }
 

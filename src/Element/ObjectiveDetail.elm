@@ -18,6 +18,7 @@ import Markdown
 import Maybe.Extra exposing (isNothing)
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Icon as Icon
+import Types.Markdown exposing (markdown)
 import Types.Objective as Objective
 import Types.Paginated as Paginated exposing (Paginated)
 import Types.Question as Question
@@ -172,7 +173,7 @@ successView objective data =
                 [ text "There are no notes for this objective yet." ]
 
             else
-                Markdown.toHtml Nothing objective.notes
+                [ markdown objective.notes ]
 
         addQuestionButton =
             if data.canAddQuestion then

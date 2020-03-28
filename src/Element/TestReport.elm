@@ -19,6 +19,7 @@ import RemoteData exposing (RemoteData(..), WebData)
 import Types.Choice as Choice
 import Types.Comment as Comment
 import Types.Datetime as Datetime
+import Types.Markdown exposing (markdown)
 import Types.Objective as Objective
 import Types.Question as Question
 import Types.Stage as Stage
@@ -104,11 +105,11 @@ renderCompletedQuestion completed =
                         [ text "The correct answer is: " ]
                     , div
                         [ class "test-report-completed-correct-answer-choice" ]
-                        (Markdown.toHtml Nothing content)
+                        [ markdown content ]
                     ]
                 , div
                     [ class "test-report-completed-correct-explanation markdown" ]
-                    (Markdown.toHtml Nothing explanation)
+                    [ markdown explanation ]
                 )
     in
     article
@@ -117,7 +118,7 @@ renderCompletedQuestion completed =
         ]
         [ div
             [ class "test-report-completed-stem markdown" ]
-            (Markdown.toHtml Nothing completed.question.stem)
+            [ markdown completed.question.stem ]
         , div
             [ class "test-report-completed-your-answer" ]
             [ div
@@ -125,12 +126,12 @@ renderCompletedQuestion completed =
                 [ text "You answered: " ]
             , div
                 [ class "test-report-completed-your-answer-choice" ]
-                (Markdown.toHtml Nothing completed.choice.content)
+                [ markdown completed.choice.content ]
             , markingSymbol
             ]
         , div
             [ class "test-report-completed-explanation markdown" ]
-            (Markdown.toHtml Nothing completed.choice.explanation)
+            [ markdown completed.choice.explanation ]
         , correctAnswer
         , correctExplanation
         ]

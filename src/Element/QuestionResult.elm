@@ -7,6 +7,7 @@ import Architecture.Route as Route
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Types.Markdown exposing (markdown)
 import Types.Question as Question
 
 
@@ -19,7 +20,7 @@ element onClickQuestion data =
         ]
         [ section
             [ class "question-result-stem" ]
-            [ text data.stem ]
+            [ markdown data.stem ]
         , div
             [ class "question-result-contributor" ]
             [ text ("Contributed by " ++ data.contributor.username) ]

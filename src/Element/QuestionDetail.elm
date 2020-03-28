@@ -17,6 +17,7 @@ import RemoteData exposing (RemoteData(..), WebData)
 import Types.Choice as Choice
 import Types.Comment as Comment
 import Types.Datetime as Datetime
+import Types.Markdown as Markdown exposing (markdown)
 import Types.Objective as Objective
 import Types.Question as Question
 import Types.Stage as Stage
@@ -173,8 +174,8 @@ mainQuestion data =
                 , section
                     [ class "question-detail-content" ]
                     [ section
-                        [ class "question-detail-stem markdown" ]
-                        (Markdown.toHtml Nothing question.stem)
+                        [ class "question-detail-stem" ]
+                        [ markdown question.stem ]
                     , ul
                         [ class "question-detail-choices" ]
                         (choices |> List.map (renderChoice data data.selected totalChosen))
@@ -257,7 +258,7 @@ renderChoice data selectedMaybe totalChosen choice =
                     [ class "question-detail-choice-button"
                     , onClick (data.onClickChoice choice.id)
                     ]
-                    (Markdown.toHtml Nothing choice.content)
+                    [ markdown choice.content ]
                 ]
 
         Just selected ->
@@ -290,7 +291,7 @@ renderChoice data selectedMaybe totalChosen choice =
                             [ class "question-detail-choice-summary-text" ]
                             [ div
                                 [ class "question-detail-choice-summary-markdown markdown" ]
-                                (Markdown.toHtml Nothing choice.content)
+                                [ markdown choice.content ]
                             , div
                                 [ class "question-detail-choice-summary-text-percent" ]
                                 [ text (String.append (String.fromFloat chosenPercent |> String.left 4) "%") ]
@@ -298,7 +299,7 @@ renderChoice data selectedMaybe totalChosen choice =
                         ]
                     , section
                         [ class "question-detail-choice-detail" ]
-                        (Markdown.toHtml Nothing choice.explanation)
+                        [ markdown choice.explanation ]
                     ]
                 ]
 
@@ -430,7 +431,7 @@ viewComment comment =
             [ text (Datetime.posixToString comment.createdAt) ]
         , div
             [ class "question-detail-comment-content" ]
-            (Markdown.toHtml Nothing comment.content)
+            [ markdown comment.content ]
         ]
 
 
@@ -558,7 +559,7 @@ objectiveModal data =
                                     [ text question.objective.title ]
                                 , div
                                     [ class "question-detail-objective-modal-notes markdown" ]
-                                    (Markdown.toHtml Nothing notes)
+                                    [ markdown notes ]
                                 ]
                             ]
                         ]
