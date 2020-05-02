@@ -60,6 +60,7 @@ type Msg
     | GotObjectiveResponse (WebData Objective.GetData)
     | GotQuestionListResponse (WebData (Paginated Question.GetBasicData))
     | ClickedEdit
+    | ClickedCancelEdit
     | ChangedTitle String
     | ChangedNotes String
     | ClickedSubmitEdits
@@ -197,6 +198,11 @@ update msg model =
                 |> startEdits
                 |> withCmdNone
 
+        ClickedCancelEdit ->
+            model
+                |> resetEdits
+                |> withCmdNone
+
         ChangedTitle string ->
             string
                 |> updateEditableTitle model
@@ -311,6 +317,7 @@ viewBody model =
         , backHref = Route.toHref (Route.ObjectiveList model.session.objectiveListQueries)
         , editable = isContributor model.objectiveWebData model
         , onClickEdit = ClickedEdit
+        , onClickCancelEdit = ClickedCancelEdit
         , editableData = model.editableData
         , editing = model.editing
         , onChangeTitle = ChangedTitle

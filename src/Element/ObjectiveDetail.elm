@@ -14,11 +14,10 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http exposing (Error(..))
-import Markdown
 import Maybe.Extra exposing (isNothing)
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Icon as Icon
-import Types.Markdown exposing (markdown)
+import Types.Markdown as Markdown exposing (markdown)
 import Types.Objective as Objective
 import Types.Paginated as Paginated exposing (Paginated)
 import Types.Question as Question
@@ -32,6 +31,7 @@ type alias Data msg =
     , backHref : Attribute msg
     , editable : Bool
     , onClickEdit : msg
+    , onClickCancelEdit : msg
     , editableData : Maybe Objective.EditableData
     , editing : Bool
     , onChangeTitle : String -> msg
@@ -300,34 +300,52 @@ editView editable data =
         [ class "objective-edit-form"
         , onSubmit data.onClickSubmit
         ]
-        [ header
-            [ class "objective-edit-header" ]
-            [ textarea
-                [ class "objective-body-title"
-                , required True
-                , onInput data.onChangeTitle
-                , value editable.title
-                , placeholder "Learning objective..."
-                , rows 2
+        [ div [ class "objective-edit-left" ]
+            [ header
+                [ class "objective-edit-header" ]
+                [ textarea
+                    [ class "objective-body-title"
+                    , required True
+                    , onInput data.onChangeTitle
+                    , value editable.title
+                    , placeholder "Learning objective..."
+                    , rows 2
+                    ]
+                    []
+                ]
+            , textarea
+                [ class "objective-body-notes markdown"
+                , required False
+                , onInput data.onChangeNotes
+                , value editable.notes
+                , placeholder "Notes..."
                 ]
                 []
+            , div [ class "objective-edit-buttons" ]
+                [ button
+                    [ disabled (isLoading data.objective)
+                    , class "objective-body-edit-cancel"
+                    , onClick data.onClickCancelEdit
+                    , type_ "button"
+                    ]
+                    [ text "Cancel" ]
+                , button
+                    [ type_ "submit"
+                    , disabled (isLoading data.objective)
+                    , class "objective-body-edit-submit"
+                    ]
+                    [ text "Save" ]
+                ]
+            , errorDiv
             ]
-        , textarea
-            [ class "objective-body-notes markdown"
-            , required False
-            , onInput data.onChangeNotes
-            , value editable.notes
-            , placeholder "Notes..."
-            , rows 20
+        , div [ class "objective-edit-right" ]
+            [ header [ class "objective-edit-preview-header" ] [ text "Preview" ]
+            , header
+                [ class "objective-body-title" ]
+                [ text editable.title ]
+            , div [ class "objective-body-notes markdown" ]
+                [ Markdown.markdown editable.notes ]
             ]
-            []
-        , button
-            [ type_ "submit"
-            , disabled (isLoading data.objective)
-            , class "objective-body-edit-submit"
-            ]
-            [ text "Save" ]
-        , errorDiv
         ]
 
 

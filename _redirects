@@ -2,3 +2,4 @@
 
 # Redirect default Netlify subdomain to primary domain
 https://aorta.netlify.com/* https://aorta.cigmah.org/:splat 301!
+https://aorta.netlify.app/* https://aorta.cigmah.org/:splat 301!

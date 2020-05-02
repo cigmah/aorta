@@ -1120,13 +1120,60 @@ $landing-float-margin: 40px;
 // EDIT FORM
 
 .objective-edit-form {
-  max-width: 900px;
   margin: auto;
   padding: 2rem;
-  box-shadow: 0 0 10px $grey-400;
-  margin-top: 5rem;
-  margin-bottom: 5rem;
   padding-bottom: 1rem;
+  display: flex;
+.objective-body-notes {
+  flex-grow: 1;
+  animation: 0.2s fadein;
+}
+}
+
+.objective-edit-left {
+  width: 50%;
+  height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.objective-edit-right {
+  width: 50%;
+  margin-left: 3rem;
+  height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  border: 1px solid $grey-300;
+  box-shadow:  0 0 10px $grey-300;
+  border-radius: 5px;
+  .objective-edit-preview-header {
+    width: 100%;
+    background: $grey-300;
+    color: $grey-700;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    text-align: center;
+    font-size: 0.8rem;
+  }
+  .objective-body-title{
+    margin-bottom: 0rem;
+    margin-top: 2rem;
+    padding: 1rem 2rem;
+  }
+  .objective-body-notes {
+    padding: 2rem;
+    padding-top: 0;
+  }
+}
+
+.objective-edit-buttons {
+  display: flex;
+  .objective-body-edit-cancel {
+    @extend .ghost-button;
+    margin: 0.5rem 0.5rem 0.5rem 0;
+    width: 25%;
+  }
 }
 
 textarea.objective-body-title,
@@ -1140,6 +1187,8 @@ textarea.objective-body-notes {
     border: 1px solid $blue-400;
   }
 }
+
+
 
 .objective-body-edit-submit {
   @extend .primary-button;
