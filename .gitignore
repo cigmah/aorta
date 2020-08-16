@@ -21,3 +21,5 @@ src/Styles/*.css
 
 # Ignore sketches
 sketches
+# Local Netlify folder
+.netlify
