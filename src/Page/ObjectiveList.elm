@@ -107,17 +107,18 @@ type Msg
 
 
 {-| The page initialisation function.
+If there is already a cached objective list and the queries are the same, then use that instead and don't reload.
 -}
 init : Session -> ObjectiveListQueries -> ( Model, Cmd Msg )
 init session queries =
     let
-        model =
+        buildModel results =
             { session = { session | objectiveListQueries = queries }
             , errors = defaultErrors
             , systemDict = fromCheckedSystems queries.systems
             , topicDict = fromCheckedTopics queries.topics
             , stageDict = fromCheckedStages queries.stages
-            , results = Loading
+            , results = results
             , filtersVisible = False
             , search = queries.search |> Maybe.withDefault ""
             , page = queries.page |> Maybe.withDefault 1
@@ -125,7 +126,24 @@ init session queries =
             , addObjectiveResponse = NotAsked
             }
     in
-    ( model, searchRequest model )
+    case session.objectiveListCache of
+        Success objectiveList ->
+            if queries == session.objectiveListQueries then
+                ( buildModel (Success objectiveList), Cmd.none )
+
+            else
+                let
+                    model =
+                        buildModel Loading
+                in
+                ( model, searchRequest model )
+
+        _ ->
+            let
+                model =
+                    buildModel Loading
+            in
+            ( model, searchRequest model )
 
 
 
@@ -628,11 +646,11 @@ clickedSearch model =
     )
 
 
-{-| Updates the search results
+{-| Updates the search results and caches the new results into the session.
 -}
 updateResults : Model -> WebData (Paginated Objective.GetData) -> Model
-updateResults model response =
-    { model | results = response }
+updateResults ({ session } as model) response =
+    { model | results = response, session = { session | objectiveListCache = response } }
 
 
 {-| Updates the page.

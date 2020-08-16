@@ -24,6 +24,8 @@ import List.Extra exposing (remove)
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Credentials as Credentials exposing (..)
 import Types.Login as Login
+import Types.Objective as Objective
+import Types.Paginated as Paginated exposing (Paginated)
 import Types.Register as Register
 import Types.Request as Request
 import Types.Test as Test
@@ -39,6 +41,7 @@ type alias Session =
     , test : Maybe Test.SessionData
     , back : Maybe Route
     , objectiveListQueries : ObjectiveListQueries
+    , objectiveListCache : WebData (Paginated Objective.GetData)
     , resources : Resources
     }
 
@@ -63,6 +66,7 @@ fillKey auth landingImage key =
     , test = Nothing
     , back = Nothing
     , objectiveListQueries = Route.defaultObjectiveListQueries
+    , objectiveListCache = NotAsked
     , resources = { landingImage = landingImage }
     }
 
@@ -82,6 +86,7 @@ default key =
     , test = Nothing
     , back = Nothing
     , objectiveListQueries = Route.defaultObjectiveListQueries
+    , objectiveListCache = NotAsked
     , resources = { landingImage = "" }
     }
 
