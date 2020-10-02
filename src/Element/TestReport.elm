@@ -12,7 +12,6 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http exposing (Error(..))
 import List
-import Markdown
 import Maybe
 import Maybe.Extra
 import RemoteData exposing (RemoteData(..), WebData)

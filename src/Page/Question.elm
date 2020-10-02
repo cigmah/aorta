@@ -1,4 +1,4 @@
-module Page.Question exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
+port module Page.Question exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
 {-| This page is the main EMQ review page for reviewing questions.
 
@@ -246,9 +246,17 @@ update msg model =
                         |> withCmdNone
 
         ToggledShowObjective ->
+            let
+                command =
+                    if model.showObjective then
+                        withCmdNone
+
+                    else
+                        withCmd (rerenderMermaidModal ())
+            in
             model
                 |> toggleShowObjective
-                |> withCmdNone
+                |> command
 
         ClickedExit ->
             model
@@ -283,6 +291,11 @@ update msg model =
                 Nothing ->
                     model
                         |> goBack
+
+
+{-| Rerender all mermaid diagrams
+-}
+port rerenderMermaidModal : () -> Cmd msg
 
 
 

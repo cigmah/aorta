@@ -11,7 +11,6 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http exposing (Error(..))
-import Markdown
 import Maybe.Extra
 import RemoteData exposing (RemoteData(..), WebData)
 import Types.Choice as Choice

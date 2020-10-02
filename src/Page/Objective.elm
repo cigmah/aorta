@@ -1,4 +1,4 @@
-module Page.Objective exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
+port module Page.Objective exposing (Model, Msg, eject, init, inject, subscriptions, update, view)
 
 import Architecture.Route as Route
 import Browser exposing (Document)
@@ -172,7 +172,7 @@ update msg model =
                 Nothing ->
                     webData
                         |> updateObjectiveWebData model
-                        |> withCmdNone
+                        |> withCmd (rerenderMermaidObjective ())
 
                 -- If there was edit data, then replace and remove editing information if success, or keep if not
                 Just editData ->
@@ -181,12 +181,12 @@ update msg model =
                             webData
                                 |> updateObjectiveWebData model
                                 |> resetEdits
-                                |> withCmdNone
+                                |> withCmd (rerenderMermaidObjective ())
 
                         _ ->
                             webData
                                 |> updateObjectiveWebData model
-                                |> withCmdNone
+                                |> withCmd (rerenderMermaidObjective ())
 
         GotQuestionListResponse webData ->
             webData
@@ -196,12 +196,12 @@ update msg model =
         ClickedEdit ->
             model
                 |> startEdits
-                |> withCmdNone
+                |> withCmd (rerenderMermaidObjective ())
 
         ClickedCancelEdit ->
             model
                 |> resetEdits
-                |> withCmdNone
+                |> withCmd (rerenderMermaidObjective ())
 
         ChangedTitle string ->
             string
@@ -211,7 +211,7 @@ update msg model =
         ChangedNotes string ->
             string
                 |> updateEditableNotes model
-                |> withCmdNone
+                |> withCmd (rerenderMermaidObjective ())
 
         ClickedSubmitEdits ->
             Loading
@@ -284,6 +284,9 @@ update msg model =
             in
             updateQuestionWebData newModel Loading
                 |> withCmd (requestQuestionList newModel)
+
+
+port rerenderMermaidObjective : () -> Cmd msg
 
 
 

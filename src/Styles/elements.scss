@@ -1087,6 +1087,7 @@ $landing-float-margin: 40px;
 }
 
 .objective-questions {
+  background: white;
   width: 100%;
   margin-left: 1rem;
   padding: 1rem;
@@ -2193,3 +2194,51 @@ textarea.objective-body-notes {
     }
   }
 }
+
+// ----------------------------------------------------------------------------
+// || MERMAID DIAGRAMS
+// Mermaid diagrams rendered on page.
+// ----------------------------------------------------------------------------
+
+.lang-mermaid {
+  transition: 0.3s all;
+}
+
+.diagram-mermaid {
+  background: white !important;
+  transition: 0.3s all;
+  animation: 0.3s fadein;
+  margin: 0 auto;
+}
+
+.container-mermaid {
+  white-space: normal;
+  display: flex;
+  overflow: auto;
+  justify-content: center;
+  align-items: center;
+  background: white !important;
+}
+
+.node.default {
+  rect {
+    fill: $white !important;
+    stroke: $blue-600 !important;
+  }
+  .label {
+    color: $blue-600 !important;
+    font-family: "Inter" !important;
+    font-size: 0.9em;
+  }
+}
+
+.path {
+  stroke: $blue-600 !important;
+}
+
+.arrowheadPath {
+  fill: $blue-600 !important;
+  stroke: $blue-600 !important;
+}
+
+

@@ -27,6 +27,7 @@
     "node-sass-chokidar": "^1.4.0"
   },
   "devDependencies": {
-    "create-elm-app": "^4.1.0"
+    "create-elm-app": "^4.1.0",
+    "mermaid": "^8.8.1"
   }
 }
