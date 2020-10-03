@@ -157,19 +157,48 @@ function makeCollapsibleH1() {
   containerParent.className = "objective-body-notes markdown"
 };
 
+// markdown pre blocks - required external packages
+var marked = require("marked");
+var dompurify = require("dompurify");
+
+// renders markdown separately for certain pre blocks with specific classes
+function renderSelectedPreMarkdown() {
+  // pre classes to render markdown within
+  const classes = ["lang-red", "lang-green", "lang-orange", "lang-case", "lang-important", "lang-guideline"];
+  // loop through all selected classes
+  for (var i = 0; i < classes.length; i++) {
+    var className = classes[i];
+    var elements = document.getElementsByClassName(className);
+    // loop through all elements fulfilling these classes
+    for (var j = 0; j < elements.length; j++) {
+      var element = elements[j];
+      // create a new parent to replace the pre block
+      var newParent = document.createElement("div");
+      newParent.className = "custom-box";
+      // create a new child element with the processed and sanitized markdown 
+      var newElement = document.createElement("div");
+      newElement.className = className;
+      newElement.innerHTML = marked(dompurify.sanitize(element.innerHTML));
+      newParent.appendChild(newElement);
+      // change the dom
+      element.parentNode.parentNode.replaceChild(newParent, element.parentNode);
+    };
+  };
+};
+
 // perform all post-processing functions when viewing an objective
 app.ports.postProcessObjectiveView.subscribe(function () {
-  setTimeout(() => { makeCollapsibleH1(); renderMermaid(); }, 50);
+  setTimeout(() => { makeCollapsibleH1(); renderMermaid(); renderSelectedPreMarkdown(); }, 50);
 })
 
 // perform a subset of post-processing functions when editing an objective
 app.ports.postProcessObjectiveEdit.subscribe(function () {
-  setTimeout(() => { renderMermaid(); }, 50);
+  setTimeout(() => { renderMermaid(); renderSelectedPreMarkdown(); }, 50);
 })
 
 // perform a subset of post-processing functions when view an objective from a question modal
 app.ports.postProcessObjectiveModal.subscribe(function () {
-  setTimeout(() => { makeCollapsibleH1(); renderMermaid() }, 50);
+  setTimeout(() => { makeCollapsibleH1(); renderMermaid(); renderSelectedPreMarkdown(); }, 50);
 })
 
 registerServiceWorker(app);

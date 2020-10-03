@@ -28,6 +28,8 @@
   },
   "devDependencies": {
     "create-elm-app": "^4.1.0",
+    "dompurify": "^2.1.1",
+    "marked": "^1.2.0",
     "mermaid": "^8.8.1"
   }
 }

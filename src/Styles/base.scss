@@ -1,6 +1,7 @@
 // Base contains a base set of general styles and is the very first CSS include.
 
 @import "breakpoints.scss";
+@import "fonts.scss";
 
 // ----------------------------------------------------------------------------
 // || REMOVE BROWSER DEFAULTS
@@ -72,7 +73,7 @@ object {
 
 // Default sans-serif font
 html {
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; 
+  font-family: $body-font;
 }
 
 // Remove anchor default styling.

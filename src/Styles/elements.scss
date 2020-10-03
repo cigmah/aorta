@@ -1,5 +1,6 @@
 // Basic components for the app.
 @import "colours.scss";
+@import "fonts.scss";
 @import "breakpoints.scss";
 
 // ----------------------------------------------------------------------------
@@ -1216,11 +1217,15 @@ textarea.objective-body-notes {
     line-height: 1;
     font-family: Consolas, Menlo, Monaco, "Lucida Console", "Liberation Mono", "DejaVu Sans Mono",
       "Bitstream Vera Sans Mono", monospace, serif;
-    background: $grey-200;
   }
   pre {
-    padding: 1rem;
     margin: 1.5rem 0;
+    > code {
+      padding: 1rem;
+      width: 100%;
+      display: block;
+      background: $grey-200;
+    }
   }
   img {
     max-width: 100%;
@@ -1350,6 +1355,114 @@ textarea.objective-body-notes {
     padding: 0.5rem;
     border: 1px solid $grey-300;
   }
+}
+
+// custom blocks
+.markdown .custom-box {
+  div {
+    margin: 1.5em 0;
+    font-size: 0.975em;
+    border-bottom-right-radius: 10px;
+    position: relative;
+    padding-left: 1rem;
+    padding-bottom: 0.25em;
+    padding-right: 1.5rem;
+    &:after {
+      content: "";
+      border-style: solid;
+      border-width: 0 20px 20px 0;
+      border-color: transparent;
+      position: absolute;
+      top: 0;
+      right: 0;
+    }
+  }
+  .lang-green {
+    background: $green-200;
+    border-top: 3px solid $green-400;
+    color: $green-700;
+    &:after {
+      border-color: transparent $green-400 transparent transparent;
+    }
+  }
+  .lang-red {
+    background: $red-200;
+    border-top: 3px solid $red-400;
+    color: $red-700;
+    &:after {
+      border-color: transparent $red-400 transparent transparent;
+    }
+  }
+  .lang-orange {
+    background: $orange-200;
+    border-top: 3px solid $orange-400;
+    &:after {
+      border-color: transparent $orange-400 transparent transparent;
+    }
+  }
+  .lang-important {
+    background: $blue-200;
+    border-top: 3px solid $blue-400;
+    &:after {
+      border-color: transparent $blue-400 transparent transparent;
+    }
+  }
+  .lang-case {
+    &:before {
+      content: "--> Clinical Correlation";
+      padding-top: 1em;
+      margin-bottom: 0.5em;
+      font-size: 1.25em;
+      color: $pink-600;
+      display: block;
+      padding-bottom: 0.25em;
+      border-bottom: 1px dotted $pink-400;
+    }
+    background: $pink-200;
+    border-top: 3px solid $pink-400;
+    &:after {
+      border-color: transparent $pink-400 transparent transparent;
+    }
+  }
+  .lang-important {
+    &:before {
+      content: "❖ Key Points";
+      padding-top: 1em;
+      margin-bottom: 0.5em;
+      font-size: 1.2em;
+      color: $blue-600;
+      font-weight: bold;
+      display: block;
+      padding-bottom: 0.25em;
+      border-bottom: 1px solid $blue-400;
+    }
+    background: $blue-200;
+    font-size: 1.05em;
+    border-top: 3px solid $blue-400;
+    &:after {
+      border-color: transparent $blue-400 transparent transparent;
+    }
+  }
+
+  .lang-guideline {
+    &:before {
+      content: "◇ Guidelines & Evidence";
+      padding-top: 1em;
+      margin-bottom: 0.5em;
+      font-size: 1.25em;
+      color: $teal-600;
+      font-weight: bold;
+      display: block;
+      padding-bottom: 0.25em;
+      border-bottom: 1px solid $teal-400;
+    }
+    background: $teal-200;
+    border-top: 3px solid $teal-400;
+    &:after {
+      border-color: transparent $teal-400 transparent transparent;
+    }
+  }
+
 }
 
 // ----------------------------------------------------------------------------
@@ -2277,6 +2390,9 @@ textarea.objective-body-notes {
   transition: 0.3s all;
   animation: 0.3s fadein;
   margin: 0 auto;
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
 }
 
 .container-mermaid {
@@ -2295,7 +2411,7 @@ textarea.objective-body-notes {
   }
   .label {
     color: $blue-600 !important;
-    font-family: "Inter" !important;
+    font-family: $body-font !important;
     font-size: 0.9em;
   }
 }
