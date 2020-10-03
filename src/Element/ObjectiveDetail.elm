@@ -252,7 +252,9 @@ successView objective data =
                         ]
                     ]
                 , section
-                    [ class "objective-body-notes markdown" ]
+                    [ class "objective-body-notes markdown loading-hidden"
+                    , id "objective-body-notes"
+                    ]
                     notes
                 ]
             , section

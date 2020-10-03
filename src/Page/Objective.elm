@@ -172,7 +172,7 @@ update msg model =
                 Nothing ->
                     webData
                         |> updateObjectiveWebData model
-                        |> withCmd (rerenderMermaidObjective ())
+                        |> withCmd (postProcessObjectiveView ())
 
                 -- If there was edit data, then replace and remove editing information if success, or keep if not
                 Just editData ->
@@ -181,12 +181,12 @@ update msg model =
                             webData
                                 |> updateObjectiveWebData model
                                 |> resetEdits
-                                |> withCmd (rerenderMermaidObjective ())
+                                |> withCmd (postProcessObjectiveView ())
 
                         _ ->
                             webData
                                 |> updateObjectiveWebData model
-                                |> withCmd (rerenderMermaidObjective ())
+                                |> withCmd (postProcessObjectiveView ())
 
         GotQuestionListResponse webData ->
             webData
@@ -196,12 +196,12 @@ update msg model =
         ClickedEdit ->
             model
                 |> startEdits
-                |> withCmd (rerenderMermaidObjective ())
+                |> withCmd (postProcessObjectiveEdit ())
 
         ClickedCancelEdit ->
             model
                 |> resetEdits
-                |> withCmd (rerenderMermaidObjective ())
+                |> withCmd (postProcessObjectiveView ())
 
         ChangedTitle string ->
             string
@@ -211,7 +211,7 @@ update msg model =
         ChangedNotes string ->
             string
                 |> updateEditableNotes model
-                |> withCmd (rerenderMermaidObjective ())
+                |> withCmd (postProcessObjectiveEdit ())
 
         ClickedSubmitEdits ->
             Loading
@@ -286,7 +286,10 @@ update msg model =
                 |> withCmd (requestQuestionList newModel)
 
 
-port rerenderMermaidObjective : () -> Cmd msg
+port postProcessObjectiveView : () -> Cmd msg
+
+
+port postProcessObjectiveEdit : () -> Cmd msg
 
 
 

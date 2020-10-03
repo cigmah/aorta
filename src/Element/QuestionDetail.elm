@@ -554,10 +554,12 @@ objectiveModal data =
                             , section
                                 [ class "question-detail-objective-modal-body" ]
                                 [ h1
-                                    [ class "question-detail-objective-modal-title" ]
+                                    [ class "objective-body-title" ]
                                     [ text question.objective.title ]
                                 , div
-                                    [ class "question-detail-objective-modal-notes markdown" ]
+                                    [ class "objective-body-notes markdown loading-hidden"
+                                    , id "objective-body-notes"
+                                    ]
                                     [ markdown notes ]
                                 ]
                             ]

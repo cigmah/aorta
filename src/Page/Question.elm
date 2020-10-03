@@ -252,7 +252,7 @@ update msg model =
                         withCmdNone
 
                     else
-                        withCmd (rerenderMermaidModal ())
+                        withCmd (postProcessObjectiveModal ())
             in
             model
                 |> toggleShowObjective
@@ -295,7 +295,7 @@ update msg model =
 
 {-| Rerender all mermaid diagrams
 -}
-port rerenderMermaidModal : () -> Cmd msg
+port postProcessObjectiveModal : () -> Cmd msg
 
 
 
