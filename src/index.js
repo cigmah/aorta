@@ -51,6 +51,7 @@ var mermaid = require("mermaid");
 mermaid.mermaidAPI.initialize({
   startOnLoad: false,
   logLevel: "fatal",
+  theme: "neutral",
 });
 
 

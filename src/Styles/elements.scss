@@ -2385,44 +2385,53 @@ textarea.objective-body-notes {
   transition: 0.3s all;
 }
 
-.diagram-mermaid {
-  background: white !important;
-  transition: 0.3s all;
-  animation: 0.3s fadein;
-  margin: 0 auto;
-  display: flex !important;
-  justify-content: center;
-  align-items: center;
-}
 
-.container-mermaid {
+pre.container-mermaid {
   white-space: normal;
   display: flex;
   overflow: auto;
   justify-content: center;
   align-items: center;
-  background: white !important;
-}
+  background: white;
+  > code.diagram-mermaid {
+    background: white;
+    transition: 0.3s all;
+    animation: 0.3s fadein;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
-.node.default {
-  rect {
-    fill: $white !important;
-    stroke: $blue-600 !important;
+    svg {
+
+      .node rect {
+        fill: $white;
+        stroke: $blue-600;
+      }
+
+
+      .node.default {
+        rect {
+          fill: $white;
+          stroke: $blue-600;
+        }
+        .label {
+          color: $blue-600;
+          font-family: $body-font;
+          font-size: 0.9em;
+        }
+      }
+
+      .path {
+        stroke: $blue-600;
+      }
+
+      .arrowheadPath {
+        fill: $blue-600;
+        stroke: $blue-600;
+      }
+    }
   }
-  .label {
-    color: $blue-600 !important;
-    font-family: $body-font !important;
-    font-size: 0.9em;
-  }
-}
-
-.path {
-  stroke: $blue-600 !important;
-}
-
-.arrowheadPath {
-  fill: $blue-600 !important;
-  stroke: $blue-600 !important;
 }
 
 
