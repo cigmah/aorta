@@ -74,8 +74,9 @@ function generateMermaidId() {
 
 // checks for all elements with class lang-mermaid and renders mermaid
 function renderMermaid() {
-  var elements = document.getElementsByClassName("lang-mermaid");
-  Array.prototype.forEach.call(elements, element => {
+  const elements = document.getElementsByClassName("lang-mermaid");
+  while (elements.length > 0) {
+    const element = elements[0];
     var newId = generateMermaidId();
     try {
       var insertSvg = (svgCode) => { element.innerHTML = svgCode; element.className = "diagram-mermaid"; element.parentElement.className = "container-mermaid"; };
@@ -84,7 +85,7 @@ function renderMermaid() {
       // remove the syntax error element...there should be a better way to do this i.e. not generating the error element in the first place!
       document.getElementById("d" + newId).remove();
     };
-  });
+  };
 };
 
 // processes all h1 children in markdown child of #objective-body-notes into collapsible details/summary
